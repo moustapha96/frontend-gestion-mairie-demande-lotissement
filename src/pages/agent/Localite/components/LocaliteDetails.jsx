@@ -15,6 +15,7 @@ import { getLocaliteDetails } from "@/services/localiteService";
 import { AgentBreadcrumb } from "@/components";
 import { LuEye } from "react-icons/lu";
 import { cn } from "@/utils";
+import { formatPrice } from "@/utils/formatters";
 
 export default function AgentLocaliteDetails() {
     const { id } = useParams();
@@ -75,7 +76,7 @@ function LocaliteInfoCard({ localite }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoItem icon={<FileText className="w-5 h-5" />} label="Nom" value={localite.nom} />
                 <InfoItem icon={<FileText className="w-5 h-5" />} label="Description" value={localite.description} />
-                <InfoItem icon={<FileText className="w-5 h-5" />} label="Prix" value={`${localite.prix} FCFA`} />
+                <InfoItem icon={<FileText className="w-5 h-5" />} label="Prix" value={formatPrice(localite.prix)} />
             </div>
         </div>
     );

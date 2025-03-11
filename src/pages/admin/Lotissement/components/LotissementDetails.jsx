@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,11 +12,14 @@ import {
     Eye,
     Loader,
     File,
-    MapPinCheck
+    MapPinCheck,
+    Map
 } from "lucide-react";
 import { getLotissementDetails, } from "@/services/lotissementService";
 import { AdminBreadcrumb } from "@/components";
 import { getFileDocumentPlan } from "@/services/planLotissement";
+import MapCar from "../../Map/MapCar";
+import { formatCoordinates, formatPrice } from "@/utils/formatters";
 
 export default function AdminLotissementDetails() {
     const { id } = useParams();
@@ -28,6 +30,7 @@ export default function AdminLotissementDetails() {
     const [fichier, setFichier] = useState(null);
     const [showFile, setShowFile] = useState(false);
     const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const [showMap, setShowMap] = useState(false);
     useEffect(() => {
         const fetchLotissement = async () => {
             try {
@@ -78,12 +81,23 @@ export default function AdminLotissementDetails() {
                 <div className="container">
                     <div className="my-6 space-y-6">
                         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-
                             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-
                                 <h1 className="text-2xl font-bold mb-4">Détail du Lotissement</h1>
                             </div>
-                            <LotissementInfoCard lotissement={lotissement} />
+                            <LotissementInfoCard
+                                lotissement={lotissement}
+                                onShowMap={() => setShowMap(!showMap)}
+                            />
+
+                            {showMap && (
+                                <div className="p-4">
+                                    <MapCar
+                                        selectedItem={lotissement}
+                                        type="lotissement"
+                                    />
+                                </div>
+                            )}
+
                             {lotissement.lots?.length > 0 && <LotInfoTable lots={lotissement.lots} />}
                             {lotissement.planLotissements?.length > 0 && <PlanInfoTable plans={lotissement.planLotissements} setShowFile={setShowFile} isViewerOpen={isViewerOpen}
                                 isLoading={Fileloading} setLoading={setFileLoading} fichier={fichier} handleViewDocument={handleViewDocument} closeViewer={closeViewer} />}
@@ -101,7 +115,7 @@ export default function AdminLotissementDetails() {
     );
 }
 
-function LotissementInfoCard({ lotissement }) {
+function LotissementInfoCard({ lotissement, onShowMap }) {
     return (
         <div className="bg-gray-50 shadow rounded-lg p-4 mb-6">
             <h3 className="text-lg font-medium mb-4">Informations du Lotissement</h3>
@@ -110,11 +124,12 @@ function LotissementInfoCard({ lotissement }) {
                 <InfoItem icon={<FileText className="w-5 h-5" />} label="Nom" value={lotissement.nom} />
                 <InfoItem icon={<MapPin className="w-5 h-5" />} label="Localisation" value={lotissement.localisation} />
                 <InfoItem icon={<CheckCircle className="w-5 h-5" />} label="Statut" value={lotissement.statut} />
-
                 <InfoItem
                     icon={<MapPinCheck className="w-5 h-5" />}
-                    label={"Coordonnées"}
-                    value={lotissement.longitude + "," + lotissement.latitude}
+                    label="Coordonnées"
+                    value={formatCoordinates(lotissement.latitude, lotissement.longitude)}
+                    isCoordinates={true}
+                    onShowMap={onShowMap}
                 />
             </div>
         </div>
@@ -128,9 +143,9 @@ function LotInfoTable({ lots }) {
                 <tr key={lot.id} className="border-b">
                     <td className="p-4">{lot.numeroLot}</td>
                     <td className="p-4">{lot.superficie} m²</td>
-                    <td className="p-4">{lot.longitude + "," + lot.latitude} </td>
+                    <td className="p-4"> {formatCoordinates(lot.latitude, lot.longitude)} </td>
                     <td className="p-4">{lot.statut}</td>
-                    <td className="p-4">{lot.prix} FCFA</td>
+                    <td className="p-4"> {formatPrice(lot.prix)} </td>
                 </tr>
             ))}
         </TableComponent>
@@ -222,14 +237,23 @@ function TableComponent({ title, columns, children }) {
     );
 }
 
-function InfoItem({ icon, label, value }) {
+function InfoItem({ icon, label, value, isCoordinates, onShowMap }) {
     return (
         <div className="flex items-center space-x-3 bg-white shadow-sm p-3 rounded-lg">
             <div className="text-gray-500">{icon}</div>
-            <div>
+            <div className="flex-grow">
                 <p className="text-sm font-medium text-gray-500">{label}</p>
                 <p className="text-sm text-gray-900">{value || "N/A"}</p>
             </div>
+            {isCoordinates && (
+                <button
+                    onClick={onShowMap}
+                    className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:text-blue-800"
+                >
+                    <Map className="w-4 h-4" />
+                    Voir sur la carte
+                </button>
+            )}
         </div>
     );
 }

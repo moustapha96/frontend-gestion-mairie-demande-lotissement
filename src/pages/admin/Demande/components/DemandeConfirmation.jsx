@@ -3,12 +3,15 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
 import { toast } from "sonner";
-import { generateDocument, getDemandeDetails } from "@/services/demandeService";
+import { generateDocument, getDemandeDetails, getFileDocument } from "@/services/demandeService";
 import { cn } from "@/utils";
 import { getLocaliteDtailsConfirmation, getLocaliteLotissement, getLocalites } from "@/services/localiteService";
 import { getLots } from "@/services/lotsService";
-import { Loader2, Save } from "lucide-react";
-
+import { Loader2, Save, Search } from 'lucide-react';
+import { LuFileText } from "react-icons/lu";
+import { formatCoordinates, formatPhoneNumber, formatPrice } from "@/utils/formatters";
+import MapCar from "../../Map/MapCar";
+// En haut du fichier
 const AdminDemandeConfirmation = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -63,7 +66,38 @@ const AdminDemandeConfirmation = () => {
         }
     });
 
+    // Ajouter les états pour gérer le viewer
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const [fileLoading, setFileLoading] = useState(false);
+    const [activeDocument, setActiveDocument] = useState(null);
+    const [viewType, setViewType] = useState(null); // 'recto' ou 'verso'
 
+    // Ajouter la fonction pour gérer l'affichage des documents
+    const handleViewDocument = async (type) => {
+        try {
+            setFileLoading(true);
+            setViewType(type);
+            setIsViewerOpen(true);
+
+            // Récupérer le fichier depuis le service
+            const fileData = await getFileDocument(id);
+            // Utiliser le bon fichier selon le type (recto ou verso)
+            const document = type === 'recto' ? fileData.recto : fileData.verso;
+            setActiveDocument(document);
+        } catch (error) {
+            console.error('Erreur lors du chargement du document:', error);
+            toast.error("Erreur lors du chargement du document");
+        } finally {
+            setFileLoading(false);
+        }
+    };
+
+    // Ajouter la fonction pour fermer le viewer
+    const closeViewer = () => {
+        setIsViewerOpen(false);
+        setActiveDocument(null);
+        setViewType(null);
+    };
 
     useEffect(() => {
         const fetchDetailsLocalite = async () => {
@@ -90,9 +124,13 @@ const AdminDemandeConfirmation = () => {
                     superficie: data.superficie,
                     usagePrevu: data.usagePrevu,
                     localite: data.localite?.nom || '',
+                    localiteId: data.localite?.id || null,
+                    // numeroPermis: data.typeDemande === 'BAIL_COMMUNAL'
+                    //     ? `BC-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`
+                    //     : `PO-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`,
                     numeroPermis: data.typeDemande === 'BAIL_COMMUNAL'
-                        ? `BC-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`
-                        : `PO-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`,
+                        ? `BC-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`
+                        : `PO-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`,
                     // Calculer automatiquement la date de fin en fonction de la durée
                     dateFin: data.typeDemande === 'BAIL_COMMUNAL'
                         ? new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]
@@ -116,10 +154,10 @@ const AdminDemandeConfirmation = () => {
                 setSelectedLotissement('');
                 return;
             }
-
             setSelectedLotissement(lotissementId);
 
             const lotissement = lotissements.find(lot => lot.id === Number(lotissementId));
+            console.log(lotissement)
 
             if (!lotissement) {
                 toast.error("Lotissement non trouvé");
@@ -145,48 +183,116 @@ const AdminDemandeConfirmation = () => {
         }
     };
 
+    const validateFormData = (data, type) => {
+        const commonValidation = data.document?.reference
+            && data.document?.dateDelivrance
+            && data.document?.lieuSignature
+            && data.parcelle?.numero;
+
+        switch (type) {
+            case 'PROPOSITION_BAIL':
+                return commonValidation && (
+                    data.propositionBail?.typeBail
+                    && data.propositionBail?.duree
+                    && data.propositionBail?.montantLocation
+                );
+
+            case 'BAIL_COMMUNAL':
+                return commonValidation && (
+                    data.montantLocation
+                    && data.dateDebut
+                    && data.dateFin
+                );
+
+            case 'PERMIS_OCCUPATION':
+                return commonValidation && (
+                    data.dureeValidite
+                    && data.parcelle?.usage
+                );
+
+            default:
+                return false;
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            let dataToSubmit = { ...formData };
+            let dataToSubmit = {
+                demande: id,
+                typeDemande: demande?.typeDemande
+            };
 
+            // Structure commune pour tous les types de documents
+            const commonData = {
+                dateDelivrance: formData.document.dateDelivrance,
+                superficie: Number(demande?.superficie) || 0,
+                demandeId: demande?.id,
+                usagePrevu: demande?.usagePrevu || '',
+                localite: demande?.localite?.nom || '',
+                referenceCadastrale: formData.parcelle.referenceCadastrale,
+                lotissement: lotissements.find(lot => lot.id === Number(selectedLotissement))?.nom || '',
+                numeroParcelle: formData.parcelle.numero,
+                cni: {
+                    numero: formData.beneficiaire.cni.numero,
+                    dateDelivrance: formData.beneficiaire.cni.dateDelivrance,
+                    lieuDelivrance: formData.beneficiaire.cni.lieuDelivrance
+                },
+                beneficiaire: {
+                    prenom: demande?.demandeur?.prenom || '',
+                    nom: demande?.demandeur?.nom || '',
+                    dateNaissance: demande?.demandeur?.dateNaissance || '',
+                    lieuNaissance: demande?.demandeur?.lieuNaissance || ''
+                }
+            };
             switch (demande?.typeDemande) {
-                case 'PROPOSITION_BAIL':
-                    // Calcul automatique du montant de la caution (3 mois de loyer)
-                    dataToSubmit.propositionBail.montantCaution =
-                        Number(dataToSubmit.propositionBail.montantLocation) * 3;
-
-                    // Calcul automatique de la date de fin en fonction de la durée
-                    const dateEffet = new Date(dataToSubmit.propositionBail.dateEffet);
-                    const dureeEnAnnees = parseInt(dataToSubmit.propositionBail.duree);
-                    const dateFin = new Date(dateEffet);
-                    dateFin.setFullYear(dateEffet.getFullYear() + dureeEnAnnees);
-                    dataToSubmit.propositionBail.dateFin = dateFin.toISOString().split('T')[0];
-
-                    // Ajout des références automatiques
-                    dataToSubmit.propositionBail.references = `PB-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`;
+                case 'PERMIS_OCCUPATION':
+                    dataToSubmit = {
+                        ...dataToSubmit,
+                        ...commonData,
+                        numeroPermis: `PO-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`,
+                        dureeValidite: `${formData.dureeValidite} an${formData.dureeValidite > 1 ? 's' : ''}`,
+                        usage: formData.parcelle.usage
+                    };
                     break;
 
                 case 'BAIL_COMMUNAL':
-                    // Logique existante pour le bail communal
-                    dataToSubmit.numeroBail = `BC-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`;
+                    dataToSubmit = {
+                        ...dataToSubmit,
+                        ...commonData,
+                        numeroBail: `BC-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`,
+                        montantLocation: Number(formData.montantLocation),
+                        montantCaution: Number(formData.montantLocation) * 3,
+                        dateDebut: formData.dateDebut,
+                        dateFin: formData.dateFin
+                    };
                     break;
 
-                case 'PERMIS_OCCUPATION':
-                    // Logique existante pour le permis d'occupation
-                    dataToSubmit.numeroPermis = `PO-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`;
+                case 'PROPOSITION_BAIL':
+                    dataToSubmit = {
+                        ...dataToSubmit,
+                        ...commonData,
+                        propositionBail: {
+                            reference: `PB-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9)}`,
+                            typeBail: formData.propositionBail?.typeBail,
+                            duree: `${formData.propositionBail?.duree} an${formData.propositionBail?.duree > 1 ? 's' : ''}`,
+                            montantLocation: Number(formData.propositionBail?.montantLocation),
+                            montantCaution: Number(formData.propositionBail?.montantLocation) * 3
+                        }
+                    };
                     break;
 
                 default:
                     throw new Error("Type de document non supporté");
             }
-
+            console.log(dataToSubmit)
             if (!validateFormData(dataToSubmit, demande?.typeDemande)) {
                 toast.error("Veuillez remplir tous les champs obligatoires");
                 return;
             }
 
+            console.log("Données à envoyer:", dataToSubmit);
             await generateDocument(id, dataToSubmit);
             toast.success("Document généré avec succès");
             navigate(`/admin/demandes/${id}/details`);
@@ -195,43 +301,6 @@ const AdminDemandeConfirmation = () => {
             toast.error("Erreur lors de la génération du document");
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const validateFormData = (data, type) => {
-        switch (type) {
-            case 'PROPOSITION_BAIL':
-                return (
-                    data.propositionBail.typeBail &&
-                    data.propositionBail.duree &&
-                    data.propositionBail.montantLocation &&
-                    data.propositionBail.dateEffet &&
-                    data.propositionBail.conditionsPaiement
-                );
-
-            case 'BAIL_COMMUNAL':
-                return (
-                    data.numeroBail &&
-                    data.dateDelivrance &&
-                    data.superficie &&
-                    data.montantLocation &&
-                    data.montantCaution &&
-                    data.dateDebut &&
-                    data.dateFin
-                );
-
-            case 'PERMIS_OCCUPATION':
-                return (
-                    data.numeroPermis &&
-                    data.dateDelivrance &&
-                    data.dureeValidite &&
-                    data.superficie &&
-                    data.usagePrevu &&
-                    data.numeroCNI
-                );
-
-            default:
-                return false;
         }
     };
 
@@ -267,7 +336,157 @@ const AdminDemandeConfirmation = () => {
                                 </span>
                             </div>
 
+                            <div className="border-b border-gray-200">
+                                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 sm:grid-cols-2 gap-6">
 
+
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold text-lg text-gray-900">Informations du demandeur</h3>
+                                        <div className="space-y-2">
+
+                                            <div>
+                                                <span className="text-sm text-gray-500">Nom complet:</span>
+                                                <p className="font-medium">{demande?.demandeur?.prenom} {demande?.demandeur?.nom}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-500">Email:</span>
+                                                <p className="font-medium">{demande?.demandeur?.email}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-500">Téléphone:</span>
+                                                <p className="font-medium">{formatPhoneNumber(demande?.demandeur?.telephone)} </p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-500">Adresse:</span>
+                                                <p className="font-medium">{demande?.demandeur?.adresse}</p>
+                                            </div>
+
+                                            <div className="mt-4 space-y-2">
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Date de naissance:</span>
+                                                    <p className="font-medium">{demande?.demandeur?.dateNaissance ? new Date(demande.demandeur.dateNaissance).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Lieu de naissance:</span>
+                                                    <p className="font-medium">{demande?.demandeur?.lieuNaissance || 'Non renseigné'}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Profession:</span>
+                                                    <p className="font-medium">{demande?.demandeur?.profession || 'Non renseigné'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold text-lg text-gray-900">Détails de la demande</h3>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <span className="text-sm text-gray-500">Date de soumission:</span>
+                                                <p className="font-medium">
+                                                    {new Date(demande?.dateCreation).toLocaleDateString('fr-FR')}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-500">Type de demande:</span>
+                                                <p className="font-medium">
+                                                    {demande?.typeDemande === "PERMIS_OCCUPATION"
+                                                        ? "Permis d'Occupation"
+                                                        : demande?.typeDemande === "BAIL_COMMUNAL"
+                                                            ? "Bail Communal"
+                                                            : "Proposition de Bail"}
+                                                </p>
+                                            </div>
+                                            <div className="mt-4">
+                                                <h4 className="font-medium text-gray-700 mb-2">Documents d'identification</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <span className="text-sm text-gray-500 block mb-1">Recto:</span>
+
+
+                                                        <button
+                                                            onClick={() => handleViewDocument('recto')}
+                                                            className="text-primary hover:text-primary-700 flex items-center space-x-1"
+                                                        >
+                                                            <LuFileText className="w-5 h-5" />
+                                                            <span>Recto</span>
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-sm text-gray-500 block mb-1">Verso:</span>
+
+                                                        <button
+                                                            onClick={() => handleViewDocument('verso')}
+                                                            className="text-primary hover:text-primary-700 flex items-center space-x-1"
+                                                        >
+                                                            <LuFileText className="w-5 h-5" />
+                                                            <span>Verso</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold text-lg text-gray-900">Localité Souhaité </h3>
+                                        <div className="space-y-2">
+
+
+                                            <div>
+                                                <span className="text-sm text-gray-500">Localité:</span>
+                                                <p className="font-medium">{demande?.localite?.nom}</p>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Nom:</span>
+                                                    <p className="font-medium">{demande?.localite.nom} </p>
+                                                </div>
+
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Description :</span>
+                                                    <p className="font-medium">{demande?.localite.description} </p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Prix :</span>
+                                                    <p className="font-medium"> {formatPrice(demande.localite.prix)} </p>
+                                                </div>
+
+                                                <div>
+                                                    <span className="text-sm text-gray-500">Coordonnées :</span>
+                                                    <p className="font-medium"> {formatCoordinates(demande.localite.latitude, demande.localite.longitude)} </p>
+                                                </div>
+                                                {demande.localite.longitude && demande.localite.latitude && <MapCar selectedItem={demande.localite} type="localite" />}
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold text-lg text-gray-900">Spécifications</h3>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <span className="text-sm text-gray-500">Superficie souhaitée:</span>
+                                                <p className="font-medium">{demande?.superficie} m²</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-500">Usage prévu:</span>
+                                                <p className="font-medium">{demande?.usagePrevu}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-500">Possède autre terrain:</span>
+                                                <p className="font-medium">
+                                                    {demande?.possedeAutreTerrain ? "Oui" : "Non"}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-6">
                                 {/* Informations du document */}
@@ -580,6 +799,49 @@ const AdminDemandeConfirmation = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Ajouter le modal du viewer à la fin du composant, avant le dernier </> */}
+            {isViewerOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-4 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold text-gray-800">
+                                Document {viewType === 'recto' ? 'Recto' : 'Verso'}
+                            </h2>
+                            <button
+                                onClick={closeViewer}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                Fermer
+                            </button>
+                        </div>
+                        <div className="bg-gray-200 rounded-lg p-4">
+                            {fileLoading ? (
+                                <div className="flex justify-center items-center h-[600px]">
+                                    <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+                                    <span className="ml-2 text-lg font-semibold text-gray-700">
+                                        Chargement du document...
+                                    </span>
+                                </div>
+                            ) : activeDocument ? (
+                                <iframe
+                                    src={`data:application/pdf;base64,${activeDocument}`}
+                                    width="100%"
+                                    height="600px"
+                                    title="Document PDF"
+                                    className="border rounded"
+                                />
+                            ) : (
+                                <div className="flex justify-center items-center h-[600px]">
+                                    <span className="text-lg font-semibold text-gray-700">
+                                        Document non disponible
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

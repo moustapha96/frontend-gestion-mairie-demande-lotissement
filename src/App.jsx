@@ -11,6 +11,8 @@ import "preline/preline";
 import "@/assets/css/style.css";
 import 'leaflet/dist/leaflet.css';
 
+
+
 configureFakeBackend();
 
 function App() {

@@ -7,6 +7,7 @@ import {
   LuShoppingBag,
   LuTarget,
   LuUsers,
+  LuFileText,
 } from "react-icons/lu";
 
 import github from "@/assets/images/brand/github.png";
@@ -63,7 +64,7 @@ const adminMenu = [
     icon: LuTarget,
   }, 
   {
-      name: "Configuration",
+    name: "Configuration",
     link: "/admin/configurations",
     icon: LuSettings, 
   },
@@ -71,9 +72,14 @@ const adminMenu = [
     name: "Documents",
     link: "/admin/documents",
     icon: LuShoppingBag,
+  },
+  {
+    name: "Modèles Documents",
+    link: "/admin/document-models",
+    icon: LuFileText,
+    role: "ROLE_SUPER_ADMIN"
   }
 ];
-
 
 const apps = [
   {

@@ -5,6 +5,7 @@ import { AdminBreadcrumb } from "@/components";
 import { getDemandeurDetails } from "@/services/userService";
 import { User, Phone, Mail, MapPin, Briefcase, Calendar, MapPinned, CheckCircle, XCircle, Clock, ChevronRight } from "lucide-react";
 import { cn } from "@/utils";
+import { formatPhoneNumber } from "@/utils/formatters";
 
 const AdminDemandeurDetails = () => {
     const { id } = useParams();
@@ -52,7 +53,7 @@ const AdminDemandeurDetails = () => {
                                     </InfoCard>
 
                                     <InfoCard title="Contact">
-                                        <InfoItem icon={<Phone className="w-5 h-5" />} label="Téléphone" value={demandeur.telephone} />
+                                        <InfoItem icon={<Phone className="w-5 h-5" />} label="Téléphone" value={formatPhoneNumber(demandeur.telephone)} />
                                         <InfoItem icon={<Mail className="w-5 h-5" />} label="Email" value={demandeur.email} />
                                         <InfoItem icon={<MapPin className="w-5 h-5" />} label="Adresse" value={demandeur.adresse} />
                                     </InfoCard>

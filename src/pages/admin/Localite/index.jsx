@@ -7,6 +7,7 @@ import { cn } from "@/utils"
 import { AdminBreadcrumb } from "@/components"
 import { getLocalites } from "@/services/localiteService"
 import { List, Loader2 } from "lucide-react"
+import { formatCoordinates, formatPrice } from "@/utils/formatters"
 
 const AdminLocaliteListe = () => {
     const [loading, setLoading] = useState(false)
@@ -127,9 +128,10 @@ const AdminLocaliteListe = () => {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                         {localite.nom}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">{localite.longitude}, {localite.latitude}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">{formatCoordinates(localite.latitude, localite.longitude)}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {localite.prix} FCFA
+
+                                                        {formatPrice(localite.prix)}
                                                     </td>
                                                     {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{localite.description}</td> */}
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

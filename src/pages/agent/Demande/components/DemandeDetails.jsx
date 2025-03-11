@@ -19,6 +19,7 @@ import { getDemandeDetails, getFileDocument } from "@/services/demandeService"
 import { useAuthContext } from "@/context"
 import { AgentBreadcrumb } from "@/components"
 import { cn } from "@/utils"
+import { formatPhoneNumber, formatPrice } from "@/utils/formatters"
 
 export default function AgentDemandeDetails() {
     const { id } = useParams()
@@ -229,7 +230,7 @@ function DemandeurInfoCard({ demandeur }) {
                     <InfoItem
                         icon={<Phone className="w-5 h-5" />}
                         label="Téléphone"
-                        value={demandeur.telephone}
+                        value={formatPhoneNumber(demandeur.telephone)}
                     />
                     <InfoItem
                         icon={<MapPin className="w-5 h-5" />}
@@ -269,7 +270,7 @@ function LocaliteInfoCard({ localite, demande }) {
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Informations sur a localité"}</h3>
                 <div className="space-y-4">
                     <InfoItem icon={<Building className="w-5 h-5" />} label={"Nom"} value={localite.nom} />
-                    <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={`${localite.prix} FCFA`} />
+                    <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={formatPrice(localite.prix)} />
                     <InfoItem
                         icon={<FileText className="w-5 h-5" />}
                         label={"Description"}

@@ -17,6 +17,7 @@ import {
 import { getLotissementDetails, } from "@/services/lotissementService";
 import { AdminBreadcrumb } from "@/components";
 import { getFileDocumentPlan } from "@/services/planLotissement";
+import { formatPrice } from "@/utils/formatters";
 
 export default function AgentLotissementDetails() {
     const { id } = useParams();
@@ -125,7 +126,7 @@ function LotInfoTable({ lots }) {
                     <td className="p-4">{lot.numeroLot}</td>
                     <td className="p-4">{lot.superficie} m²</td>
                     <td className="p-4">{lot.statut}</td>
-                    <td className="p-4">{lot.prix} FCFA</td>
+                    <td className="p-4">{formatPrice(lot.prix)}</td>
                 </tr>
             ))}
         </TableComponent>

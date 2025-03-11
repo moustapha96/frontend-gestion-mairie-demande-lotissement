@@ -20,6 +20,10 @@ axiosInstance.interceptors.response.use(
       window.location.href = '/auth/login';
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.clear()
+      deleteCookie('__GESTIO-MAIRIE_REACT_AUTH__TOKEN')
+      deleteCookie('__GESTIO-MAIRIE_REACT_AUTH__USER')
+      deleteCookie('__GESTIO-MAIRIE_REACT_AVATAR')
     }
     return Promise.reject(error);
   }

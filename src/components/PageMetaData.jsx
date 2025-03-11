@@ -1,11 +1,9 @@
 import { Helmet } from "react-helmet-async";
 
-const PageMetaData = ({ title }) => {
+const PageMetaData = ({ title = "Mairie" }) => {
   return (
     <Helmet>
-      <title>
-        {title} | La Mairie
-      </title>
+      <title>{title ? `${title} | La Mairie` : "La Mairie"}</title>
     </Helmet>
   );
 };

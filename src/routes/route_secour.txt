@@ -1,0 +1,119 @@
+// export default AllRoutes;
+import { useAuthContext } from "@/context"
+import { AdminLayout, AgentLayout, AuthLayout, DemandeurLayout, LandingLayout } from "@/layouts"
+import { Navigate, Route, Routes, useLocation } from "react-router-dom"
+import { adminRoutes, demandeurRoutes, agentRoutes, authRoutes, MairieRoutes } from "./index"
+
+const AllRoutes = (props) => {
+  const { isAuthenticated, user } = useAuthContext()
+  const location = useLocation()
+
+  const ProtectedRoute = ({ children, requiredRole }) => {
+
+    const storedIsAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+    const storedUser = JSON.parse(localStorage.getItem('user'))
+
+
+    console.log("Vérification de l'authentification :", isAuthenticated, user);
+
+    if (!isAuthenticated) {
+      // Sauvegarder l'URL actuelle pour rediriger après la connexion
+      const returnUrl = encodeURIComponent(location.pathname + location.search)
+      return <Navigate to={`/auth/sign-in?returnUrl=${returnUrl}`} replace />
+    }
+
+    // if (!isAuthenticated) {
+    //   return <Navigate to="/auth/sign-in" replace />
+    // }
+
+    if (requiredRole) {
+      const roles = user?.roles || []
+
+      // Vérification pour admin et super admin
+      if ((requiredRole === "ROLE_ADMIN" || requiredRole === "ROLE_SUPER_ADMIN")
+        && !roles.includes(requiredRole)) {
+        return <Navigate to="/admin/dashboard" replace />
+      }
+
+      // Vérification pour demandeur
+      if (requiredRole === "ROLE_DEMANDEUR" && !roles.includes(requiredRole)) {
+        return <Navigate to="/demandeur/dashboard" replace />
+      }
+
+      // Vérification pour agent
+      if (requiredRole === "ROLE_AGENT" && !roles.includes(requiredRole)) {
+        return <Navigate to="/agent/dashboard" replace />
+      }
+    }
+
+    // if (requiredRole && (   requiredRole == "ROLE_ADMIN" || requiredRole == "ROLE_SUPER_ADMIN")
+    //   && (!user?.roles?.includes(requiredRole))) {
+    //   return <Navigate to="/admin/dashboard" replace />
+    // }
+    // if (requiredRole && (requiredRole == "ROLE_DEMANDEUR")
+    //   && (!user?.roles?.includes(requiredRole))) {
+    //   return <Navigate to="/demandeur/dashboard" replace />
+    // }
+    return children
+  }
+
+  return (
+    <Routes>
+      {MairieRoutes.map((route, idx) => (
+        <Route path={route.path}
+          element={<LandingLayout {...props}>
+            {route.element}</LandingLayout>}
+          key={`public-${idx}`}
+        />
+      ))}
+
+      {adminRoutes.map((route, idx) => (
+        <Route
+          path={route.path}
+          element={
+            <ProtectedRoute requiredRole="ROLE_ADMIN">
+              <AdminLayout {...props}>{route.element}</AdminLayout>
+            </ProtectedRoute>
+          }
+          key={`admin-${idx}`}
+        />
+      ))}
+
+      {agentRoutes.map((route, idx) => (
+        <Route
+          path={route.path}
+          element={
+            <ProtectedRoute requiredRole="ROLE_AGENT">
+              <AgentLayout {...props}>{route.element}</AgentLayout>
+            </ProtectedRoute>
+          }
+          key={`agent-${idx}`}
+        />
+      ))}
+
+      {demandeurRoutes.map((route, idx) => (
+        <Route
+          path={route.path}
+          element={
+            <ProtectedRoute requiredRole="ROLE_DEMANDEUR">
+              <DemandeurLayout {...props}>{route.element}</DemandeurLayout>
+            </ProtectedRoute>
+          }
+          key={`demandeur-${idx}`}
+        />
+      ))}
+
+      {authRoutes.map((route, idx) => (
+        <Route path={route.path}
+          element={<AuthLayout {...props}>{route.element}</AuthLayout>}
+          key={`auth-${idx}`}
+        />
+      ))}
+
+      <Route path="*" element={<Navigate to="/auth/sign-in" replace />} />
+    </Routes>
+  )
+}
+
+export default AllRoutes
+

@@ -1,15 +1,16 @@
 "use client"
 import { AdminBreadcrumb } from "@/components"
-import { LuSearch, LuChevronLeft, LuChevronRight, LuExternalLink } from "react-icons/lu"
+import { LuSearch, LuChevronLeft, LuChevronRight, LuExternalLink, LuFileText } from "react-icons/lu"
 import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { cn } from "@/utils"
-import { getDemandes, updateDemandeStatut } from "@/services/demandeService"
+import { getDemandes, updateDemandeStatut, getFileDocument } from "@/services/demandeService"
 import { useAuthContext } from "@/context"
 import { toast } from "sonner"
 import { FileDown, FileSpreadsheet, FileText, Loader2 } from "lucide-react"
 import { exportToPDF } from "@/utils/export_function"
 import { exportDemandesToCSV, exportDemandesToPDF } from "@/utils/export_demande"
+import { importDemandes } from "../../../services/demandeService"
 
 const AdminDemandeListe = () => {
   const { user } = useAuthContext()
@@ -19,6 +20,12 @@ const AdminDemandeListe = () => {
   const [filter, setFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(5)
+  const [fileLoading, setFileLoading] = useState(false)
+  const [viewType, setViewType] = useState(null)
+  const [isViewerOpen, setIsViewerOpen] = useState(false)
+  const [activeDocument, setActiveDocument] = useState(null)
+  const [demande, setDemande] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
 
   useEffect(() => {
     const fetchDemandes = async () => {
@@ -69,6 +76,47 @@ const AdminDemandeListe = () => {
     }
   };
 
+  const handleViewDocument = async (type) => {
+    try {
+      if (!demande?.id) {
+        toast.error("Impossible de charger le document");
+        return;
+      }
+
+      setFileLoading(true);
+      setViewType(type);
+      setIsViewerOpen(true);
+
+      // Récupérer le fichier depuis le service
+      const fileData = await getFileDocument(demande.id);
+
+      if (!fileData) {
+        toast.error("Document non trouvé");
+        return;
+      }
+
+      // Utiliser le bon fichier selon le type (recto ou verso)
+      const document = type === 'recto' ? fileData.recto : fileData.verso;
+      setActiveDocument(document);
+    } catch (error) {
+      console.error('Erreur lors du chargement du document:', error);
+      toast.error("Erreur lors du chargement du document");
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handleImportFile = async (file) => {
+    try {
+      setImportLoading(true);
+      const result = await importDemandes(file);
+      toast.success("Demandes importées avec succès");
+      fetchDemandes();
+    } catch (error) {
+      toast.error("Erreur lors de l'importation des demandes");
+    }
+  };
+
   return (
     <>
       <AdminBreadcrumb title="Liste des demandes" />
@@ -83,6 +131,50 @@ const AdminDemandeListe = () => {
 
               <div className="flex items-center justify-end border-b gap-4 border-gray-200 px-6 py-4">
 
+              <div className="flex items-center justify-end border-b gap-4 border-gray-200 px-6 py-4">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleImportFile}
+                  style={{ display: 'none' }}
+                  id="import-file"
+                />
+                
+                <button
+                  onClick={() => document.getElementById('import-file').click()}
+                  disabled={importLoading}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  {importLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="w-4 h-4" />
+                  )}
+                  Importer CSV
+                </button>
+              </div>
+                
+                <button
+                  onClick={() => {
+                    // Create a template CSV file with headers
+                    const headers = ["CNI", "Email", "Nom", "Prenom", "Telephone" , "Adresse", "Lieu de Naissance" , "Profession" ,"Type de demande", "Localite", "Usage prevu" ,"Date Demande"];
+                    const csvContent = headers.join(",");
+                    const blob = new Blob([csvContent], { type: "text/csv" });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "template_import_demandes.csv";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  <FileText className="w-4 h-4" />
+                  Télécharger Template
+                </button>
+
                 <button
                   onClick={() => exportDemandesToCSV(demandes)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -91,7 +183,6 @@ const AdminDemandeListe = () => {
                   Exporter CSV
                 </button>
 
-
                 <button
                   onClick={() => exportDemandesToPDF(demandes)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark"
@@ -99,8 +190,6 @@ const AdminDemandeListe = () => {
                   <FileDown className="w-4 h-4" />
                   Exporter PDF
                 </button>
-
-
 
               </div>
 
@@ -291,6 +380,7 @@ const AdminDemandeListe = () => {
                     </button>
                   </div>
                 </div>
+
               </div>
 
             </div>
@@ -302,4 +392,3 @@ const AdminDemandeListe = () => {
 }
 
 export default AdminDemandeListe
-

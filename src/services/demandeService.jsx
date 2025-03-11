@@ -93,6 +93,22 @@ export async function updateDemandeStatut(id, statut) {
     }
 }
 
+export const importDemandes = async (file) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await HttpClient.post(`${urlApi}demande/import`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de l\'importation des demandes:', error);
+        throw error;
+    }
+};
 
 export const generateDocument = async (demandeId, documentData) => {
     try {

@@ -21,6 +21,8 @@ import { useAuthContext } from "@/context"
 import { AdminBreadcrumb } from "@/components"
 import { cn } from "@/utils"
 import { FaMarker } from "react-icons/fa"
+import MapCar from "../../../admin/Map/MapCar";
+import { formatCoordinates, formatPhoneNumber, formatPrice } from "@/utils/formatters"
 
 export default function AdminDemandeDetails() {
     const { id } = useParams()
@@ -76,19 +78,12 @@ export default function AdminDemandeDetails() {
                                             <DemandeurInfoCard demandeur={demande.demandeur} />
                                             <LocaliteInfoCard localite={demande.localite} demande={demande} />
                                             {/* {demande.document && <DocumentInfoCard document={demande.document} typeDocument={demande.typeDocument} />} */}
-                                            {demande.documentGenerer && <DocumentInfoCard document={demande.documentGenerer} />}
+                                            {demande.documentGenerer && demande.documentGenerer.isGenerated && <>
+                                                <DocumentInfoCard document={demande.documentGenerer} />
+                                            </>}
                                         </div>
                                     </div>
-                                    {/* {fichier && (
-                                        <div>
-                                            <div className="mt-8 prevent-select">
-                                                <h2 className="text-2xl font-bold text-gray-800 mb-4">{"Previsualisation"}</h2>
-                                                <div className="bg-gray-200 rounded-lg p-4">
-                                                    <iframe src={`data:application/pdf;base64,${fichier}`} title="Document" width="100%" height="600px" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )} */}
+
 
                                     {
                                         (rectoFile || versoFile) && (
@@ -231,7 +226,7 @@ function DemandeurInfoCard({ demandeur }) {
                     <InfoItem
                         icon={<Phone className="w-5 h-5" />}
                         label="Téléphone"
-                        value={demandeur.telephone}
+                        value={formatPhoneNumber(demandeur.telephone)}
                     />
                     <InfoItem
                         icon={<MapPin className="w-5 h-5" />}
@@ -271,7 +266,7 @@ function LocaliteInfoCard({ localite, demande }) {
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Informations sur a localité"}</h3>
                 <div className="space-y-4">
                     <InfoItem icon={<Building className="w-5 h-5" />} label={"Nom"} value={localite.nom} />
-                    <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={`${localite.prix} FCFA`} />
+                    <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={formatPrice(localite.prix)} />
                     <InfoItem
                         icon={<FileText className="w-5 h-5" />}
                         label={"Description"}
@@ -280,8 +275,9 @@ function LocaliteInfoCard({ localite, demande }) {
                     <InfoItem
                         icon={<MapPinCheck className="w-5 h-5" />}
                         label={"Coordonnées"}
-                        value={localite.longitude + "," + localite.latitude}
+                        value={formatCoordinates(localite.latitude, localite.longitude)}
                     />
+                    {localite.longitude && localite.latitude && <MapCar selectedItem={localite} type="localite" />}
                 </div>
             </div>
         </div>

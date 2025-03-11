@@ -7,6 +7,7 @@ import { createLot, updateLot, updateLotStatut } from "@/services/lotsService"
 import { toast } from "sonner"
 import { cn } from "@/utils"
 import { Loader2 } from "lucide-react"
+import { formatCoordinates, formatPrice } from "@/utils/formatters"
 
 const AdminLot = () => {
     const [lots, setLots] = useState([])
@@ -202,7 +203,7 @@ const AdminLot = () => {
                                             <tr key={lot.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">{lot.numeroLot}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{lot.superficie} m²</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{lot.longitude + "," + lot.latitude} </td>
+                                                <td className="px-6 py-4 whitespace-nowrap"> {formatCoordinates(lot.latitude, lot.longitude)}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
 
                                                     <select
@@ -224,7 +225,7 @@ const AdminLot = () => {
                                                         <option value="VENDU">Vendu</option>
                                                     </select>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{lot.prix.toLocaleString()} FCFA</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">  {formatPrice(lot.prix)}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{lot.usage}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <button onClick={() => handleOpenModal(lot)} className="text-primary hover:text-primary-dark">

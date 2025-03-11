@@ -14,12 +14,15 @@ import {
     Briefcase,
     Globe,
     FileText,
-    Clock
+    Clock,
+    MapPinCheck
 } from "lucide-react"
 import { getDemandeDetails, getFileDocument } from "@/services/demandeService"
 import { useAuthContext } from "@/context"
 import { DemandeurBreadcrumb } from "@/components"
 import { cn } from "@/utils"
+import MapCar from "@/pages/admin/Map/MapCar"
+import { formatCoordinates, formatPhoneNumber, formatPrice } from "@/utils/formatters"
 
 export default function DemandeurDemandeDetails() {
     const { user } = useAuthContext();
@@ -37,6 +40,7 @@ export default function DemandeurDemandeDetails() {
             try {
                 const data = await getDemandeDetails(id)
                 setDemande(data)
+                console.log(data)
                 if (data.document) {
                     const response = await getFileDocument(id)
                     setRectoFile(response['recto'])
@@ -76,21 +80,11 @@ export default function DemandeurDemandeDetails() {
                                             <DemandeInfoCard demande={demande} />
                                             {/* <DemandeurInfoCard demandeur={demande.demandeur} /> */}
                                             <LocaliteInfoCard localite={demande.localite} />
-                                            {demande.documentGenerer && (
+                                            {demande.documentGenerer && demande.documentGenerer.isGenerated && (
                                                 <DocumentGenereInfoCard documentGenerer={demande.documentGenerer} />
                                             )}
                                         </div>
                                     </div>
-                                    {/* {fichier && (
-                                        <div>
-                                            <div className="mt-8 prevent-select">
-                                                <h2 className="text-2xl font-bold text-gray-800 mb-4">{"Previsualisation"}</h2>
-                                                <div className="bg-gray-200 rounded-lg p-4">
-                                                    <iframe src={`data:application/pdf;base64,${fichier}`} title="Document" width="100%" height="600px" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )} */}
 
                                     {
                                         (rectoFile || versoFile) && (
@@ -103,43 +97,6 @@ export default function DemandeurDemandeDetails() {
                                             </div>
                                         )
                                     }
-
-                                    {/* {(rectoFile || versoFile) && (
-                                        <div className="mt-8">
-                                            <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
-                                            <div className="grid gap-6 md:grid-cols-2">
-                                                {rectoFile && (
-                                                    <div className="bg-white shadow rounded-lg overflow-hidden">
-                                                        <div className="px-4 py-5 sm:p-6">
-                                                            <h3 className="text-lg font-medium text-gray-900 mb-4">Recto du document</h3>
-                                                            <div className="bg-gray-200 rounded-lg p-4">
-                                                                <iframe
-                                                                    src={`data:application/pdf;base64,${rectoFile}`}
-                                                                    title="Recto"
-                                                                    className="w-full h-[400px]"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {versoFile && (
-                                                    <div className="bg-white shadow rounded-lg overflow-hidden">
-                                                        <div className="px-4 py-5 sm:p-6">
-                                                            <h3 className="text-lg font-medium text-gray-900 mb-4">Verso du document</h3>
-                                                            <div className="bg-gray-200 rounded-lg p-4">
-                                                                <iframe
-                                                                    src={`data:application/pdf;base64,${versoFile}`}
-                                                                    title="Verso"
-                                                                    className="w-full h-[400px]"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )} */}
 
                                 </main>
                             </div>
@@ -232,7 +189,7 @@ function DemandeurInfoCard({ demandeur }) {
                     <InfoItem
                         icon={<Phone className="w-5 h-5" />}
                         label="Téléphone"
-                        value={demandeur.telephone}
+                        value={formatPhoneNumber(demandeur.telephone)}
                     />
                     <InfoItem
                         icon={<MapPin className="w-5 h-5" />}
@@ -272,13 +229,18 @@ function LocaliteInfoCard({ localite, demande }) {
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Informations sur a localité"}</h3>
                 <div className="space-y-4">
                     <InfoItem icon={<Building className="w-5 h-5" />} label={"Nom"} value={localite.nom} />
-                    <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={`${localite.prix} FCFA`} />
+                    <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={formatPrice(localite.prix)} />
                     <InfoItem
                         icon={<FileText className="w-5 h-5" />}
                         label={"Description"}
                         value={localite.description}
                     />
-
+                    <InfoItem
+                        icon={<MapPinCheck className="w-5 h-5" />}
+                        label={"Coordonnées"}
+                        value={formatCoordinates(localite.latitude, localite.longitude)}
+                    />
+                    {localite.longitude && localite.latitude && <MapCar selectedItem={localite} type="localite" />}
                 </div>
             </div>
         </div>

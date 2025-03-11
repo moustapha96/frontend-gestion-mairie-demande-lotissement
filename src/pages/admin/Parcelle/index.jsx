@@ -1,6 +1,6 @@
 "use client"
 import { AdminBreadcrumb } from "@/components"
-import { LuSearch, LuPlusCircle, LuFileEdit, LuX } from "react-icons/lu"
+import { LuSearch, LuPlusCircle, LuFileEdit, LuX, LuMap } from "react-icons/lu"
 import { useState, useEffect } from "react"
 import { getLotissements, getLotissementLot } from "@/services/lotissementService"
 import { createLot, updateLot, updateLotStatut } from "@/services/lotsService"
@@ -8,6 +8,9 @@ import { toast } from "sonner"
 import { cn } from "@/utils"
 import { createParcelle, getParcelles, getParcellesByLotissement, updateParcelle, updateParcellestatut } from "@/services/parcelleService"
 import { Loader, Loader2 } from "lucide-react"
+
+import MapCar from "../../admin/Map/MapCar";
+import { formatCoordinates } from "@/utils/formatters"
 
 const AdminParcelle = () => {
     const [lotissements, setLotissements] = useState([])
@@ -17,6 +20,8 @@ const AdminParcelle = () => {
     const [filter, setFilter] = useState("")
     const [selectedLotissement, setSelectedLotissement] = useState("")
     const [modalOpen, setModalOpen] = useState(false)
+    const [modalOpenMap, setModalOpenMap] = useState(false)
+    const [selectedParcelle, setSelectedParcelle] = useState(null)
     const [editingParcelle, setEditingParcelle] = useState(null)
     const [formData, setFormData] = useState({
         numero: "",
@@ -59,6 +64,18 @@ const AdminParcelle = () => {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleOpenModalMap = (parcelle = null) => {
+        if (parcelle) {
+            setSelectedParcelle(parcelle);
+            setModalOpenMap(true);
+        }
+    }
+
+    const handleCloseModalMap = () => {
+        setModalOpenMap(false);
+        setSelectedParcelle(null);
     }
 
     const handleOpenModal = (parcelle = null) => {
@@ -219,7 +236,9 @@ const AdminParcelle = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap">{parcelle.lotissement.nom}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{parcelle.numero}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{parcelle.superface} m²</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{parcelle.longitude}, {parcelle.latitude}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {formatCoordinates(parcelle.latitude, parcelle.longitude)}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <select
                                                         value={parcelle.statut}
@@ -240,10 +259,21 @@ const AdminParcelle = () => {
                                                         <option value="VENDU">Vendu</option>
                                                     </select>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <button onClick={() => handleOpenModal(parcelle)} className="text-primary hover:text-primary-dark">
-                                                        <LuFileEdit className="inline mr-1" /> Modifier
+                                                {/*  */}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium gap-4">
+
+                                                    <button
+                                                        onClick={() => handleOpenModalMap(parcelle)}
+                                                        className="text-primary hover:text-primary-dark mr-4 flex items-center"
+                                                    >
+                                                        <LuMap className="h-5 w-5" />
+                                                        <span className="ml-1">Carte</span>
                                                     </button>
+
+                                                    <button onClick={() => handleOpenModal(parcelle)} className="text-primary hover:text-primary-dark">
+                                                        <LuFileEdit className="h-5 w-5 mr-1" /> Modifier
+                                                    </button>
+
                                                 </td>
                                             </tr>
                                         ))}
@@ -265,6 +295,32 @@ const AdminParcelle = () => {
                     </div>
                 </div>
             </section>
+            {modalOpenMap && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-[90%] max-w-6xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Visualisation de la parcelle
+                            </h3>
+                            <button
+                                onClick={() => setModalOpenMap(false)}
+                                className="text-gray-400 hover:text-gray-500"
+                            >
+                                <LuX className="h-6 w-6" />
+                            </button>
+                        </div>
+
+                        {selectedParcelle && (
+                            <div className="h-[600px]">
+                                <MapCar
+                                    selectedItem={selectedParcelle}
+                                    type="parcelle"
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
             {modalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-8 max-w-md w-full">

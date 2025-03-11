@@ -64,6 +64,8 @@ import AgentDemandeDetails from "@/pages/agent/Demande/components/DemandeDetails
 import AgentDemandeListe from "@/pages/agent/Demande";
 import AgentProfile from "@/pages/agent/Profil";
 import AdminMap from "@/pages/admin/Map";
+import AdminDocumentModel from "../pages/admin/DocumentModel";
+
 
 
 const DemandeurDemandeDetails = lazy(() => import("@/pages/demandeur/Demande/components/DemandeDetails"));
@@ -346,6 +348,11 @@ const adminRoutes = [
   {
     path: '/admin/mailer',
     element: <AdminMailer />
+  },
+  {
+    path: "/admin/document-models",
+    element: <AdminDocumentModel />,
+    requiredRole: "ROLE_SUPER_ADMIN"
   }
 ];
 

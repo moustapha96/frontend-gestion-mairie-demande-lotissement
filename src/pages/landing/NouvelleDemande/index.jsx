@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { LoaderCircleIcon } from 'lucide-react'
 import { nouvelleDemande } from '@/services/demandeService'
 import { getLocalitesWeb } from '@/services/localiteService'
+import { formatPhoneNumber, formatPrice } from '@/utils/formatters'
 
 
 const applicantSchema = yup.object({
@@ -521,7 +522,7 @@ export default function NouvelleDemandePage() {
                       <div className="mt-2 space-y-2">
                         <p><span className="font-medium">Nom complet:</span> {demandeInfo.demande.demandeur.prenom} {demandeInfo.demande.demandeur.nom}</p>
                         <p><span className="font-medium">Email:</span> {demandeInfo.demande.demandeur.email}</p>
-                        <p><span className="font-medium">Téléphone:</span> {demandeInfo.demande.demandeur.telephone}</p>
+                        <p><span className="font-medium">Téléphone:</span> {formatPhoneNumber(demandeInfo.demande.demandeur.telephone)} </p>
                         <p><span className="font-medium">Adresse:</span> {demandeInfo.demande.demandeur.adresse}</p>
                         <p><span className="font-medium">Profession:</span> {demandeInfo.demande.demandeur.profession}</p>
                       </div>
@@ -533,7 +534,7 @@ export default function NouvelleDemandePage() {
                       <h4 className="text-sm font-medium text-gray-500">Informations de la localité</h4>
                       <div className="mt-2 space-y-2">
                         <p><span className="font-medium">Nom:</span> {demandeInfo.localite.nom}</p>
-                        <p><span className="font-medium">Prix:</span> {demandeInfo.localite.prix.toLocaleString()} FCFA</p>
+                        <p><span className="font-medium">Prix:</span> {formatPrice(demandeInfo.localite.prix)} </p>
                         <p><span className="font-medium">Description:</span> {demandeInfo.localite.description}</p>
                       </div>
                     </div>

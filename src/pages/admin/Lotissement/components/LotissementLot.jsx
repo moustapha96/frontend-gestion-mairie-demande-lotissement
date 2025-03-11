@@ -9,6 +9,7 @@ import { getLotissementDetails, getLotissementLot } from "@/services/lotissement
 import { createLot, updateLot } from "@/services/lotsService"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { formatCoordinates, formatPrice } from "@/utils/formatters"
 
 const AdminLotissementLot = () => {
     const { id } = useParams()
@@ -151,10 +152,13 @@ const AdminLotissementLot = () => {
                                             <tr key={lot.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 text-sm">{lot.numeroLot}</td>
                                                 <td className="px-6 py-4 text-sm">{lot.superficie} m²</td>
-                                                <td className="px-6 py-4 text-sm">{lot.longitude + "," + lot.latitude} </td>
+                                                <td className="px-6 py-4 text-sm">
+                                                    {formatCoordinates(lot.latitude, lot.longitude)}
+
+                                                </td>
 
                                                 <td className="px-6 py-4 text-sm">{lot.statut}</td>
-                                                <td className="px-6 py-4 text-sm">{lot.prix} FCFA</td>
+                                                <td className="px-6 py-4 text-sm">{formatPrice(lot.prix)}</td>
                                                 <td className="px-6 py-4 text-sm">{lot.usage}</td>
                                                 <td className="px-6 py-4 text-sm">
                                                     <button

@@ -8,6 +8,7 @@ import { useState, useEffect } from "react"
 import { cn } from "@/utils"
 import { getDemandeurListe } from "@/services/userService"
 import { Loader2 } from "lucide-react"
+import { formatPhoneNumber } from "@/utils/formatters"
 
 const AgentDemandeurListe = () => {
   const [demandeurs, setDemandeurs] = useState([])
@@ -90,7 +91,7 @@ const AgentDemandeurListe = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demandeur.nom}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demandeur.prenom}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demandeur.email}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{demandeur.telephone}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"> {formatPhoneNumber(demandeur.telephone)}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <Link to={`/agent/demandeur/${demandeur.id}/details`} className="text-primary hover:text-primary transition-colors duration-200">
                               Détails

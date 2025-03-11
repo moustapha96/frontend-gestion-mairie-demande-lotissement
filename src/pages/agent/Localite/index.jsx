@@ -7,6 +7,7 @@ import { cn } from "@/utils"
 import { AgentBreadcrumb } from "@/components"
 import { getLocalites } from "@/services/localiteService"
 import { List, Loader2 } from "lucide-react"
+import { formatPrice } from "@/utils/formatters"
 
 const AgentLocaliteListe = () => {
     const [loading, setLoading] = useState(false)
@@ -125,7 +126,8 @@ const AgentLocaliteListe = () => {
                                                         {localite.nom}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {localite.prix} FCFA
+
+                                                        {formatPrice(localite.prix)}
                                                     </td>
                                                     {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{localite.description}</td> */}
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

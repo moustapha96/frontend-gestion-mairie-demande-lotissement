@@ -23,6 +23,8 @@ import * as yup from 'yup';
 import { DemandeurBreadcrumb } from "@/components";
 import { Loader2, Save } from "lucide-react";
 import { createDemande } from "@/services/demandeService";
+import MapCar from "../../../admin/Map/MapCar";
+import { formatPrice } from "@/utils/formatters";
 
 const formSchema = yup.object({
     superficie: yup.string().min(1, "La superficie est requise"),
@@ -48,6 +50,8 @@ const DemandeNouveau = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [demandeInfo, setDemandeInfo] = useState(null);
+    const [selectedLocalite, setSelectedLocalite] = useState(null);
+    const [showMap, setShowMap] = useState(false);
 
     const { register, reset, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(formSchema),
@@ -61,6 +65,13 @@ const DemandeNouveau = () => {
             verso: null
         },
     });
+
+    const handleLocaliteChange = (e) => {
+        const localiteId = e.target.value;
+        const selectedLoc = localites.find(loc => loc.id === localiteId);
+        setSelectedLocalite(selectedLoc);
+        setShowMap(!!selectedLoc);
+    };
 
     async function onSubmit(values) {
         console.log("values", values);
@@ -179,6 +190,10 @@ const DemandeNouveau = () => {
                                                         <label className="block text-sm font-medium text-gray-700">Localité</label>
                                                         <select
                                                             {...register("localiteId")}
+                                                            onChange={(e) => {
+                                                                register("localiteId").onChange(e);
+                                                                handleLocaliteChange(e);
+                                                            }}
                                                             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900  focus:outline-none focus:ring-1 focus:bg-primary-light"
                                                         >
                                                             <option value="">Sélectionnez la localité</option>
@@ -191,6 +206,8 @@ const DemandeNouveau = () => {
                                                         {errors.localiteId && <p className="mt-1 text-sm text-red-600">{errors.localiteId.message}</p>}
                                                     </div>
                                                 </div>
+
+
 
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700">Usage prévu</label>
@@ -317,6 +334,18 @@ const DemandeNouveau = () => {
                                                 </button>
                                             </div>
                                         </form>
+                                        {showMap && selectedLocalite && (
+                                            <div className="mt-4 col-span-2">
+                                                <div className="border rounded-lg overflow-hidden">
+                                                    <div className="h-[400px]">
+                                                        <MapCar
+                                                            selectedItem={selectedLocalite}
+                                                            type="localite"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {demandeInfo && (
                                             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
@@ -358,7 +387,7 @@ const DemandeNouveau = () => {
                                                             </div>
                                                             <div>
                                                                 <p className="text-sm font-medium text-gray-500">Prix</p>
-                                                                <p className="mt-1">{demandeInfo.localite.prix.toLocaleString()} FCFA</p>
+                                                                <p className="mt-1"> {formatPrice(demandeInfo.localite.prix)}</p>
                                                             </div>
                                                             <div className="col-span-2">
                                                                 <p className="text-sm font-medium text-gray-500">Description</p>

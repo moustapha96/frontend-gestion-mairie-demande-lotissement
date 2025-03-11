@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import PageMetaData from "./PageMetaData";
 import { MoveLeft } from "lucide-react";
 
-const AdminBreadcrumb = ({ title, SubTitle }) => {
+const AdminBreadcrumb = ({ title, SubTitle , items = [] }) => {
   const navigate = useNavigate();
   return (
     <>
-      <PageMetaData title={title} />
+      <PageMetaData title={title?  title : "Administration"} />
       <section className="hidden md:block">
         <div className="container">
           <div className="my-6 rounded-lg border border-default-200 bg-white dark:bg-default-50">
@@ -24,7 +24,7 @@ const AdminBreadcrumb = ({ title, SubTitle }) => {
                     to="/admin/dashboard"
                     className="text-base font-medium text-default-900 transition-all duration-200 hover:text-primary"
                   >
-                    Administration
+                    Dashboard
                   </Link>
                 </div>
                 <div className="flex items-center gap-2">
@@ -36,7 +36,19 @@ const AdminBreadcrumb = ({ title, SubTitle }) => {
                     {title}
                   </Link>
                 </div>
-
+                {items && items.length > 0 && <>
+                  {items.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <LuChevronsRight className="size-5 text-default-900 rtl:rotate-180" />
+                      <Link
+                        to={item.link}
+                        className="text-base font-medium text-default-900"
+                      >
+                        {item.label}
+                      </Link>
+                    </div>
+                  ))}
+                </>}
               </div>
             </div>
 
