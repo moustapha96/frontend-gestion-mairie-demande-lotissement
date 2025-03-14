@@ -1,778 +1,904 @@
-'use client'
+// 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { Save, Building, Phone, Globe, Mail, Link2, Loader, User, MapPin, UserCheck, UserX, UserPlus, Calendar, Briefcase } from 'lucide-react';
-import { AdminBreadcrumb } from "@/components";
-import { toast } from 'sonner';
-import { getConfigurations, updateConfiguration } from '@/services/configurationService';
-import { getAllAccounts, updateActivatedStatus, createAdminUser, updateUserRole } from '@/services/userService';
-import { useAuthContext } from '@/context';
-import { cn } from '@/utils';
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+// import React, { useEffect, useState } from 'react';
+// import { Save, Building, Phone, Globe, Mail, Link2, Loader, User, MapPin, UserCheck, UserX, UserPlus, Calendar, Briefcase } from 'lucide-react';
+// import { AdminBreadcrumb } from "@/components";
+// import { toast } from 'sonner';
+// import { getConfigurations, updateConfiguration } from '@/services/configurationService';
+// import { getAllAccounts, updateActivatedStatus, createAdminUser, updateUserRole } from '@/services/userService';
+// import { useAuthContext } from '@/context';
+// import { Card, Tabs, Form, Input, Button, Table, Select, DatePicker, Space, Typography, Spin, Alert } from 'antd';
+// import dayjs from 'dayjs';
 
+// const { Title } = Typography;
+
+// const AdminConfiguration = () => {
+//   const { user } = useAuthContext();
+//   const [form] = Form.useForm();
+//   const [adminForm] = Form.useForm();
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [error, setError] = useState(null);
+//   const [config, setConfig] = useState({
+//     titre: '',
+//     adresse: '',
+//     telephone: '',
+//     siteWeb: '',
+//     email: '',
+//     nomMaire: ''
+//   });
+
+//   const [activeTab, setActiveTab] = useState('1');
+//   const [users, setUsers] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [loadingUser, setLoadingUser] = useState(null);
+
+//   useEffect(() => {
+//     const fetchConfigurations = async () => {
+//       setLoading(true);
+//       try {
+//         const response = await getConfigurations();
+//         const configObj = {
+//           titre: response.titre,
+//           nomMaire: response.nomMaire,
+//           telephone: response.telephone,
+//           email: response.email,
+//           siteWeb: response.siteWeb,
+//           adresse: response.adresse
+//         };
+//         setConfig(configObj);
+//         form.setFieldsValue(configObj);
+//       } catch (error) {
+//         setError(error.message);
+//         toast.error('Erreur lors de la récupération des configurations');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchConfigurations();
+//   }, [form]);
+
+//   useEffect(() => {
+//     if (activeTab === '2') {
+//       fetchUsers();
+//     }
+//   }, [activeTab]);
+
+//   const fetchUsers = async () => {
+//     setLoading(true);
+//     try {
+//       const data = await getAllAccounts();
+//       if (user.roles.includes('ROLE_ADMIN') || user.roles.includes('ROLE_SUPER_ADMIN')) {
+//         setUsers(data);
+//       } else {
+//         const filteredUsers = data.filter(u =>
+//           !u.roles.includes('ROLE_ADMIN') &&
+//           !u.roles.includes('ROLE_SUPER_ADMIN'));
+//         setUsers(filteredUsers);
+//       }
+//     } catch (error) {
+//       setError(error.message);
+//       toast.error('Erreur lors de la récupération des utilisateurs');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleActivateUser = async (userId, currentStatus) => {
+//     setLoadingUser(userId);
+//     try {
+//       await updateActivatedStatus(userId, currentStatus);
+//       await fetchUsers();
+//       toast.success('Statut de l\'utilisateur mis à jour avec succès');
+//     } catch (error) {
+//       toast.error('Erreur lors de la mise à jour du statut');
+//     } finally {
+//       setLoadingUser(null);
+//     }
+//   };
+
+//   const handleRoleChange = async (userId, newRole) => {
+//     if (newRole === 'ROLE_ADMIN' && !user.roles.includes('ROLE_SUPER_ADMIN')) {
+//       toast.error('Seul un super administrateur peut attribuer le rôle administrateur');
+//       return;
+//     }
+
+//     setLoadingUser(userId);
+//     try {
+//       await updateUserRole(userId, newRole);
+//       await fetchUsers();
+//       toast.success('Rôle de l\'utilisateur mis à jour avec succès');
+//     } catch (error) {
+//       toast.error('Erreur lors de la mise à jour du rôle');
+//     } finally {
+//       setLoadingUser(null);
+//     }
+//   };
+
+//   const handleSubmit = async (values) => {
+//     setIsSubmitting(true);
+//     try {
+//       await Promise.all(
+//         Object.entries(values).map(([key, value]) =>
+//           updateConfiguration(key, value)
+//         )
+//       );
+//       toast.success('Configurations mises à jour avec succès');
+//     } catch (error) {
+//       console.error('Erreur lors de la mise à jour des configurations:', error);
+//       toast.error('Erreur lors de la mise à jour des configurations');
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   const handleAdminSubmit = async (values) => {
+//     setIsSubmitting(true);
+//     try {
+//       const formattedValues = {
+//         ...values,
+//         dateNaissance: values.dateNaissance.format('YYYY-MM-DD')
+//       };
+//       await createAdminUser(formattedValues);
+//       toast.success('Administrateur créé avec succès');
+//       adminForm.resetFields();
+//     } catch (error) {
+//       toast.error('Erreur lors de la création de l\'administrateur');
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   const columns = [
+//     {
+//       title: 'Nom',
+//       dataIndex: 'nom',
+//       key: 'nom',
+//       render: (_, record) => `${record.nom} ${record.prenom}`
+//     },
+//     {
+//       title: 'Email',
+//       dataIndex: 'email',
+//       key: 'email',
+//     },
+//     {
+//       title: 'Rôle',
+//       key: 'role',
+//       render: (_, record) => (
+//         <Select
+//           defaultValue={record.roles[0]}
+//           style={{ width: 130 }}
+//           onChange={(value) => handleRoleChange(record.id, value)}
+//           disabled={!user.roles.includes('ROLE_SUPER_ADMIN')}
+//         >
+//           <Select.Option value="ROLE_USER">Utilisateur</Select.Option>
+//           <Select.Option value="ROLE_ADMIN">Administrateur</Select.Option>
+//         </Select>
+//       ),
+//     },
+//     {
+//       title: 'Statut',
+//       key: 'status',
+//       render: (_, record) => (
+//         <Button
+//           type={record.activated ? 'primary' : 'default'}
+//           danger={!record.activated}
+//           onClick={() => handleActivateUser(record.id, !record.activated)}
+//           loading={loadingUser === record.id}
+//         >
+//           {record.activated ? 'Actif' : 'Inactif'}
+//         </Button>
+//       ),
+//     },
+//   ];
+
+//   const items = [
+//     {
+//       key: '1',
+//       label: 'Configuration',
+//       children: (
+//         <Card className="shadow-sm">
+//           <Form
+//             form={form}
+//             layout="vertical"
+//             onFinish={handleSubmit}
+//             initialValues={config}
+//             className="max-w-2xl mx-auto"
+//           >
+//             <Form.Item
+//               name="titre"
+//               label="Titre"
+//               rules={[{ required: true, message: 'Le titre est requis' }]}
+//             >
+//               <Input prefix={<Building className="h-4 w-4" />} />
+//             </Form.Item>
+
+//             <Form.Item
+//               name="nomMaire"
+//               label="Nom du Maire"
+//               rules={[{ required: true, message: 'Le nom du maire est requis' }]}
+//             >
+//               <Input prefix={<User className="h-4 w-4" />} />
+//             </Form.Item>
+
+//             <Form.Item
+//               name="adresse"
+//               label="Adresse"
+//               rules={[{ required: true, message: 'L\'adresse est requise' }]}
+//             >
+//               <Input prefix={<MapPin className="h-4 w-4" />} />
+//             </Form.Item>
+
+//             <Form.Item
+//               name="telephone"
+//               label="Téléphone"
+//               rules={[{ required: true, message: 'Le téléphone est requis' }]}
+//             >
+//               <Input prefix={<Phone className="h-4 w-4" />} />
+//             </Form.Item>
+
+//             <Form.Item
+//               name="email"
+//               label="Email"
+//               rules={[
+//                 { required: true, message: 'L\'email est requis' },
+//                 { type: 'email', message: 'Email invalide' }
+//               ]}
+//             >
+//               <Input prefix={<Mail className="h-4 w-4" />} />
+//             </Form.Item>
+
+//             <Form.Item
+//               name="siteWeb"
+//               label="Site Web"
+//               rules={[{ required: true, message: 'Le site web est requis' }]}
+//             >
+//               <Input prefix={<Globe className="h-4 w-4" />} />
+//             </Form.Item>
+
+//             <Form.Item>
+//               <Button 
+//                 type="primary" 
+//                 htmlType="submit" 
+//                 loading={isSubmitting}
+//                 icon={<Save className="h-4 w-4" />}
+//                 className="w-full md:w-auto"
+//               >
+//                 Enregistrer
+//               </Button>
+//             </Form.Item>
+//           </Form>
+//         </Card>
+//       ),
+//     },
+//     {
+//       key: '2',
+//       label: 'Gestion des Utilisateurs',
+//       children: (
+//         <Space direction="vertical" style={{ width: '100%' }} size="large">
+//           <Card title="Liste des Utilisateurs" className="shadow-sm">
+//             <Table
+//               columns={columns}
+//               dataSource={users}
+//               rowKey="id"
+//               loading={loading}
+//               pagination={{
+//                 defaultPageSize: 5,
+//                 showSizeChanger: true,
+//                 showTotal: (total) => `Total ${total} utilisateurs`,
+//               }}
+//             />
+//           </Card>
+
+//           {(user.roles.includes('ROLE_ADMIN') || user.roles.includes('ROLE_SUPER_ADMIN')) && (
+//             <Card title="Ajouter un Administrateur" className="shadow-sm">
+//               <Form
+//                 form={adminForm}
+//                 layout="vertical"
+//                 onFinish={handleAdminSubmit}
+//                 className="max-w-2xl mx-auto"
+//               >
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                   <Form.Item
+//                     name="email"
+//                     label="Email"
+//                     rules={[
+//                       { required: true, message: 'L\'email est requis' },
+//                       { type: 'email', message: 'Email invalide' }
+//                     ]}
+//                   >
+//                     <Input prefix={<Mail className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="nom"
+//                     label="Nom"
+//                     rules={[{ required: true, message: 'Le nom est requis' }]}
+//                   >
+//                     <Input prefix={<User className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="prenom"
+//                     label="Prénom"
+//                     rules={[{ required: true, message: 'Le prénom est requis' }]}
+//                   >
+//                     <Input prefix={<User className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="dateNaissance"
+//                     label="Date de Naissance"
+//                     rules={[{ required: true, message: 'La date de naissance est requise' }]}
+//                   >
+//                     <DatePicker style={{ width: '100%' }} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="lieuNaissance"
+//                     label="Lieu de Naissance"
+//                     rules={[{ required: true, message: 'Le lieu de naissance est requis' }]}
+//                   >
+//                     <Input prefix={<MapPin className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="numeroElecteur"
+//                     label="Numéro Électeur"
+//                     rules={[{ required: true, message: 'Le numéro d\'électeur est requis' }]}
+//                   >
+//                     <Input prefix={<UserCheck className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="telephone"
+//                     label="Téléphone"
+//                     rules={[{ required: true, message: 'Le téléphone est requis' }]}
+//                   >
+//                     <Input prefix={<Phone className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="adresse"
+//                     label="Adresse"
+//                     rules={[{ required: true, message: 'L\'adresse est requise' }]}
+//                   >
+//                     <Input prefix={<MapPin className="h-4 w-4" />} />
+//                   </Form.Item>
+
+//                   <Form.Item
+//                     name="profession"
+//                     label="Profession"
+//                     rules={[{ required: true, message: 'La profession est requise' }]}
+//                   >
+//                     <Input prefix={<Briefcase className="h-4 w-4" />} />
+//                   </Form.Item>
+//                 </div>
+
+//                 <Form.Item>
+//                   <Button 
+//                     type="primary" 
+//                     htmlType="submit" 
+//                     loading={isSubmitting}
+//                     icon={<UserPlus className="h-4 w-4" />}
+//                     className="w-full md:w-auto"
+//                   >
+//                     Créer l'Administrateur
+//                   </Button>
+//                 </Form.Item>
+//               </Form>
+//             </Card>
+//           )}
+//         </Space>
+//       ),
+//     },
+//   ];
+
+//   if (error) {
+//     return <Alert message="Erreur" description={error} type="error" showIcon />;
+//   }
+
+//   return (
+//     <div className="container mx-auto px-4 py-8">
+//       <AdminBreadcrumb />
+//       <Title level={2} className="mb-6">Configuration du Système</Title>
+//       <Tabs 
+//         defaultActiveKey="1" 
+//         items={items}
+//         onChange={(key) => setActiveTab(key)}
+//         className="configuration-tabs"
+//       />
+//     </div>
+//   );
+// };
+
+// export default AdminConfiguration;
+"use client"
+
+import { useEffect, useState } from "react"
+import { Layout, Card, Tabs, Form, Input, Button, Table, Tag, Select, DatePicker, Typography, Spin, Alert } from "antd"
+import {
+  SaveOutlined,
+  BuildOutlined,
+  PhoneOutlined,
+  GlobalOutlined,
+  MailOutlined,
+  UserOutlined,
+  EnvironmentOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  UserAddOutlined,
+  BankOutlined,
+} from "@ant-design/icons"
+import { AdminBreadcrumb } from "@/components"
+import { toast } from "sonner"
+import { getConfigurations, updateConfiguration } from "@/services/configurationService"
+import { getAllAccounts, updateActivatedStatus, createAdminUser, updateUserRole } from "@/services/userService"
+import { useAuthContext } from "@/context"
+
+const { Content } = Layout
+const { TabPane } = Tabs
+const { Title, Text } = Typography
+const { TextArea } = Input
+const { Option } = Select
 
 const AdminConfiguration = () => {
-  const { user } = useAuthContext();
-  console.log(user)
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuthContext()
+  const [form] = Form.useForm()
+  const [adminForm] = Form.useForm()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [config, setConfig] = useState({
-    titre: '',
-    adresse: '',
-    telephone: '',
-    siteWeb: '',
-    email: '',
-    nomMaire: ''
-  });
+    titre: "",
+    adresse: "",
+    telephone: "",
+    siteWeb: "",
+    email: "",
+    nomMaire: "",
+  })
 
-  const [activeTab, setActiveTab] = useState('config');
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("config")
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(false)
   const [newAdmin, setNewAdmin] = useState({
-    email: '',
-    nom: '',
-    prenom: '',
-    dateNaissance: '',
-    lieuNaissance: '',
-    numeroElecteur: '',
-    telephone: '',
-    adresse: '',
-    profession: ''
-  });
-  const [loadingUser, setLoadingUser] = useState(null);
+    email: "",
+    nom: "",
+    prenom: "",
+    dateNaissance: "",
+    lieuNaissance: "",
+    numeroElecteur: "",
+    telephone: "",
+    adresse: "",
+    profession: "",
+  })
+  const [loadingUser, setLoadingUser] = useState(null)
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(5); // Nombre d'utilisateurs par page
-
-  // Ajouter cette fonction pour la pagination
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(users.length / usersPerPage);
-
-  const paginate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [usersPerPage] = useState(5)
 
   useEffect(() => {
     const fetchConfigurations = async () => {
-      setLoading(true);
+      setLoading(true)
       try {
-        const response = await getConfigurations();
-        console.log(response)
-        const configObj = {};
-        configObj["titre"] = response.titre;
-        configObj["nomMaire"] = response.nomMaire;
-        configObj["telephone"] = response.telephone;
-        configObj["email"] = response.email;
-        configObj["siteWeb"] = response.siteWeb;
-        configObj["adresse"] = response.adresse;
+        const response = await getConfigurations()
+        const configObj = {
+          titre: response.titre,
+          nomMaire: response.nomMaire,
+          telephone: response.telephone,
+          email: response.email,
+          siteWeb: response.siteWeb,
+          adresse: response.adresse,
+        }
 
-        setConfig(configObj);
-      } catch (error) {
+        setConfig(configObj)
+        form.setFieldsValue(configObj)
+      } catch (err) {
         setError(err.message)
-        toast.error('Erreur lors de la récupération des configurations');
+        toast.error("Erreur lors de la récupération des configurations")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchConfigurations();
-  }, []);
+    fetchConfigurations()
+  }, [form])
 
   useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers();
+    if (activeTab === "users") {
+      fetchUsers()
     }
-  }, [activeTab]);
+  }, [activeTab])
 
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const data = await getAllAccounts();
+      const data = await getAllAccounts()
 
-      if (user.roles.includes('ROLE_ADMIN') || user.roles.includes('ROLE_SUPER_ADMIN')) {
-        setUsers(data);
+      if (user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN")) {
+        setUsers(data)
       } else {
-        const filteredUsers = data.filter(user =>
-          !user.roles.includes('ROLE_ADMIN') &&
-          !user.roles.includes('ROLE_SUPER_ADMIN'));
-        setUsers(filteredUsers);
+        const filteredUsers = data.filter(
+          (user) => !user.roles.includes("ROLE_ADMIN") && !user.roles.includes("ROLE_SUPER_ADMIN"),
+        )
+        setUsers(filteredUsers)
       }
-
-      // console.log(data)
-      // setUsers(data);
-    } catch (error) {
+    } catch (err) {
       setError(err.message)
-      toast.error('Erreur lors de la récupération des utilisateurs');
+      toast.error("Erreur lors de la récupération des utilisateurs")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleActivateUser = async (userId, currentStatus) => {
-    setLoadingUser(userId);
+    setLoadingUser(userId)
     try {
-      await updateActivatedStatus(userId, currentStatus);
-      await fetchUsers(); // Recharger la liste
-      toast.success('Statut de l\'utilisateur mis à jour avec succès');
+      await updateActivatedStatus(userId, currentStatus)
+      await fetchUsers()
+      toast.success("Statut de l'utilisateur mis à jour avec succès")
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour du statut');
+      toast.error("Erreur lors de la mise à jour du statut")
     } finally {
-      setLoadingUser(null);
+      setLoadingUser(null)
     }
-  };
-
+  }
 
   const handleRoleChange = async (userId, newRole) => {
-
-    if (newRole === 'ROLE_ADMIN' && !user.roles.includes('ROLE_SUPER_ADMIN')) {
-      toast.error('Seul un super administrateur peut attribuer le rôle administrateur');
-      return;
+    if (newRole === "ROLE_ADMIN" && !user.roles.includes("ROLE_SUPER_ADMIN")) {
+      toast.error("Seul un super administrateur peut attribuer le rôle administrateur")
+      return
     }
 
-    setLoadingUser(userId);
+    setLoadingUser(userId)
     try {
-      await updateUserRole(userId, newRole);
-      await fetchUsers();
-      toast.success('Rôle de l\'utilisateur mis à jour avec succès');
+      await updateUserRole(userId, newRole)
+      await fetchUsers()
+      toast.success("Rôle de l'utilisateur mis à jour avec succès")
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour du rôle');
+      toast.error("Erreur lors de la mise à jour du rôle")
     } finally {
-      setLoadingUser(null);
+      setLoadingUser(null)
     }
-  };
+  }
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setConfig(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const handleSubmit = async (values) => {
+    setIsSubmitting(true)
 
     try {
-      // Mettre à jour chaque configuration
-      await Promise.all(
-        Object.entries(config).map(([key, value]) =>
-          updateConfiguration(key, value)
-        )
-      );
-      toast.success('Configurations mises à jour avec succès');
+      await Promise.all(Object.entries(values).map(([key, value]) => updateConfiguration(key, value)))
+      toast.success("Configurations mises à jour avec succès")
     } catch (error) {
-      console.error('Erreur lors de la mise à jour des configurations:', error);
-      toast.error('Erreur lors de la mise à jour des configurations');
+      console.error("Erreur lors de la mise à jour des configurations:", error)
+      toast.error("Erreur lors de la mise à jour des configurations")
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const handleAdminSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    console.log(newAdmin)
+  const handleAdminSubmit = async (values) => {
+    setIsSubmitting(true)
     try {
-      await createAdminUser(newAdmin);
-      toast.success('Administrateur créé avec succès');
-      setNewAdmin({
-        email: '',
-        nom: '',
-        prenom: '',
-        dateNaissance: '',
-        lieuNaissance: '',
-        numeroElecteur: '',
-        telephone: '',
-        adresse: '',
-        profession: ''
-      });
+      // Format date to string if it's a dayjs object
+      const formattedValues = {
+        ...values,
+        dateNaissance: values.dateNaissance ? values.dateNaissance.format("YYYY-MM-DD") : "",
+      }
+
+      await createAdminUser(formattedValues)
+      toast.success("Administrateur créé avec succès")
+      adminForm.resetFields()
     } catch (error) {
-      toast.error('Erreur lors de la création de l\'administrateur');
+      toast.error("Erreur lors de la création de l'administrateur")
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
-
-  const handleAdminInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewAdmin(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-
-  const tabs = [
-    { id: 'config', label: 'Configuration' },
-    { id: 'users', label: 'Utilisateurs' },
-    ...(user.roles.includes('ROLE_SUPER_ADMIN') ? [
-      { id: 'new-admin', label: 'Nouvel Admin' }
-    ] : [])
-  ];
+  }
 
   const formatRoleDisplay = (role) => {
     const roleMap = {
-      'ROLE_DEMANDEUR': 'Demandeur',
-      'ROLE_AGENT': 'Agent',
-      'ROLE_ADMIN': 'Administrateur',
-      'ROLE_SUPER_ADMIN': 'Super Administrateur'
-    };
-    return roleMap[role] || role;
-  };
+      ROLE_DEMANDEUR: "Demandeur",
+      ROLE_AGENT: "Agent",
+      ROLE_ADMIN: "Administrateur",
+      ROLE_SUPER_ADMIN: "Super Administrateur",
+    }
+    return roleMap[role] || role
+  }
 
-  if (loading) return <LoadingSkeleton />
-  if (error) return <ErrorDisplay error={error} />
+  // Table columns
+  const columns = [
+    {
+      title: "Nom",
+      dataIndex: "nom",
+      key: "nom",
+      render: (text, record) => `${record.nom} ${record.prenom}`,
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "Rôle",
+      dataIndex: "roles",
+      key: "roles",
+      render: (roles, record) => (
+        <Select
+          value={roles[0]}
+          onChange={(value) => handleRoleChange(record.id, value)}
+          disabled={
+            loadingUser === record.id ||
+            (roles[0] === "ROLE_ADMIN" && !user.roles.includes("ROLE_SUPER_ADMIN")) ||
+            roles.includes("ROLE_SUPER_ADMIN")
+          }
+          style={{ width: "100%" }}
+        >
+          <Option value="ROLE_DEMANDEUR">Demandeur</Option>
+          <Option value="ROLE_AGENT">Agent</Option>
+          <Option value="ROLE_ADMIN">Admin</Option>
+          {user.roles.includes("ROLE_SUPER_ADMIN") && <Option value="ROLE_SUPER_ADMIN">Super Admin</Option>}
+        </Select>
+      ),
+    },
+    {
+      title: "Statut",
+      dataIndex: "activated",
+      key: "activated",
+      render: (activated) => <Tag color={activated ? "success" : "error"}>{activated ? "Activé" : "Désactivé"}</Tag>,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Button
+          className={record.activated ? "text-danger" : "text-primary"}
+          onClick={() => handleActivateUser(record.id, record.activated)}
+          disabled={loadingUser === record.id}
+          icon={record.activated ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
+          loading={loadingUser === record.id}
+        >
+          {record.activated ? "Désactiver" : "Activer"}
+        </Button>
+      ),
+    },
+  ]
+
+  if (loading && !users.length && !Object.values(config).some((val) => val)) {
+    return <LoadingSkeleton />
+  }
+
+  if (error) {
+    return <ErrorDisplay error={error} />
+  }
 
   return (
     <>
       <AdminBreadcrumb title="Configuration" />
-      <div className="container mx-auto py-8">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          {/* Onglets */}
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'py-4 px-1 border-b-2 font-medium text-sm',
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
+      <section>
+        <div className="container">
+          <div className="my-6 space-y-6">
+            <div className="grid grid-cols-1">
+              <Content className="site-layout-background" style={{ padding: 24 }}>
+                <Card>
+                  <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
+                    <TabPane tab="Configuration" key="config">
+                      <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={config}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+                          <Form.Item
+                            name="titre"
+                            label="Titre de la mairie"
+                            rules={[{ required: true, message: "Veuillez saisir le titre de la mairie" }]}
+                          >
+                            <Input prefix={<BuildOutlined />} placeholder="Titre de la mairie" />
+                          </Form.Item>
 
-          <div className="p-6">
-            {activeTab === 'config' ? (
-              // Configuration existante
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="titre" className="block text-sm font-medium text-gray-700 mb-1">
-                      Titre de la mairie
-                    </label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="titre"
-                        name="titre"
-                        type="text"
-                        value={config.titre}
-                        onChange={handleInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          <Form.Item
+                            name="nomMaire"
+                            label="Nom du maire"
+                            rules={[{ required: true, message: "Veuillez saisir le nom du maire" }]}
+                          >
+                            <Input prefix={<UserOutlined />} placeholder="Nom du maire" />
+                          </Form.Item>
+
+                          <Form.Item
+                            name="adresse"
+                            label="Adresse"
+                            rules={[{ required: true, message: "Veuillez saisir l'adresse" }]}
+                          >
+                            <TextArea
+                              prefix={<EnvironmentOutlined />}
+                              placeholder="Adresse"
+                              autoSize={{ minRows: 2, maxRows: 6 }}
+                            />
+                          </Form.Item>
+
+                          <Form.Item
+                            name="telephone"
+                            label="Téléphone"
+                            rules={[{ required: true, message: "Veuillez saisir le numéro de téléphone" }]}
+                          >
+                            <Input prefix={<PhoneOutlined />} placeholder="Téléphone" />
+                          </Form.Item>
+
+                          <Form.Item
+                            name="email"
+                            label="Email"
+                            rules={[
+                              { required: true, message: "Veuillez saisir l'email" },
+                              { type: "email", message: "Veuillez saisir un email valide" },
+                            ]}
+                          >
+                            <Input prefix={<MailOutlined />} placeholder="Email" />
+                          </Form.Item>
+
+                          <Form.Item
+                            name="siteWeb"
+                            label="Site Web"
+                            rules={[
+                              { required: true, message: "Veuillez saisir le site web" },
+                              { type: "url", message: "Veuillez saisir une URL valide" },
+                            ]}
+                          >
+                            <Input prefix={<GlobalOutlined />} placeholder="https://www.example.com" />
+                          </Form.Item>
+                        </div>
+
+                        <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+                          <Button className="text-primary" htmlType="submit" loading={isSubmitting} icon={<SaveOutlined />} size="large">
+                            Enregistrer les modifications
+                          </Button>
+                        </Form.Item>
+                      </Form>
+                    </TabPane>
+
+                    <TabPane tab="Utilisateurs" key="users">
+                      <Table
+                        dataSource={users}
+                        columns={columns}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={{
+                          current: currentPage,
+                          pageSize: usersPerPage,
+                          total: users.length,
+                          onChange: (page) => setCurrentPage(page),
+                          showSizeChanger: false,
+                          showTotal: (total, range) => `${range[0]}-${range[1]} sur ${total} utilisateurs`,
+                        }}
                       />
-                    </div>
-                  </div>
+                    </TabPane>
 
-                  <div>
-                    <label htmlFor="nomMaire" className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom du maire
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="nomMaire"
-                        name="nomMaire"
-                        type="text"
-                        value={config.nomMaire}
-                        onChange={handleInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
+                    {user.roles.includes("ROLE_SUPER_ADMIN") && (
+                      <TabPane tab="Nouvel Admin" key="new-admin">
+                        <Form form={adminForm} layout="vertical" onFinish={handleAdminSubmit}>
+                          <div
+                            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}
+                          >
+                            <Form.Item name="nom" label="Nom" rules={[{ required: true, message: "Veuillez saisir le nom" }]}>
+                              <Input prefix={<UserOutlined />} placeholder="Nom" />
+                            </Form.Item>
 
-                  <div>
-                    <label htmlFor="adresse" className="block text-sm font-medium text-gray-700 mb-1">
-                      Adresse
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <textarea
-                        id="adresse"
-                        name="adresse"
-                        rows="2"
-                        value={config.adresse}
-                        onChange={handleInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
+                            <Form.Item
+                              name="prenom"
+                              label="Prénom"
+                              rules={[{ required: true, message: "Veuillez saisir le prénom" }]}
+                            >
+                              <Input prefix={<UserOutlined />} placeholder="Prénom" />
+                            </Form.Item>
 
-                  <div>
-                    <label htmlFor="telephone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Téléphone
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="telephone"
-                        name="telephone"
-                        type="tel"
-                        value={config.telephone}
-                        onChange={handleInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
+                            <Form.Item
+                              name="email"
+                              label="Email"
+                              rules={[
+                                { required: true, message: "Veuillez saisir l'email" },
+                                { type: "email", message: "Veuillez saisir un email valide" },
+                              ]}
+                            >
+                              <Input prefix={<MailOutlined />} placeholder="Email" />
+                            </Form.Item>
 
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={config.email}
-                        onChange={handleInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
+                            <Form.Item
+                              name="dateNaissance"
+                              label="Date de Naissance"
+                              rules={[{ required: true, message: "Veuillez sélectionner la date de naissance" }]}
+                            >
+                              <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder="Sélectionner une date" />
+                            </Form.Item>
 
-                  <div>
-                    <label htmlFor="siteWeb" className="block text-sm font-medium text-gray-700 mb-1">
-                      Site Web
-                    </label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="siteWeb"
-                        name="siteWeb"
-                        type="url"
-                        value={config.siteWeb}
-                        onChange={handleInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="https://www.example.com"
-                      />
-                    </div>
-                  </div>
-                </div>
+                            <Form.Item
+                              name="lieuNaissance"
+                              label="Lieu de Naissance"
+                              rules={[{ required: true, message: "Veuillez saisir le lieu de naissance" }]}
+                            >
+                              <Input prefix={<EnvironmentOutlined />} placeholder="Lieu de naissance" />
+                            </Form.Item>
 
-                <div className="flex justify-center">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-1/2 flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader className="animate-spin mr-2" size={20} />
-                        Mise à jour...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2" size={20} />
-                        Enregistrer les modifications
-                      </>
+                            <Form.Item
+                              name="numeroElecteur"
+                              label="Numéro d'Électeur"
+                              rules={[
+                                { required: true, message: "Veuillez saisir le numéro d'électeur" },
+                                { pattern: new RegExp("^[0-9]{13}$"), message: "Le numéro d'électeur doit contenir 13 chiffres" },
+                              ]}
+                            >
+                              <Input prefix={<UserAddOutlined />} placeholder="Numéro d'électeur" />
+                            </Form.Item>
+
+                            <Form.Item
+                              name="telephone"
+                              label="Téléphone"
+                              rules={[{ required: true, message: "Veuillez saisir le numéro de téléphone" },
+                              { pattern: new RegExp("^(70|76|77|78|79)[0-9]{7}$"), message: "Le numéro de téléphone doit être composé de 9 chiffres et commencer par 70, 76, 77, 78 ou 79" },
+                              ]}
+                            >
+                              <Input prefix={<PhoneOutlined />} placeholder="Téléphone" />
+                            </Form.Item>
+
+                            <Form.Item
+                              name="profession"
+                              label="Profession"
+                              rules={[{ required: true, message: "Veuillez saisir la profession" }]}
+                            >
+                              <Input prefix={<BankOutlined />} placeholder="Profession" />
+                            </Form.Item>
+
+                            <Form.Item
+                              name="adresse"
+                              label="Adresse"
+                              rules={[{ required: true, message: "Veuillez saisir l'adresse" }]}
+                            >
+                              <TextArea placeholder="Adresse" autoSize={{ minRows: 2, maxRows: 6 }} />
+                            </Form.Item>
+                          </div>
+
+                          <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+                            <Button
+                              className="text-primary"
+                              htmlType="submit"
+                              loading={isSubmitting}
+                              icon={<SaveOutlined />}
+                              size="large"
+                            >
+                              Créer l'administrateur
+                            </Button>
+                          </Form.Item>
+                        </Form>
+                      </TabPane>
                     )}
-                  </button>
-                </div>
-              </form>
-            ) : activeTab === 'new-admin' && user.roles.includes('ROLE_SUPER_ADMIN') ? (
-              // Formulaire de création d'un nouvel admin
-              <form onSubmit={handleAdminSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="nom"
-                        name="nom"
-                        type="text"
-                        value={newAdmin.nom}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">
-                      Prénom
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="prenom"
-                        name="prenom"
-                        type="text"
-                        value={newAdmin.prenom}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={newAdmin.email}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="dateNaissance" className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de Naissance
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="dateNaissance"
-                        name="dateNaissance"
-                        type="date"
-                        value={newAdmin.dateNaissance}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="lieuNaissance" className="block text-sm font-medium text-gray-700 mb-1">
-                      Lieu de Naissance
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="lieuNaissance"
-                        name="lieuNaissance"
-                        type="text"
-                        value={newAdmin.lieuNaissance}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="numeroElecteur" className="block text-sm font-medium text-gray-700 mb-1">
-                      Numéro d'Électeur
-                    </label>
-                    <div className="relative">
-                      <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="numeroElecteur"
-                        name="numeroElecteur"
-                        type="text"
-                        value={newAdmin.numeroElecteur}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="telephone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Téléphone
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="telephone"
-                        name="telephone"
-                        type="tel"
-                        value={newAdmin.telephone}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="profession" className="block text-sm font-medium text-gray-700 mb-1">
-                      Profession
-                    </label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        id="profession"
-                        name="profession"
-                        type="text"
-                        value={newAdmin.profession}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="adresse" className="block text-sm font-medium text-gray-700 mb-1">
-                      Adresse
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <textarea
-                        id="adresse"
-                        name="adresse"
-                        rows="2"
-                        value={newAdmin.adresse}
-                        onChange={handleAdminInputChange}
-                        className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-1/2 flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader className="animate-spin mr-2" size={20} />
-                        Création...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2" size={20} />
-                        Créer l'administrateur
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentUsers.map((userr) => (
-                      <tr key={userr.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {userr.nom} {userr.prenom}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{userr.email}</td>
-
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <select
-                            value={userr.roles[0]}
-                            onChange={(e) => handleRoleChange(userr.id, e.target.value)}
-                            disabled={loadingUser === userr.id || (userr.roles[0] === 'ROLE_ADMIN' || user.roles.includes('ROLE_SUPER_ADMIN'))}
-
-                            className={cn(
-                              "block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm",
-                              loadingUser === userr.id && "opacity-50 cursor-not-allowed",
-                              userr.roles[0] === 'ROLE_ADMIN' && !user.roles.includes('ROLE_SUPER_ADMIN') && "bg-gray-100"
-                            )}
-                          >
-                            <option value="ROLE_DEMANDEUR">Demandeur</option>
-                            <option value="ROLE_AGENT">Agent</option>
-                            {user.roles.includes('ROLE_SUPER_ADMIN') && (
-                              <option value="ROLE_ADMIN">Admin</option>
-                            )}
-                          </select>
-                          {loadingUser === userr.id && (
-                            <Loader className="animate-spin w-4 h-4 ml-2 inline" />
-                          )}
-                        </td> */}
-
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <select
-                            value={userr.roles[0]}
-                            onChange={(e) => handleRoleChange(userr.id, e.target.value)}
-                            disabled={loadingUser === userr.id ||
-                              (userr.roles[0] === 'ROLE_ADMIN' && !user.roles.includes('ROLE_SUPER_ADMIN')) ||
-                              userr.roles.includes('ROLE_SUPER_ADMIN')}
-                            className={cn(
-                              "block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm",
-                              loadingUser === userr.id && "opacity-50 cursor-not-allowed",
-                              (userr.roles[0] === 'ROLE_ADMIN' && !user.roles.includes('ROLE_SUPER_ADMIN')) && "bg-gray-100"
-                            )}
-                          >
-                            <option value="ROLE_DEMANDEUR">Demandeur</option>
-                            <option value="ROLE_AGENT">Agent</option>
-                            <option value="ROLE_ADMIN">Admin</option>
-                            {user.roles.includes('ROLE_SUPER_ADMIN') && (
-                              <option value="ROLE_SUPER_ADMIN">Super Admin</option>
-                            )}
-                          </select>
-                          {loadingUser === userr.id && (
-                            <Loader className="animate-spin w-4 h-4 ml-2 inline" />
-                          )}
-                        </td>
-
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={cn(
-                            "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
-                            userr.activated
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          )}>
-                            {userr.activated ? 'Activé' : 'Désactivé'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-
-                          <button
-                            onClick={() => handleActivateUser(userr.id, userr.activated)}
-                            disabled={loadingUser === userr.id}
-                            className={cn(
-                              "inline-flex items-center px-3 py-1 rounded-md text-sm font-medium",
-                              userr.activated
-                                ? "text-red-700 bg-red-100 hover:bg-red-200"
-                                : "text-green-700 bg-green-100 hover:bg-green-200",
-                              loadingUser === userr.id && "opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            {loadingUser === userr.id ? (
-                              <>
-                                <Loader className="animate-spin w-4 h-4 mr-1" />
-                                {userr.activated ? 'Désactivation...' : 'Activation...'}
-                              </>
-                            ) : (
-                              <>
-                                {userr.activated ? (
-                                  <><UserX className="w-4 h-4 mr-1" /> Désactiver</>
-                                ) : (
-                                  <><UserCheck className="w-4 h-4 mr-1" /> Activer</>
-                                )}
-                              </>
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div className="flex items-center justify-between mt-4 px-6 py-4 border-t border-gray-200">
-                  <div className="text-sm text-gray-700">
-                    Affichage de {indexOfFirstUser + 1} à {Math.min(indexOfLastUser, users.length)} sur{" "}
-                    {users.length} utilisateurs
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => paginate(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className={cn(
-                        "px-3 py-1 rounded-md",
-                        currentPage === 1
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 hover:bg-gray-50",
-                      )}
-                    >
-                      <LuChevronLeft className="h-5 w-5" />
-                    </button>
-
-                    {Array.from({ length: Math.ceil(users.length / usersPerPage) }).map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => paginate(index + 1)}
-                        className={cn(
-                          "px-3 py-1 rounded-md",
-                          currentPage === index + 1
-                            ? "bg-primary text-white"
-                            : "bg-white text-gray-700 hover:bg-gray-50",
-                        )}
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={() => paginate(currentPage + 1)}
-                      disabled={currentPage === Math.ceil(users.length / usersPerPage)}
-                      className={cn(
-                        "px-3 py-1 rounded-md",
-                        currentPage === Math.ceil(users.length / usersPerPage)
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 hover:bg-gray-50",
-                      )}
-                    >
-                      <LuChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-
-              </div>
-            )}
+                  </Tabs>
+                </Card>
+              </Content>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </>
-  );
-};
+  )
+}
+
 function LoadingSkeleton() {
   return (
-    <div className="bg-gray-100 min-h-screen pb-10">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="h-9 w-64 bg-gray-200 rounded animate-pulse"></div>
+    <div style={{ padding: 24 }}>
+      <Spin tip="Chargement..." size="large">
+        <div style={{ padding: 50, background: "#f0f2f5", borderRadius: 4 }}>
+          <Alert
+            message="Chargement des données"
+            description="Veuillez patienter pendant le chargement des données..."
+            type="info"
+          />
         </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid gap-6 md:grid-cols-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
-                  {[...Array(5)].map((_, j) => (
-                    <div key={j} className="flex items-center space-x-3 mt-4">
-                      <div className="h-5 w-5 bg-gray-200 rounded-full animate-pulse"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-                        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
+      </Spin>
     </div>
   )
 }
 
 function ErrorDisplay({ error }) {
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white shadow rounded-lg overflow-hidden w-full max-w-md">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium leading-6 text-red-600 mb-4">Erreur</h3>
-          <p className="text-center">{error}</p>
-        </div>
-      </div>
+    <div style={{ padding: 24 }}>
+      <Alert message="Erreur" description={error} type="error" showIcon />
     </div>
   )
 }
 
-export default AdminConfiguration;
+export default AdminConfiguration
+

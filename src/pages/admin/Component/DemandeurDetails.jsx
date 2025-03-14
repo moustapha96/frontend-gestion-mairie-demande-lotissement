@@ -1,15 +1,24 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
 import { getDemandeur } from "../../../services/demandeurService";
-import { User, Phone, Mail, MapPin, Briefcase, Calendar, MapPinned, CheckCircle, XCircle, Clock, ChevronRight } from "lucide-react";
+import { updateDemande, getDemandeDetails } from "../../../services/demandeService";
+import { User, Phone, Mail, MapPin, Briefcase, Calendar, MapPinned, CheckCircle, XCircle, Clock, ChevronRight, Edit } from "lucide-react";
+import { toast } from "react-toastify";
 
 const DemandeurDetails = () => {
     const { id } = useParams();
     const [demandeur, setDemandeur] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedDemande, setSelectedDemande] = useState(null);
+    const [editForm, setEditForm] = useState({
+        typeDemande: "",
+        superficie: "",
+        usagePrevu: "",
+        autreTerrain: ""
+    });
 
     useEffect(() => {
         const fetchDemandeur = async () => {
@@ -26,17 +35,44 @@ const DemandeurDetails = () => {
         fetchDemandeur();
     }, [id]);
 
+    const handleEdit = async (demandeId) => {
+        try {
+            const demandeData = await getDemandeDetails(demandeId);
+            setSelectedDemande(demandeData);
+            setEditForm({
+                typeDemande: demandeData.typeDemande || "",
+                superficie: demandeData.superficie || "",
+                usagePrevu: demandeData.usagePrevu || "",
+                autreTerrain: demandeData.autreTerrain || ""
+            });
+            setEditModalOpen(true);
+        } catch (err) {
+            toast.error("Erreur lors de la récupération des détails de la demande");
+        }
+    };
+
+    const handleSubmitEdit = async (e) => {
+        e.preventDefault();
+        try {
+            await updateDemande(selectedDemande.id, editForm);
+            const updatedDemandeur = await getDemandeur(id);
+            setDemandeur(updatedDemandeur);
+            setEditModalOpen(false);
+            toast.success("Demande mise à jour avec succès");
+        } catch (err) {
+            toast.error("Erreur lors de la mise à jour de la demande");
+        }
+    };
+
     if (loading) return <div className="flex justify-center items-center h-screen">Chargement des détails du Demandeur...</div>;
     if (error) return <div className="flex justify-center items-center h-screen text-red-600">Erreur: {error}</div>;
 
     return (
         <>
             <AdminBreadcrumb title="Détails Demandeur" SubTitle={demandeur?.name} />
-            <section >
+            <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
-
-
                         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                             <div className="p-6 sm:p-10">
                                 <h1 className="text-3xl font-bold text-gray-800 mb-6">{demandeur.name}</h1>
@@ -86,8 +122,15 @@ const DemandeurDetails = () => {
                                                                     {demande.resultat}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                                <Link to={`/admin/demandes/${demande.id}/details`} className="text-blue-600 hover:text-blue-900 flex items-center">
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                                                                <button
+                                                                    onClick={() => handleEdit(demande.id)}
+                                                                    className="text-blue-600 hover:text-blue-900 inline-flex items-center mr-4"
+                                                                >
+                                                                    <Edit className="w-4 h-4 mr-1" />
+                                                                    Modifier
+                                                                </button>
+                                                                <Link to={`/admin/demandes/${demande.id}/details`} className="text-blue-600 hover:text-blue-900 inline-flex items-center">
                                                                     Détails
                                                                     <ChevronRight className="w-4 h-4 ml-1" />
                                                                 </Link>
@@ -105,6 +148,75 @@ const DemandeurDetails = () => {
                 </div>
             </section>
 
+            {/* Modal d'édition */}
+            {editModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-8 max-w-md w-full">
+                        <h2 className="text-2xl font-bold mb-6">Modifier la demande</h2>
+                        <form onSubmit={handleSubmitEdit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Type de demande
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.typeDemande}
+                                    onChange={(e) => setEditForm({ ...editForm, typeDemande: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Superficie
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.superficie}
+                                    onChange={(e) => setEditForm({ ...editForm, superficie: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Usage prévu
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.usagePrevu}
+                                    onChange={(e) => setEditForm({ ...editForm, usagePrevu: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Autre terrain
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.autreTerrain}
+                                    onChange={(e) => setEditForm({ ...editForm, autreTerrain: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditModalOpen(false)}
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                >
+                                    Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

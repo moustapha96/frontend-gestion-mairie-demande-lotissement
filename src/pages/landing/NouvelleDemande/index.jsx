@@ -19,7 +19,10 @@ const applicantSchema = yup.object({
   prenom: yup.string().required("Veuillez entrer votre prénom"),
   nom: yup.string().required("Veuillez entrer votre nom"),
   email: yup.string().email("Veuillez entrer un email valide").required("L'email est requis"),
-  telephone: yup.string().required("Le numéro de téléphone est requis"),
+  telephone: yup
+    .string()
+    .matches(/^(70|76|77|78|79)[0-9]{7}$/, "Le numéro de téléphone doit commencer par 70, 76, 77, 78 ou 79 suivis de 7 chiffres")
+    .required("Le numéro de téléphone est requis"),
   adresse: yup.string().required("L'adresse est requise"),
   profession: yup.string().required("La profession est requise"),
   lieuNaissance: yup.string().required("Le lieu de naissance est requis"),
@@ -43,7 +46,7 @@ const applicantSchema = yup.object({
   numeroElecteur: yup
     .string()
     .required("Le numéro de carte nationale est requis")
-    .matches(/^\d{14}$/, "Le numéro doit contenir exactement 14 chiffres"),
+    .matches(/^\d{13}$/, "Le numéro doit contenir exactement 13 chiffres"),
 
   possedeAutreTerrain: yup.boolean(),
   typeDocument: yup.string().required("Le type de document est requis"),
@@ -244,6 +247,7 @@ export default function NouvelleDemandePage() {
                 <input
                   id="telephone"
                   {...register('telephone')}
+
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                 />
                 {errors.telephone && <p className="mt-2 text-sm text-red-600">{errors.telephone.message}</p>}

@@ -65,6 +65,8 @@ import AgentDemandeListe from "@/pages/agent/Demande";
 import AgentProfile from "@/pages/agent/Profil";
 import AdminMap from "@/pages/admin/Map";
 import AdminDocumentModel from "../pages/admin/DocumentModel";
+import AdminDemandeurDemandes from "../pages/admin/Demandeur/components/DemandeurDemandes";
+import DemandeurDemandeModification from "../pages/demandeur/Demande/components/DemandeModification";
 
 
 
@@ -196,6 +198,10 @@ const demandeurRoutes = [
     element: <DemandeurDemandeDetails />,
   },
   {
+    path: "/demandeur/demandes/:id/modification",
+    element: <DemandeurDemandeModification />,
+  },
+  {
     path: "/demandeur/nouveau-demande",
     element: <DemandeNouveau />
   },
@@ -280,6 +286,10 @@ const adminRoutes = [
   {
     path: '/admin/demandeurs',
     element: <AdminDemandeurListe />
+  },
+  {
+    path: '/admin/demandeur/:id/demandes',
+    element: <AdminDemandeurDemandes />
   },
   {
     path: '/admin/lotissements',

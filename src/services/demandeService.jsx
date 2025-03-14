@@ -93,11 +93,34 @@ export async function updateDemandeStatut(id, statut) {
     }
 }
 
+export async function updateDemande(id, data) {
+    console.log(data.get('superficie'))
+    console.log(data.get('usagePrevu'))
+    console.log(data.get('localiteId'))
+    console.log(data.get('typeDemande'))
+    console.log(data.get('typeDocument'))
+    console.log(data.get('possedeAutreTerrain'))
+    console.log(data.get('recto'))
+    console.log(data.get('verso'))
+
+    try {
+        const response = await HttpClient.put(`${urlApi}demande/${id}/update`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la demande:', error);
+        throw error;
+    }
+}
+
 export const importDemandes = async (file) => {
     try {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const response = await HttpClient.post(`${urlApi}demande/import`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -118,3 +141,14 @@ export const generateDocument = async (demandeId, documentData) => {
         throw error;
     }
 };
+
+export const getDemandeurDemandes = async (id) => {
+    try {
+        const response = await HttpClient.get(`${urlApi}demande/demandeur/${id}/liste`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la recuperation des demandes:', error);
+        throw error;
+    }
+};
+

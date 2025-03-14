@@ -176,3 +176,13 @@ export const updateUserRole = async (id, role) => {
     }
 
 }
+
+export const getDetaitHabitant = async (id) => {
+    try {
+        const response = await HttpClient.get(`${urlApi}user/${id}/is-habitant`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la recuperation des details du habitant:', error);
+        throw error;
+    }
+}

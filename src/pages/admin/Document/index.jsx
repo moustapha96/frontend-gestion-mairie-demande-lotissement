@@ -1,3 +1,5 @@
+import React from "react";
+import { Card } from "antd";
 import { AdminBreadcrumb } from "@/components";
 
 import DocumentListe from "./components/DocumentListe";
@@ -10,7 +12,9 @@ const AdminDocument = () => {
         <div className="container">
           <div className="my-6 space-y-6">
             <div className="grid grid-cols-1">
-              <DocumentListe />
+              <Card className="shadow-lg rounded-lg">
+                <DocumentListe />
+              </Card>
             </div>
           </div>
         </div>

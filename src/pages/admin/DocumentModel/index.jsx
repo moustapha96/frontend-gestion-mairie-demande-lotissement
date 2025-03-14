@@ -165,18 +165,17 @@ const AdminDocumentModel = () => {
         <div className="container">
           <div className="my-6 space-y-6">
             <div className="grid grid-cols-1">
-              <Card
-                title="Gestion des Modèles de Documents"
-                extra={
-                  <Button
-                    className="text-base font-medium text-primary transition-all duration-200 hover:text-primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleAdd}
-                  >
-                    Nouveau Modèle
-                  </Button>
-                }
-              >
+              <div className="flex justify-between items-center mb-4">
+                <h4>Gestion des Modèles de Documents</h4>
+                <Button
+                  className="text-base font-medium text-primary transition-all duration-200 hover:text-primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                >
+                  Nouveau Modèle
+                </Button>
+              </div>
+              <Card className="shadow-lg rounded-lg">
                 <Table
                   columns={columns}
                   dataSource={models}
@@ -189,65 +188,62 @@ const AdminDocumentModel = () => {
                   }}
                 />
               </Card>
-
-              <Modal
-                title={editingId ? "Modifier le modèle" : "Nouveau modèle"}
-                open={modalVisible}
-                onCancel={() => setModalVisible(false)}
-                footer={null}
-                destroyOnClose
-              >
-                <Form
-                  form={form}
-                  layout="vertical"
-                  onFinish={handleSubmit}
-                  initialValues={{ format: "pdf" }}
-                >
-                  <Form.Item
-                    name="name"
-                    label="Nom"
-                    rules={[{ required: true, message: "Le nom est requis" }]}
-                  >
-                    <Input placeholder="Nom du modèle" />
-                  </Form.Item>
-                  <Form.Item
-                    name="description"
-                    label="Description"
-                    rules={[{ required: true, message: "La description est requise" }]}
-                  >
-                    <Input.TextArea
-                      rows={4}
-                      placeholder="Description détaillée du modèle"
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    name="format"
-                    label="Format"
-                    rules={[{ required: true, message: "Le format est requis" }]}
-                  >
-                    <Select>
-                      <Select.Option value="pdf">PDF</Select.Option>
-                      <Select.Option value="docx">Word (DOCX)</Select.Option>
-                      <Select.Option value="xlsx">Excel (XLSX)</Select.Option>
-                    </Select>
-                  </Form.Item>
-                  <Form.Item className="text-right">
-                    <Button type="default" onClick={() => setModalVisible(false)} className="mr-2">
-                      Annuler
-                    </Button>
-                    <Button className="text-base font-medium text-primary transition-all duration-200 hover:text-primary" htmlType="submit">
-                      {editingId ? "Mettre à jour" : "Créer"}
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Modal>
             </div>
           </div>
         </div>
       </section>
 
-
-
+      <Modal
+        title={editingId ? "Modifier le modèle" : "Nouveau modèle"}
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{ format: "pdf" }}
+        >
+          <Form.Item
+            name="name"
+            label="Nom"
+            rules={[{ required: true, message: "Le nom est requis" }]}
+          >
+            <Input placeholder="Nom du modèle" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: "La description est requise" }]}
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder="Description détaillée du modèle"
+            />
+          </Form.Item>
+          <Form.Item
+            name="format"
+            label="Format"
+            rules={[{ required: true, message: "Le format est requis" }]}
+          >
+            <Select>
+              <Select.Option value="pdf">PDF</Select.Option>
+              <Select.Option value="docx">Word (DOCX)</Select.Option>
+              <Select.Option value="xlsx">Excel (XLSX)</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item className="text-right">
+            <Button type="default" onClick={() => setModalVisible(false)} className="mr-2">
+              Annuler
+            </Button>
+            <Button className="text-base font-medium text-primary transition-all duration-200 hover:text-primary" htmlType="submit">
+              {editingId ? "Mettre à jour" : "Créer"}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
