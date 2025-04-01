@@ -11,7 +11,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { DemandeurBreadcrumb } from "@/components";
 import { Loader2, Save } from "lucide-react";
-import { getDemandeDetails, updateDemande } from "@/services/demandeService";
+import { getDemandeDetails, getFileDocument, updateDemande } from "@/services/demandeService";
 import MapCar from "../../../admin/Map/MapCar";
 import { formatPrice } from "@/utils/formatters";
 import ErrorDisplay from "../../../Components/ErrorDisplay";
@@ -42,6 +42,8 @@ export default function DemandeurDemandeModification() {
     const [selectedLocalite, setSelectedLocalite] = useState(null);
     const [showMap, setShowMap] = useState(false);
     const [newFiles, setNewFiles] = useState({ recto: null, verso: null });
+    const [rectoFile, setRectoFile] = useState(null);
+    const [versoFile, setVersoFile] = useState(null);
 
     const { register, reset, handleSubmit, formState: { errors }, setValue } = useForm({
         resolver: yupResolver(formSchema),
@@ -86,9 +88,16 @@ export default function DemandeurDemandeModification() {
                     getDemandeDetails(id),
                     getLocalites()
                 ]);
+                if (demandeData) {
+                    const response = await getFileDocument(id)
+                    setRectoFile(response['recto'])
+                    setVersoFile(response['verso'])
+                    console.log(response)
+                }
 
+                console.log(demandeData);
                 setLocalites(localitesData);
-                
+
                 // Set form values
                 setValue("typeDemande", demandeData.typeDemande);
                 setValue("superficie", demandeData.superficie);
@@ -132,6 +141,7 @@ export default function DemandeurDemandeModification() {
             formData.append("typeDemande", values.typeDemande);
             formData.append("typeDocument", values.typeDocument);
             formData.append("possedeAutreTerrain", values.possedeAutreTerrain);
+            formData.append("statut", "EN_COURS");
             // Append new files if they exist
             if (newFiles.recto) {
                 formData.append("recto", newFiles.recto);
@@ -140,12 +150,13 @@ export default function DemandeurDemandeModification() {
                 formData.append("verso", newFiles.verso);
             }
 
-            await updateDemande(id, formData);
+            const res = await updateDemande(id, formData);
+            console.log(res);
             setMessage({
                 type: "success",
                 content: "Demande mise à jour avec succès"
             });
-            
+
             setTimeout(() => {
                 navigate("/demandeur/demandes");
             }, 2000);
@@ -170,8 +181,8 @@ export default function DemandeurDemandeModification() {
                     <div className="my-6 space-y-6">
                         <div className="grid grid-cols-1">
                             <div className="bg-gray-100 min-h-screen pb-10">
-                                <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                                    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                                <main className=" mx-auto py-6 sm:px-6 lg:px-8">
+                                    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
                                         <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
                                             <h2 className="text-xl font-semibold text-gray-800">Modifier la demande</h2>
                                             <p className="mt-1 text-sm text-gray-600">
@@ -323,12 +334,12 @@ export default function DemandeurDemandeModification() {
                                                 </div>
                                             </div>
 
-                                            {showMap && selectedLocalite && (
+                                            {/* {showMap && selectedLocalite && (
                                                 <div className="mt-6">
                                                     <h3 className="text-lg font-medium text-gray-900 mb-2">Aperçu de la localité</h3>
                                                     <MapCar selectedItem={selectedLocalite} type="localite" />
                                                 </div>
-                                            )}
+                                            )} */}
 
                                             <div className="flex justify-end space-x-4 pt-4">
                                                 <button
@@ -362,15 +373,18 @@ export default function DemandeurDemandeModification() {
                                         </form>
                                     </div>
 
-                                    {fichier && (
-                                        <div className="mt-8 max-w-2xl mx-auto">
-                                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Documents fournis</h2>
-                                            <div className="grid gap-6 md:grid-cols-2">
-                                                {fichier.recto && <FilePreview file={fichier.recto} title="Recto du document" />}
-                                                {fichier.verso && <FilePreview file={fichier.verso} title="Verso du document" />}
+
+                                    {
+                                        (rectoFile || versoFile) && (
+                                            <div className="mt-8">
+                                                <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
+                                                <div className="grid gap-6 md:grid-cols-2">
+                                                    {rectoFile && <FilePreview file={rectoFile} title="Recto du document" />}
+                                                    {versoFile && <FilePreview file={versoFile} title="Verso du document" />}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )
+                                    }
                                 </main>
                             </div>
                         </div>

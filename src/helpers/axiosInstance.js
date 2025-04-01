@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getCookie } from "cookies-next"; 
+import { deleteCookie, getCookie } from "cookies-next"; 
 
 // Créer une instance d'Axios
 const axiosInstance = axios.create({
@@ -20,10 +20,15 @@ axiosInstance.interceptors.response.use(
       window.location.href = '/auth/login';
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('__GESTIO-MAIRIE_REACT_AUTH__TOKEN')
+      localStorage.removeItem('__GESTIO-MAIRIE_REACT_AUTH__USER')
+      localStorage.removeItem('__GESTIO-MAIRIE_REACT_AVATAR')
+      localStorage.removeItem('__GESTIO-MAIRIE_REACT_AUTH__')
       localStorage.clear()
       deleteCookie('__GESTIO-MAIRIE_REACT_AUTH__TOKEN')
       deleteCookie('__GESTIO-MAIRIE_REACT_AUTH__USER')
       deleteCookie('__GESTIO-MAIRIE_REACT_AVATAR')
+      deleteCookie('__GESTIO-MAIRIE_REACT_AUTH__')
     }
     return Promise.reject(error);
   }

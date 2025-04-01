@@ -1,4 +1,8 @@
 import { saveAs } from 'file-saver';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from "xlsx";
+
 
 /**
  * Exports demandeur data to a CSV file
@@ -35,11 +39,10 @@ export function exportDemandeurNonHabitantToCSV(demandeurs) {
   // Add BOM for proper UTF-8 encoding in Excel
   const BOM = "\uFEFF"
   const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" })
-  saveAs(blob, `demandeurs_${new Date().toISOString().split("T")[0]}.csv`)
+  saveAs(blob, `demandeurs_non_habitant_${new Date().toISOString().split("T")[0]}.csv`)
 }
 
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
 
 /**
  * Exports demandeur data to a PDF file
@@ -134,5 +137,60 @@ export function exportDemandeurHabitantToCSV(demandeurs) {
   // Add BOM for proper UTF-8 encoding in Excel
   const BOM = "\uFEFF"
   const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" })
-  saveAs(blob, `demandeurs_${new Date().toISOString().split("T")[0]}.csv`)
+  saveAs(blob, `demandeurs_habitant_${new Date().toISOString().split("T")[0]}.csv`)
+}
+
+
+
+export function templateDemande(){
+
+  const headers = [
+    "CNI",
+    "Email",
+    "Nom",
+    "Prenom",
+    "Telephone",
+    "Adresse",
+    "Lieu de Naissance",
+    "Date de Naissance",
+    "Profession",
+    "Type de demande",
+    "Localite",
+    "Superficie",
+    "Usage prevu",
+    "Date Demande",
+  ];
+
+   // Données vides pour l'exemple
+   const data = [headers, ["", "", "", "", "", "", "", "", "", "", "", "", ""]];
+    // Création de la feuille Excel
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // Pré-remplir les cellules de la colonne "Type de demande"
+  for (let i = 2; i <= 100; i++) {
+    ws[`J${i}`] = { v: "", t: "s" };
+  }
+
+   // Définition des options autorisées pour la colonne "Type de demande"
+   const validationRange = "J2:J100"; // Colonne J, de la ligne 2 à 100
+
+   ws["!dataValidation"] = [
+    {
+      type: "list",
+      formula1: '"PERMIS_OCCUPATION,PROPOSITION_BAIL,BAIL_COMMUNAL"',
+      allowBlank: false,
+      showDropDown: true,
+      sqref: validationRange,
+    },
+  ];
+   // Création du classeur Excel
+   const wb = XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(wb, ws, "Demandes importées");
+
+   // Génération du fichier Excel
+  const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+  // Téléchargement du fichier
+  saveAs(blob, "template_import_demandes.xlsx");
 }

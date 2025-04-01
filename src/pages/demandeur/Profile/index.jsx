@@ -143,6 +143,7 @@ const DemandeurProfile = () => {
                 ...passwordData,
                 userId: user.id
             }
+            console.log(data)
             await updatePassword(user.id, data)
             toast.success("Mot de passe mis à jour avec succès")
             setPasswordData({
@@ -389,7 +390,7 @@ const DemandeurProfile = () => {
                                                 </div>
                                                 <div>
                                                     <label htmlFor="numeroElecteur" className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Numéro Électeur
+                                                        Numéro d'Identification National
                                                     </label>
                                                     <div className="relative">
                                                         <User2
@@ -400,6 +401,10 @@ const DemandeurProfile = () => {
                                                             id="numeroElecteur"
                                                             name="numeroElecteur"
                                                             type="text"
+                                                            maxLength={13}
+                                                            pattern="\d*"
+                                                            inputMode="numeric"
+                                                            placeholder="13 chiffres"
                                                             value={userInfo.numeroElecteur}
                                                             onChange={handleInputChange}
                                                             className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -592,7 +597,7 @@ function LoadingSkeleton() {
                 <div className="px-4 py-6 sm:px-0">
                     <div className="grid gap-6 md:grid-cols-2">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden">
+                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
                                 <div className="px-4 py-5 sm:p-6">
                                     <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
                                     {[...Array(5)].map((_, j) => (
@@ -617,7 +622,7 @@ function LoadingSkeleton() {
 function ErrorDisplay({ error }) {
     return (
         <div className="flex justify-center items-center h-screen bg-gray-100">
-            <div className="bg-white shadow rounded-lg overflow-hidden w-full max-w-md">
+            <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary w-full max-w-md">
                 <div className="px-4 py-5 sm:p-6">
                     <h3 className="text-lg font-medium leading-6 text-red-600 mb-4">Erreur</h3>
                     <p className="text-center">{error}</p>

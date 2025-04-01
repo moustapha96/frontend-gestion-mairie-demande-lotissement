@@ -23,10 +23,10 @@ const DashboardAgent = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     demandes: {
-      total: 0,
-      enCours: 0,
-      approuvees: 0,
-      rejetees: 0
+      EN_COURS: 0,
+      EN_TRAITEMENT: 0,
+      VALIDE: 0,
+      REJETE: 0
     },
     terrains: {
       total: 0,
@@ -69,17 +69,17 @@ const DashboardAgent = () => {
           getLots(),
           getPlanLotissements()
         ]);
-
-        console.log(lots);
-        console.log("lots");
+        const demandeurs = utilisateurs.filter(u => u.roles.includes("ROLE_DEMANDEUR"));
+        console.log(demandeurs);
+        console.log("demandeurs");
         // Calcul des statistiques
         const statsData = {
           demandes: {
             total: demandes.length,
-            enCours: demandes.filter(d => d.statut === 'EN_COURS').length,
-            approuvees: demandes.filter(d => d.statut === 'VALIDE').length,
-            rejetees: demandes.filter(d => d.statut === 'REJETE').length,
-            traitement: demandes.filter(d => d.statut === 'EN_TRAITEMENT').length
+            EN_COURS: demandes.filter(d => d.statut === 'EN_COURS').length,
+            EN_TRAITEMENT: demandes.filter(d => d.statut === 'EN_TRAITEMENT').length,
+            VALIDE: demandes.filter(d => d.statut === 'VALIDE').length,
+            REJETE: demandes.filter(d => d.statut === 'REJETE').length
           },
           terrains: {
             total: lotissements.reduce((acc, lot) => acc + lot.nombreTerrains, 0),
@@ -87,9 +87,9 @@ const DashboardAgent = () => {
             occupes: lotissements.reduce((acc, lot) => acc + (lot.nombreTerrains - lot.terrainsDisponibles), 0)
           },
           utilisateurs: {
-            total: utilisateurs.length,
-            actifs: utilisateurs.filter(u => u.activated).length,
-            inactifs: utilisateurs.filter(u => !u.activated).length
+            total: demandeurs.length,
+            actifs: demandeurs.filter(u => u.activated).length,
+            inactifs: demandeurs.filter(u => !u.activated).length
           },
           localites: {
             total: localites.length
@@ -138,9 +138,10 @@ const DashboardAgent = () => {
               icon={<LuFileText className="w-8 h-8 text-primary" />}
               total={stats.demandes.total}
               items={[
-                { label: "En cours", value: stats.demandes.enCours, icon: <LuClock className="w-4 h-4" /> },
-                { label: "Approuvées", value: stats.demandes.approuvees, icon: <LuCheckSquare className="w-4 h-4" /> },
-                { label: "Rejetées", value: stats.demandes.rejetees, icon: <LuXCircle className="w-4 h-4" /> }
+                { label: "En cours", value: stats.demandes.EN_COURS, icon: <LuClock className="w-4 h-4" /> },
+                { label: "En traitement", value: stats.demandes.EN_TRAITEMENT, icon: <LuCheckSquare className="w-4 h-4" /> },
+                { label: "Validées", value: stats.demandes.VALIDE, icon: <LuCheckSquare className="w-4 h-4" /> },
+                { label: "Rejetées", value: stats.demandes.REJETE, icon: <LuXCircle className="w-4 h-4" /> }
               ]}
               loading={loading}
             />
@@ -156,7 +157,7 @@ const DashboardAgent = () => {
             /> */}
 
             <StatCard
-              title="Utilisateurs"
+              title="Demandeurs"
               icon={<LuUsers className="w-8 h-8 text-blue-600" />}
               total={stats.utilisateurs.total}
               items={[

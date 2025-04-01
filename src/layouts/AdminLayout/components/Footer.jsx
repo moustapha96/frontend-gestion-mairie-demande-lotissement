@@ -11,10 +11,10 @@ const Footer = () => {
 
             <Link
               className="text-primary text-bold"
-              to="https://mairie.com/"
+              to="https://gestionmairie.sn/"
               target="_blank"
             >
-              {/* {new Date().getFullYear()} © &nbsp; */}
+              {new Date().getFullYear()} © &nbsp;
               <img src={logo} className="h-12" alt="images" />
 
             </Link>
@@ -26,9 +26,9 @@ const Footer = () => {
             <Link to="" className="font-medium text-default-500">
               Confidentialité
             </Link>
-            <Link to="" className="font-medium text-default-500">
+            {/* <Link to="" className="font-medium text-default-500">
               Cookies
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

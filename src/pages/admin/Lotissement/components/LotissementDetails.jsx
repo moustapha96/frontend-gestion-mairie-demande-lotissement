@@ -130,7 +130,7 @@ export default function AdminLotissementDetails() {
                     onClick={() => handleViewDocument(record)}
                     title="Visualiser le document"
                 />
-                
+
             ),
         },
     ];
@@ -139,104 +139,104 @@ export default function AdminLotissementDetails() {
 
         <AdminBreadcrumb title="Détails du Lotissement" />
         <section>
-        <div className="container">
-          <div className="my-6 space-y-6">
-            <div className="grid grid-cols-1">
+            <div className="container">
+                <div className="my-6 space-y-6">
+                    <div className="grid grid-cols-1">
 
-                <Card className="mt-8">
-                    <Title level={4}>Détail du Lotissement</Title>
+                        <Card className="mt-8">
+                            <Title level={4}>Détail du Lotissement</Title>
 
-                    <Descriptions
-                        bordered
-                        column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
-                        className="mt-4"
-                    >
-                        <Descriptions.Item label="Date de Création">
-                            {new Date(lotissement.dateCreation).toLocaleDateString()}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Nom">{lotissement.nom}</Descriptions.Item>
-                        <Descriptions.Item label="Localisation">{lotissement.localisation}</Descriptions.Item>
-                        <Descriptions.Item label="Statut">
-                            <Tag color={statusColors[lotissement.statut]}>{lotissement.statut}</Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Coordonnées">
-                            <Space>
-                                {formatCoordinates(lotissement.latitude, lotissement.longitude)}
-                                <Tooltip title="Voir sur la carte">
-                                    <Button
-                                        type="text"
-                                        icon={<EnvironmentOutlined />}
-                                        onClick={() => setShowMap(!showMap)}
+                            <Descriptions
+                                bordered
+                                column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
+                                className="mt-4"
+                            >
+                                <Descriptions.Item label="Date de Création">
+                                    {new Date(lotissement.dateCreation).toLocaleDateString()}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Nom">{lotissement.nom}</Descriptions.Item>
+                                <Descriptions.Item label="Localisation">{lotissement.localisation}</Descriptions.Item>
+                                <Descriptions.Item label="Statut">
+                                    <Tag color={statusColors[lotissement.statut]}>{lotissement.statut}</Tag>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Coordonnées">
+                                    <Space>
+                                        {formatCoordinates(lotissement.latitude, lotissement.longitude)}
+                                        <Tooltip title="Voir sur la carte">
+                                            <Button
+                                                type="text"
+                                                icon={<EnvironmentOutlined />}
+                                                onClick={() => setShowMap(!showMap)}
+                                            />
+                                        </Tooltip>
+                                    </Space>
+                                </Descriptions.Item>
+                            </Descriptions>
+
+                            {showMap && (
+                                <div className="mt-4">
+                                    <MapCar selectedItem={lotissement} type="lotissement" />
+                                </div>
+                            )}
+
+                            {lotissement.lots?.length > 0 && (
+                                <div className="mt-6">
+                                    <Title level={5}>Informations des Lots</Title>
+                                    <Table
+                                        columns={lotColumns}
+                                        dataSource={lotissement.lots}
+                                        rowKey="id"
+                                        pagination={false}
+                                        className="mt-4"
                                     />
-                                </Tooltip>
-                            </Space>
-                        </Descriptions.Item>
-                    </Descriptions>
+                                </div>
+                            )}
 
-                    {showMap && (
-                        <div className="mt-4">
-                            <MapCar selectedItem={lotissement} type="lotissement" />
-                        </div>
-                    )}
+                            {lotissement.planLotissements?.length > 0 && (
+                                <div className="mt-6">
+                                    <Title level={5}>Plans de Lotissement</Title>
+                                    <Table
+                                        columns={planColumns}
+                                        dataSource={lotissement.planLotissements}
+                                        rowKey="id"
+                                        pagination={false}
+                                        className="mt-4"
+                                    />
+                                </div>
+                            )}
+                        </Card>
 
-                    {lotissement.lots?.length > 0 && (
-                        <div className="mt-6">
-                            <Title level={5}>Informations des Lots</Title>
-                            <Table
-                                columns={lotColumns}
-                                dataSource={lotissement.lots}
-                                rowKey="id"
-                                pagination={false}
-                                className="mt-4"
-                            />
-                        </div>
-                    )}
-
-                    {lotissement.planLotissements?.length > 0 && (
-                        <div className="mt-6">
-                            <Title level={5}>Plans de Lotissement</Title>
-                            <Table
-                                columns={planColumns}
-                                dataSource={lotissement.planLotissements}
-                                rowKey="id"
-                                pagination={false}
-                                className="mt-4"
-                            />
-                        </div>
-                    )}
-                </Card>
-
-                <Modal
-                    open={isViewerOpen}
-                    onCancel={() => setIsViewerOpen(false)}
-                    width="80%"
-                    footer={null}
-                    title="Document"
-                >
-                    {fileLoading ? (
-                        <div className="flex justify-center items-center h-[600px]">
-                            <Spin size="large" tip="Chargement du document..." />
-                        </div>
-                    ) : fichier ? (
-                        <iframe
-                            src={`data:application/pdf;base64,${fichier}`}
-                            width="100%"
-                            height="600px"
-                            title="Document PDF"
-                            className="border rounded"
-                        />
-                    ) : (
-                        <Result
-                            status="warning"
-                            title="Aucun document disponible"
-                            subTitle="Le document n'a pas pu être chargé"
-                        />
-                    )}
-                </Modal>
+                        <Modal
+                            open={isViewerOpen}
+                            onCancel={() => setIsViewerOpen(false)}
+                            width="80%"
+                            footer={null}
+                            title="Document"
+                        >
+                            {fileLoading ? (
+                                <div className="flex justify-center items-center h-[600px]">
+                                    <Spin size="large" tip="Chargement du document..." />
+                                </div>
+                            ) : fichier ? (
+                                <iframe
+                                    src={`data:application/pdf;base64,${fichier}`}
+                                    width="100%"
+                                    height="600px"
+                                    title="Document PDF"
+                                    className="border rounded"
+                                />
+                            ) : (
+                                <Result
+                                    status="warning"
+                                    title="Aucun document disponible"
+                                    subTitle="Le document n'a pas pu être chargé"
+                                />
+                            )}
+                        </Modal>
+                    </div>
+                </div>
             </div>
-            </div>
-        </div>
-    </section>
+        </section>
     </>
 
 }

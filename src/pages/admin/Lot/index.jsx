@@ -84,19 +84,29 @@ const AdminLot = () => {
   };
 
   const handleUpdateStatut = async (lotId, nouveauStatut) => {
-    try {
-      await updateLotStatut(lotId, nouveauStatut);
-      const updatedLots = lots.map(lot => {
-        if (lot.id === lotId) {
-          return { ...lot, statut: nouveauStatut };
+
+    Modal.confirm({
+      title: "Confirmation",
+      okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } },
+      content: "Voulez-vous vraiment changer le statut ?",
+      onOk: async () => {
+        try {
+          await updateLotStatut(lotId, nouveauStatut);
+          const updatedLots = lots.map(lot => {
+            if (lot.id === lotId) {
+              return { ...lot, statut: nouveauStatut };
+            }
+            return lot;
+          });
+          setLots(updatedLots);
+          message.success("Statut du lot mis à jour avec succès");
+        } catch (error) {
+          message.error("Erreur lors de la mise à jour du statut");
         }
-        return lot;
-      });
-      setLots(updatedLots);
-      message.success("Statut du lot mis à jour avec succès");
-    } catch (error) {
-      message.error("Erreur lors de la mise à jour du statut");
-    }
+      },
+    });
+
+
   };
 
   const columns = [
@@ -128,15 +138,15 @@ const AdminLot = () => {
           onChange={(value) => handleUpdateStatut(record.id, value)}
           style={{ width: 120 }}
         >
-          <Option value="disponible">Disponible</Option>
-          <Option value="reserve">Réservé</Option>
-          <Option value="occupe">Occupé</Option>
+          <Option value="DISPONIBLE">Disponible</Option>
+          <Option value="RESERVE">Réservé</Option>
+          <Option value="OCCUPE">Occupé</Option>
         </Select>
       ),
       filters: [
-        { text: "Disponible", value: "disponible" },
-        { text: "Réservé", value: "reserve" },
-        { text: "Occupé", value: "occupe" },
+        { text: "Disponible", value: "DISPONIBLE" },
+        { text: "Réservé", value: "RESERVE" },
+        { text: "Occupé", value: "OCCUPE" },
       ],
       onFilter: (value, record) => record.statut === value,
     },
@@ -157,7 +167,7 @@ const AdminLot = () => {
       key: "actions",
       render: (_, record) => (
         <Button
-         className="text-primary"
+          className="text-primary"
           icon={<EditOutlined />}
           onClick={() => showModal(record)}
         >

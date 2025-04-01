@@ -20,9 +20,9 @@ const AdminPlan = () => {
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isViewerVisible, setIsViewerVisible] = useState(false);
+    const [editingPlan, setEditingPlan] = useState(null);
     const [fileLoading, setFileLoading] = useState(false);
     const [currentDocument, setCurrentDocument] = useState(null);
-    const [editingPlan, setEditingPlan] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
@@ -158,7 +158,6 @@ const AdminPlan = () => {
                         onClick={() => handleViewDocument(record)}
                         className="text-primary hover:text-primary-light flex items-center"
                     >
-                        
                         <span>Voir</span>
                     </Button>
 
@@ -222,7 +221,7 @@ const AdminPlan = () => {
                         rowKey="id"
                         loading={loading}
                         pagination={{
-                            defaultPageSize: 10,
+                            defaultPageSize: 5,
                             showSizeChanger: true,
                             showTotal: (total) => `Total ${total} plans`,
                             showQuickJumper: true
@@ -240,7 +239,9 @@ const AdminPlan = () => {
                             form={form}
                             layout="vertical"
                             onFinish={handleSubmit}
-                            initialValues={{ lotissementId: "" }}
+                            initialValues={{
+                                lotissementId: editingPlan ? editingPlan.lotissement.id : "",
+                            }}
                         >
                             <Form.Item
                                 name="description"
@@ -265,7 +266,7 @@ const AdminPlan = () => {
                             >
                                 <Select placeholder="Sélectionner un lotissement">
                                     {lotissements.map(lot => (
-                                        <Option key={lot.id} value={lot.id}>
+                                        <Option key={lot.id} value={lot.id} selected={editingPlan?.lotissement.id === lot.id}>
                                             {lot.nom}
                                         </Option>
                                     ))}

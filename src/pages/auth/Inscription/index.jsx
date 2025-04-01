@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -9,6 +9,9 @@ import ResponsiveAuthLayout from '../../../layouts/ResponsiveAuthLayout'
 import { LoaderCircleIcon } from 'lucide-react'
 import { toast } from "sonner"
 import { Link, useNavigate } from 'react-router-dom'
+
+import { AppContext } from "../../../AppContext";
+
 
 const inscriptionSchema = yup.object({
     prenom: yup.string().required("Veuillez entrer votre prénom"),
@@ -50,9 +53,10 @@ const inscriptionSchema = yup.object({
 })
 
 export default function InscriptionPage() {
+    const { urlApi } = useContext(AppContext);
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(inscriptionSchema)
     })
 
@@ -60,9 +64,41 @@ export default function InscriptionPage() {
         setLoading(true)
         try {
             console.log(data)
+            data = {
+                ...data,
+                url: window.location.origin
+            }
             console.log(data)
-            toast.success('Inscription réussie')
-            navigate('/auth/signin')
+
+            const response = await fetch(urlApi + "user/inscription", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+              });
+              console.log(response)
+              if( response.status === 201 ){
+                toast.success("Inscription réussie")
+                reset()
+                navigate("/auth/sign-in")
+              }
+              if( response.status == 200 ){
+                const data = await response.json()
+                toast.success(data.message)
+                // reset()
+                // navigate("/auth/sign-in")
+              }
+              if( response.status == 409 ){
+                toast.error("Email déjà utilisé")
+              }
+
+              if( response.status === 400 ){
+                console.log(response)
+                toast.error("Erreur lors de l'inscription")
+              }
+
+            setLoading(false);
         } catch (error) {
             console.error(error)
             toast.error(error.message || "Erreur lors de l'inscription")

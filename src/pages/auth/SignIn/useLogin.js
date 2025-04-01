@@ -15,6 +15,8 @@ const useLogin = () => {
   const [searchParams] = useSearchParams();
   const { urlApi } = useContext(AppContext);
 
+  const [email, setEmail] = useState("");
+  
   const { saveSession, user, isAuthenticated } = useAuthContext();
 
   const loginFormSchema = yup.object({
@@ -22,13 +24,19 @@ const useLogin = () => {
     password: yup.string().required("Veuillez entrer votre mot de passe"),
   });
 
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit , setValue  } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
+
+  useEffect(() => {
+    if(searchParams.has("email")) {
+      setValue("email", searchParams.get("email"));
+    }
+  }, [searchParams]);
 
   // Modifier la logique de redirection par défaut
   const getDefaultRedirect = (userRole) => {

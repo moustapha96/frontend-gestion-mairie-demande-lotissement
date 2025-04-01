@@ -1,13 +1,16 @@
+
 import React, { useState, useEffect } from "react";
 import { Table, Input, Card, Space, Button, Typography, Upload, Modal, Select, message } from "antd";
-import { SearchOutlined, FileExcelOutlined, FilePdfOutlined, DownloadOutlined, ImportOutlined, EyeOutlined, EditOutlined, FileTextFilled, ExclamationOutlined } from "@ant-design/icons";
+import { SearchOutlined, FileExcelOutlined, FilePdfOutlined, DownloadOutlined, ImportOutlined, EyeOutlined, DeleteOutlined, FileTextFilled } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
-import { getDemandes, updateDemandeStatut, getFileDocument } from "@/services/demandeService";
+import { getDemandes, updateDemandeStatut, getFileDocument, importDemandes, deleteDemande, updateDemandeRefus } from "@/services/demandeService";
 import { useAuthContext } from "@/context";
 import { exportDemandesToCSV, exportDemandesToPDF } from "@/utils/export_demande";
-import { importDemandes } from "@/services/demandeService";
+import { templateDemande } from "../../../utils/export_demandeur";
 import { cn } from "@/utils";
+import { sendSimpleMailRefus } from "@/services/mailerService";
+
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -19,16 +22,21 @@ const AdminDemandeListe = () => {
   const [error, setError] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [fileLoading, setFileLoading] = useState(false);
-  const [viewType, setViewType] = useState(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [activeDocument, setActiveDocument] = useState(null);
-  const [demande, setDemande] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [loadingDemande, setLoadingDemande] = useState(null);
+
+  // États pour le popup d'envoi d'email
+  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
+  const [selectedDemande, setSelectedDemande] = useState(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
 
   const fetchDemandes = async () => {
     try {
       const data = await getDemandes();
-      console.log(data)
       setDemandes(data);
     } catch (err) {
       message.error(err.message);
@@ -42,55 +50,33 @@ const AdminDemandeListe = () => {
     fetchDemandes();
   }, []);
 
-  const handleUpdateStatut = async (demandeId, nouveauStatut) => {
+  // Modification de la fonction pour récupérer l'objet complet de la demande
+  const handleUpdateStatut = async (demande, nouveauStatut) => {
     Modal.confirm({
       title: "Confirmation",
-      okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } }, // Vert
+      okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } },
       content: "Voulez-vous vraiment changer le statut de cette demande ?",
       onOk: async () => {
         try {
-          await updateDemandeStatut(demandeId, nouveauStatut);
-          const updatedDemandes = demandes.map(demande => {
-            if (demande.id === demandeId) {
-              return { ...demande, statut: nouveauStatut };
+          await updateDemandeStatut(demande.id, nouveauStatut);
+          const updatedDemandes = demandes.map((d) => {
+            if (d.id === demande.id) {
+              return { ...d, statut: nouveauStatut };
             }
-            return demande;
+            return d;
           });
           setDemandes(updatedDemandes);
           message.success("Statut mis à jour avec succès");
+          // Si le nouveau statut est REJETE, on ouvre le popup pour envoyer un email
+          if (nouveauStatut === "REJETE") {
+            setSelectedDemande(demande);
+            setIsEmailModalVisible(true);
+          }
         } catch (error) {
           message.error("Erreur lors de la mise à jour du statut");
         }
       },
     });
-  };
-
-  const handleViewDocument = async (type, record) => {
-    try {
-      if (!record?.id) {
-        message.error("Impossible de charger le document");
-        return;
-      }
-
-      setFileLoading(true);
-      setViewType(type);
-      setIsViewerOpen(true);
-
-      const fileData = await getFileDocument(record.id);
-
-      if (!fileData) {
-        message.error("Document non trouvé");
-        return;
-      }
-
-      const document = type === 'recto' ? fileData.recto : fileData.verso;
-      setActiveDocument(document);
-    } catch (error) {
-      console.error('Erreur lors du chargement du document:', error);
-      message.error("Erreur lors du chargement du document");
-    } finally {
-      setFileLoading(false);
-    }
   };
 
   const handleImportFile = async (file) => {
@@ -106,18 +92,54 @@ const AdminDemandeListe = () => {
     }
   };
 
-  const downloadTemplate = () => {
-    const headers = ["CNI", "Email", "Nom", "Prenom", "Telephone", "Adresse", "Lieu de Naissance", "Profession", "Type de demande", "Localite", "Usage prevu", "Date Demande"];
-    const csvContent = headers.join(",");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "template_import_demandes.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+  const handleDelete = async (demandeId) => {
+    setDeleting(true);
+    setLoadingDemande(demandeId);
+    Modal.confirm({
+      title: "Confirmation",
+      okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } },
+      cancelButtonProps: { style: { backgroundColor: "#dc3545", borderColor: "#dc3545", color: "#FFFFFF" } },
+      content: "Voulez-vous vraiment supprimer cette demande ?",
+      onOk: async () => {
+        try {
+          await deleteDemande(demandeId);
+          const updatedDemandes = demandes.filter((d) => d.id !== demandeId);
+          setDemandes(updatedDemandes);
+          message.success("Demande supprimée avec succès");
+        } catch (error) {
+          message.error("Erreur lors de la suppression de la demande");
+        } finally {
+          setDeleting(false);
+        }
+      },
+      onCancel: () => {
+        setDeleting(false);
+        setLoadingDemande(null);
+      },
+    });
+  };
+
+  // Fonction pour envoyer l'email
+  const handleSendEmail = async () => {
+    // Remplacez ici par votre logique d'envoi d'email (API, etc.)
+    try {
+      // Simuler l'envoi d'email
+      console.log("Email envoyé pour la demande :", selectedDemande);
+      console.log("Sujet :", emailSubject);
+      console.log("Message :", emailBody);
+      message.success("Email envoyé avec succès");
+      const resultat = await updateDemandeRefus(selectedDemande.id, emailBody);
+      console.log("Résultat de la mise à jour :", resultat);
+      const body = { sujet: emailSubject, email: selectedDemande.demandeur.email, message: emailBody };
+      console.log("Body :", body);
+      const response = await sendSimpleMailRefus(body);
+      console.log("Response :", response);
+      setEmailSubject("");
+      setEmailBody("");
+      setIsEmailModalVisible(false);
+    } catch (error) {
+      message.error("Erreur lors de l'envoi de l'email");
+    }
   };
 
   const columns = [
@@ -125,41 +147,38 @@ const AdminDemandeListe = () => {
       title: "Localité",
       dataIndex: "localite",
       key: "localite",
-      render: (_, record) =>(
+      render: (_, record) =>
         record.localite ? (
-          <Link
-            to={`/admin/localites/${record.localite.id}/details`}
-            className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1"
-          >
+          <Link to={`/admin/localites/${record.localite.id}/details`} className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1">
             {record.localite.nom}
           </Link>
         ) : (
           "N/A"
-        )
-      ),
+        ),
       sorter: (a, b) => a.localite?.nom.localeCompare(b.localite?.nom),
     },
     {
       title: "Type de Demande",
       dataIndex: "typeDemande",
       key: "typeDemande",
-      sorter: (a, b) => a.typeDemande.localeCompare(b.typeDemande),
+      filters: [
+        { text: "Permis d'occupation", value: "PERMIS_OCCUPATION" },
+        { text: "Proposition de bail", value: "PROPOSITION_BAIL" },
+        { text: "Bail communal", value: "BAIL_COMMUNAL" },
+      ],
+      onFilter: (value, record) => record.typeDemande === value,
     },
     {
       title: "Demandeur",
       key: "demandeur",
-      render: (_, record) =>(
+      render: (_, record) =>
         record.demandeur ? (
-          <Link
-            to={`/admin/demandeur/${record.demandeur.id}/details`}
-            className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1"
-          >
+          <Link to={`/admin/demandeur/${record.demandeur.id}/details`} className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1">
             {record.demandeur.nom} {record.demandeur.prenom}
           </Link>
         ) : (
           "N/A"
-        )
-      ),
+        ),
       sorter: (a, b) => {
         if (!a.demandeur || !b.demandeur) return 0;
         return (a.demandeur.nom + a.demandeur.prenom).localeCompare(b.demandeur.nom + b.demandeur.prenom);
@@ -177,15 +196,15 @@ const AdminDemandeListe = () => {
       render: (statut, record) => (
         <Select
           value={statut}
-          onChange={(value) => handleUpdateStatut(record.id, value)}
+          onChange={(value) => handleUpdateStatut(record, value)}
           style={{ width: 120 }}
-          className={cn  (
+          className={cn(
             "text-sm border rounded-md py-1 px-2 focus:ring-2 focus:ring-opacity-50 focus:outline-none",
             {
-              'bg-yellow-200 border border-yellow-200': statut === 'EN_COURS',
-              'bg-yellow-100 text-yellow-800 border border-yellow-500': statut === 'EN_TRAITEMENT',
-              'bg-green-100 text-green-800 border border-green-500': statut === 'VALIDE',
-              'bg-red-100 text-red-800 border border-red-500': statut === 'REJETE'
+              "bg-yellow-200 border border-yellow-200": statut === "EN_COURS",
+              "bg-yellow-100 text-yellow-800 border border-yellow-500": statut === "EN_TRAITEMENT",
+              "bg-green-100 text-green-800 border border-green-500": statut === "VALIDE",
+              "bg-red-100 text-red-800 border border-red-500": statut === "REJETE",
             }
           )}
         >
@@ -208,18 +227,29 @@ const AdminDemandeListe = () => {
       key: "actions",
       render: (_, record) => (
         <Space>
-          {record.statut === 'VALIDE' && (
-            <Link
-              to={`/admin/demandes/${record.id}/confirmation`}
-              className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors duration-200"
-            >
+          {record.statut === "VALIDE" && (
+            <Link to={`/admin/demandes/${record.id}/confirmation`} className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors duration-200">
               <FileTextFilled className="w-4 h-4 mr-1" />
               Générer document
             </Link>
           )}
           <Link to={`/admin/demandes/${record.id}/details`}>
-            <Button className="bg-primary text-white" icon={<EyeOutlined />} title="Voir les détails" >Détails</Button>
+            <Button className="bg-primary text-white" icon={<EyeOutlined />} title="Voir les détails">
+              Détails
+            </Button>
           </Link>
+          {user.roles.includes("ROLE_SUPER_ADMIN") && (
+            <Button
+              className="text-red-500"
+              disabled={loadingDemande === record.id}
+              onClick={() => handleDelete(record.id)}
+              loading={loadingDemande === record.id}
+              color="red"
+              variant="filled"
+            >
+              <DeleteOutlined />
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -245,36 +275,24 @@ const AdminDemandeListe = () => {
                   <Title level={4}>Liste des Demandes</Title>
                   <Space>
                     <Upload
-                      accept=".csv"
+                      accept=".xlsx"
                       showUploadList={false}
                       beforeUpload={(file) => {
                         handleImportFile(file);
                         return false;
                       }}
                     >
-                      <Button 
-                        icon={<ImportOutlined />} 
-                        loading={importLoading}
-                      >
-                        Importer CSV
+                      <Button icon={<ImportOutlined />} loading={importLoading}>
+                        Importer EXCEL
                       </Button>
                     </Upload>
-                    <Button 
-                      icon={<DownloadOutlined />}
-                      onClick={downloadTemplate}
-                    >
+                    <Button icon={<DownloadOutlined />} onClick={templateDemande}>
                       Télécharger Template
                     </Button>
-                    <Button 
-                      icon={<FileExcelOutlined />}
-                      onClick={() => exportDemandesToCSV(demandes)}
-                    >
+                    <Button icon={<FileExcelOutlined />} onClick={() => exportDemandesToCSV(demandes)}>
                       Exporter CSV
                     </Button>
-                    <Button 
-                      icon={<FilePdfOutlined />}
-                      onClick={() => exportDemandesToPDF(demandes)}
-                    >
+                    <Button icon={<FilePdfOutlined />} onClick={() => exportDemandesToPDF(demandes)}>
                       Exporter PDF
                     </Button>
                   </Space>
@@ -299,7 +317,7 @@ const AdminDemandeListe = () => {
                   rowKey="id"
                   loading={loading}
                   pagination={{
-                    defaultPageSize: 10,
+                    defaultPageSize: 5,
                     showSizeChanger: true,
                     showTotal: (total) => `Total ${total} demandes`,
                   }}
@@ -311,16 +329,14 @@ const AdminDemandeListe = () => {
       </section>
 
       <Modal
-        title={`Document ${viewType === 'recto' ? 'Recto' : 'Verso'}`}
-        open={isViewerOpen}
+        title={`Document ${isViewerOpen ? "Recto/Verso" : ""}`}
+        visible={isViewerOpen}
         onCancel={() => setIsViewerOpen(false)}
         footer={null}
         width={800}
       >
         {fileLoading ? (
-          <div className="flex justify-center items-center p-8">
-            Chargement du document...
-          </div>
+          <div className="flex justify-center items-center p-8">Chargement du document...</div>
         ) : (
           activeDocument && (
             <div className="w-full">
@@ -328,6 +344,29 @@ const AdminDemandeListe = () => {
             </div>
           )
         )}
+      </Modal>
+
+      {/* Modal d'envoi d'email après refus */}
+      <Modal
+        title="Envoyer un email"
+        visible={isEmailModalVisible}
+        onCancel={() => setIsEmailModalVisible(false)}
+        onOk={handleSendEmail}
+        okButtonProps={{ style: { backgroundColor: "#28a745", borderColor: "#28a745" } }}
+        okText="Envoyer"
+      >
+        <Input
+          placeholder="Sujet"
+          value={emailSubject}
+          onChange={(e) => setEmailSubject(e.target.value)}
+          style={{ marginBottom: 16 }}
+        />
+        <Input.TextArea
+          placeholder="Message"
+          value={emailBody}
+          onChange={(e) => setEmailBody(e.target.value)}
+          rows={4}
+        />
       </Modal>
     </>
   );

@@ -7,7 +7,6 @@ const Footer = () => {
         <div className="grid items-center gap-6 lg:grid-cols-2">
           <p className="text-center text-default-900 lg:text-start">
             {new Date().getFullYear()} © &nbsp;
-            {/* <span className="text-red-500">❤️</span> by&nbsp; */}
             <Link
               className="text-primary text-bold"
               to="https://gestionmairie.sn/"
@@ -23,9 +22,9 @@ const Footer = () => {
             <Link to="" className="font-medium text-default-500">
               Confidentialité
             </Link>
-            <Link to="" className="font-medium text-default-500">
+            {/* <Link to="" className="font-medium text-default-500">
               Cookies
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

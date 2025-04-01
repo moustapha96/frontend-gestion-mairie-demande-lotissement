@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
 import { getDemandeurDetails } from "@/services/userService";
-import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, IdcardOutlined, CalendarOutlined, RightOutlined } from "@ant-design/icons";
+import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, IdcardOutlined, CalendarOutlined, RightOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { cn } from "@/utils";
 import { formatPhoneNumber } from "@/utils/formatters";
-import { Card, Typography, Descriptions, Table, Tag, Skeleton, Result, Space } from "antd";
+import { Card, Typography, Descriptions, Table, Tag, Skeleton, Result, Space, Popover, Button } from "antd";
 import { toast } from "sonner";
+import { getDetaitHabitant } from "../../../../services/userService";
 
 
 const { Title, Text } = Typography;
@@ -16,6 +17,47 @@ const AdminDemandeurDetails = () => {
     const [demandeur, setDemandeur] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [loadingHabitant, setLoadingHabitant] = useState(false)
+    const [habitantData, setHabitantData] = useState(null)
+  
+    useEffect(() => {
+      fetchHabitantInfo()
+    }, [demandeur])
+  
+    const renderHabitantContent = () => {
+      const data = habitantData
+  
+      if (!data) {
+        return <div>Chargement des informations...</div>
+      }
+  
+      return (
+        <div className="max-w-3xl">
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(data).map(([key, value]) => (
+              <div key={key} className="border-b pb-1">
+                <strong>{key}:</strong> {value || "-"}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+  
+    const fetchHabitantInfo = async () => {
+      setLoadingHabitant(true)
+      try {
+        const habitantInfo = await getDetaitHabitant(demandeur.id)
+        console.log("habitante", habitantInfo)
+        setHabitantData(habitantInfo)
+      } catch (error) {
+        console.error("Erreur lors de la récupération des informations du habitant:", error)
+      } finally {
+        setLoadingHabitant(false)
+      }
+    }
+
 
     useEffect(() => {
         const fetchDemandeur = async () => {
@@ -98,7 +140,7 @@ const AdminDemandeurDetails = () => {
             <div className="container my-6">
                 <Card className="shadow-lg">
                     <Title level={3}>{`${demandeur.prenom} ${demandeur.nom}`}</Title>
-                    
+
                     <div className="grid gap-8 md:grid-cols-2 mt-6">
                         <Card title="Informations Personnelles" className="bg-gray-50">
                             <Descriptions column={1}>
@@ -111,10 +153,31 @@ const AdminDemandeurDetails = () => {
                                 <Descriptions.Item label={<Space><IdcardOutlined /> Numéro Électeur</Space>}>
                                     {demandeur.numeroElecteur}
                                 </Descriptions.Item>
-                                <Descriptions.Item label={<Space><EnvironmentOutlined /> Habitant</Space>}>
+                                <Descriptions.Item label={<Space><EnvironmentOutlined />Habitant</Space>}>
                                     <Tag color={demandeur?.isHabitant ? 'success' : 'error'} className="px-4 py-1 text-sm font-medium">
                                         {demandeur?.isHabitant ? 'Oui' : 'Non'}
                                     </Tag>
+                                    
+
+                                    {demandeur.isHabitant && (
+                                        <Space>
+                                            <span>Informations détaillées:</span>
+                                            <Popover
+                                                content={renderHabitantContent()}
+                                                title="Informations détaillées"
+                                                trigger="click"
+                                                placement="right"
+                                                overlayStyle={{ maxWidth: "800px" }}
+                                                onVisibleChange={(visible) => {
+                                                    if (visible) {
+                                                        fetchHabitantInfo()
+                                                    }
+                                                }}
+                                            >
+                                                <Button type="text" icon={<InfoCircleOutlined className="w-5 h-5" />} className="text-primary" loading={loadingHabitant} />
+                                            </Popover>
+                                        </Space>
+                                    )}
                                 </Descriptions.Item>
                             </Descriptions>
                         </Card>

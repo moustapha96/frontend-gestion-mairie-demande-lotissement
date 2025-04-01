@@ -111,8 +111,8 @@ const AdminParcelle = () => {
     const handleUpdateStatut = async (parcelleId, nouveauStatut) => {
         try {
             await updateParcellestatut(parcelleId, nouveauStatut);
-            const updatedParcelles = parcelles.map(parcelle => 
-                parcelle.id === parcelleId 
+            const updatedParcelles = parcelles.map(parcelle =>
+                parcelle.id === parcelleId
                     ? { ...parcelle, statut: nouveauStatut }
                     : parcelle
             );
@@ -140,7 +140,7 @@ const AdminParcelle = () => {
             title: "Coordonnées",
             key: "coordinates",
             render: (_, record) => (
-                <Button 
+                <Button
                     icon={<EnvironmentOutlined />}
                     onClick={() => showMapModal(record)}
                 >
@@ -175,8 +175,8 @@ const AdminParcelle = () => {
             key: "actions",
             render: (_, record) => (
                 <Space>
-                    <Button 
-                       className="text-primary"
+                    <Button
+                        className="text-primary"
                         icon={<EditOutlined />}
                         onClick={() => showModal(record)}
                     >
@@ -319,7 +319,7 @@ const AdminParcelle = () => {
                             <Form.Item className="flex justify-end">
                                 <Space>
                                     <Button onClick={handleCancel}>Annuler</Button>
-                                    <Button type="primary" htmlType="submit" loading={loading}>
+                                    <Button className="text-primary" htmlType="submit" loading={loading}>
                                         {editingParcelle ? "Modifier" : "Ajouter"}
                                     </Button>
                                 </Space>

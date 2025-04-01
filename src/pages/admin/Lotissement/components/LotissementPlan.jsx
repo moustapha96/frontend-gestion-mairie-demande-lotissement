@@ -83,7 +83,7 @@ const AdminLotissementPlan = () => {
       key: "actions",
       render: (_, record) => (
         <Button
-          type="link"
+         className="text-primary"
           icon={<FileTextOutlined />}
           onClick={() => handleViewDocument(record)}
         >

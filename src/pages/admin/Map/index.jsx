@@ -139,170 +139,177 @@ const AdminMap = () => {
         { label: 'Lotissements', value: 'showLotissements', icon: <AppstoreOutlined /> },
         { label: 'Localités', value: 'showLocalites', icon: <EnvironmentOutlined /> },
         { label: 'Parcelles', value: 'showParcelles', icon: <BorderOutlined /> },
-        { label: 'Zones de lotissement', value: 'showZones', icon: <AimOutlined /> }
+        // { label: 'Zones de lotissement', value: 'showZones', icon: <AimOutlined /> }
     ];
 
     return (
         <>
             <AdminBreadcrumb title="Carte des Lotissements" />
-            <div className="container mx-auto px-4 py-6">
-                <Card className="shadow-lg">
-                    <Title level={4} className="mb-6">Carte Interactive</Title>
-                    
-                    <Card className="mb-6" size="small">
-                        <Title level={5} className="mb-4">Filtres de la carte</Title>
-                        <Row gutter={[16, 16]}>
-                            {filterOptions.map(option => (
-                                <Col key={option.value} xs={24} sm={12} md={6}>
-                                    <Checkbox
-                                        checked={filters[option.value]}
-                                        onChange={(e) => setFilters(prev => ({
-                                            ...prev,
-                                            [option.value]: e.target.checked
-                                        }))}
+            <section>
+                <div className="container">
+                    <div className="my-6 space-y-6">
+                        <div className="grid grid-cols-1">
+                            <Card className="shadow-lg">
+                                <Title level={4} className="mb-6">Carte Interactive</Title>
+
+                                <Card className="mb-6" size="small">
+                                    <Title level={5} className="mb-4">Filtres de la carte</Title>
+                                    <Row gutter={[16, 16]}>
+                                        {filterOptions.map(option => (
+                                            <Col key={option.value} xs={24} sm={12} md={6}>
+                                                <Checkbox
+                                                    checked={filters[option.value]}
+                                                    onChange={(e) => setFilters(prev => ({
+                                                        ...prev,
+                                                        [option.value]: e.target.checked
+                                                    }))}
+                                                >
+                                                    <Space>
+                                                        {option.icon}
+                                                        <Text>{option.label}</Text>
+                                                    </Space>
+                                                </Checkbox>
+                                            </Col>
+                                        ))}
+                                    </Row>
+                                </Card>
+
+                                <div className="h-[600px] rounded-lg overflow-hidden">
+                                    <MapContainer
+                                        center={center}
+                                        zoom={zoom}
+                                        className="h-full w-full"
+                                        zoomControl={false}
                                     >
-                                        <Space>
-                                            {option.icon}
-                                            <Text>{option.label}</Text>
-                                        </Space>
-                                    </Checkbox>
-                                </Col>
-                            ))}
-                        </Row>
-                    </Card>
+                                        <TileLayer
+                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        />
+                                        <ZoomControl position="topright" />
 
-                    <div className="h-[600px] rounded-lg overflow-hidden">
-                        <MapContainer
-                            center={center}
-                            zoom={zoom}
-                            className="h-full w-full"
-                            zoomControl={false}
-                        >
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            />
-                            <ZoomControl position="topright" />
+                                        {/* Marqueurs des localités */}
+                                        {filters.showLocalites && localites.map((localite) => (
+                                            <Marker
+                                                key={`localite-${localite.id}`}
+                                                position={[
+                                                    Number.parseFloat(localite.latitude),
+                                                    Number.parseFloat(localite.longitude),
+                                                ]}
+                                                icon={localiteIcon}
+                                            >
+                                                <Popup>
+                                                    <div className="p-2">
+                                                        <Text strong>{localite.nom}</Text>
+                                                        <div className="mt-2">
+                                                            <Text type="secondary">Description: </Text>
+                                                            <Text>{localite.description}</Text>
+                                                        </div>
+                                                        <div className="mt-1">
+                                                            <Text type="secondary">Prix: </Text>
+                                                            <Text>{formatPrice(localite.prix)}</Text>
+                                                        </div>
+                                                    </div>
+                                                </Popup>
+                                            </Marker>
+                                        ))}
 
-                            {/* Marqueurs des localités */}
-                            {filters.showLocalites && localites.map((localite) => (
-                                <Marker
-                                    key={`localite-${localite.id}`}
-                                    position={[
-                                        Number.parseFloat(localite.latitude),
-                                        Number.parseFloat(localite.longitude),
-                                    ]}
-                                    icon={localiteIcon}
-                                >
-                                    <Popup>
-                                        <div className="p-2">
-                                            <Text strong>{localite.nom}</Text>
-                                            <div className="mt-2">
-                                                <Text type="secondary">Description: </Text>
-                                                <Text>{localite.description}</Text>
-                                            </div>
-                                            <div className="mt-1">
-                                                <Text type="secondary">Prix: </Text>
-                                                <Text>{formatPrice(localite.prix)}</Text>
-                                            </div>
-                                        </div>
-                                    </Popup>
-                                </Marker>
-                            ))}
+                                        {/* Lotissements */}
+                                        {filters.showLotissements && validLotissements.map((lotissement) => (
+                                            <React.Fragment key={`lotissement-${lotissement.id}`}>
+                                                {/* Marqueur du lotissement */}
+                                                <Marker
+                                                    position={[
+                                                        typeof lotissement.latitude === "string"
+                                                            ? Number.parseFloat(lotissement.latitude)
+                                                            : lotissement.latitude,
+                                                        typeof lotissement.longitude === "string"
+                                                            ? Number.parseFloat(lotissement.longitude)
+                                                            : lotissement.longitude,
+                                                    ]}
+                                                    icon={lotissementIcon}
+                                                >
+                                                    <Popup>
+                                                        <div>
+                                                            <Text strong>{lotissement.nom}</Text>
+                                                            <div className="mt-2">
+                                                                <Text type="secondary">Localisation: </Text>
+                                                                <Text>{lotissement.localisation}</Text>
+                                                            </div>
+                                                            <div className="mt-1">
+                                                                <Text type="secondary">Statut: </Text>
+                                                                <Text>{lotissement.statut}</Text>
+                                                            </div>
+                                                        </div>
+                                                    </Popup>
+                                                </Marker>
+                                            </React.Fragment>
+                                        ))}
 
-                            {/* Lotissements */}
-                            {filters.showLotissements && validLotissements.map((lotissement) => (
-                                <React.Fragment key={`lotissement-${lotissement.id}`}>
-                                    {/* Marqueur du lotissement */}
-                                    <Marker
-                                        position={[
-                                            typeof lotissement.latitude === "string"
-                                                ? Number.parseFloat(lotissement.latitude)
-                                                : lotissement.latitude,
-                                            typeof lotissement.longitude === "string"
-                                                ? Number.parseFloat(lotissement.longitude)
-                                                : lotissement.longitude,
-                                        ]}
-                                        icon={lotissementIcon}
-                                    >
-                                        <Popup>
-                                            <div>
-                                                <Text strong>{lotissement.nom}</Text>
-                                                <div className="mt-2">
-                                                    <Text type="secondary">Localisation: </Text>
-                                                    <Text>{lotissement.localisation}</Text>
-                                                </div>
-                                                <div className="mt-1">
-                                                    <Text type="secondary">Statut: </Text>
-                                                    <Text>{lotissement.statut}</Text>
-                                                </div>
-                                            </div>
-                                        </Popup>
-                                    </Marker>
-                                </React.Fragment>
-                            ))}
+                                        {/* Parcelles indépendantes */}
+                                        {filters.showParcelles && parcelles.map((parcelle) => (
+                                            <CircleMarker
+                                                key={`parcelle-${parcelle.id}`}
+                                                center={[
+                                                    Number.parseFloat(parcelle.latitude),
+                                                    Number.parseFloat(parcelle.longitude),
+                                                ]}
+                                                radius={8}
+                                                fillColor="#FF4136"
+                                                color="#85144b"
+                                                weight={1}
+                                                opacity={0.8}
+                                                fillOpacity={0.6}
+                                            >
+                                                <Popup>
+                                                    <div className="p-2">
+                                                        <Text strong>Parcelle {parcelle.numero}</Text>
+                                                        <div className="mt-2">
+                                                            <Text type="secondary">Superficie: </Text>
+                                                            <Text>{parcelle.superficie} m²</Text>
+                                                        </div>
+                                                        <div className="mt-1">
+                                                            <Text type="secondary">Prix: </Text>
+                                                            <Text>{formatPrice(parcelle.prix)}</Text>
+                                                        </div>
+                                                    </div>
+                                                </Popup>
+                                            </CircleMarker>
+                                        ))}
 
-                            {/* Parcelles indépendantes */}
-                            {filters.showParcelles && parcelles.map((parcelle) => (
-                                <CircleMarker
-                                    key={`parcelle-${parcelle.id}`}
-                                    center={[
-                                        Number.parseFloat(parcelle.latitude),
-                                        Number.parseFloat(parcelle.longitude),
-                                    ]}
-                                    radius={8}
-                                    fillColor="#FF4136"
-                                    color="#85144b"
-                                    weight={1}
-                                    opacity={0.8}
-                                    fillOpacity={0.6}
-                                >
-                                    <Popup>
-                                        <div className="p-2">
-                                            <Text strong>Parcelle {parcelle.numero}</Text>
-                                            <div className="mt-2">
-                                                <Text type="secondary">Superficie: </Text>
-                                                <Text>{parcelle.superficie} m²</Text>
-                                            </div>
-                                            <div className="mt-1">
-                                                <Text type="secondary">Prix: </Text>
-                                                <Text>{formatPrice(parcelle.prix)}</Text>
-                                            </div>
-                                        </div>
-                                    </Popup>
-                                </CircleMarker>
-                            ))}
-
-                            {/* Zones de lotissement */}
-                            {filters.showZones && validLotissements.map((lotissement) => {
-                                const boundingBox = createBoundingBox(lotissement.parcelles);
-                                return boundingBox.length > 0 ? (
-                                    <Polygon
-                                        key={`zone-${lotissement.id}`}
-                                        positions={boundingBox}
-                                        pathOptions={{
-                                            color: '#2ECC40',
-                                            fillColor: '#01FF70',
-                                            fillOpacity: 0.2,
-                                            weight: 2
-                                        }}
-                                    >
-                                        <Popup>
-                                            <div className="p-2">
-                                                <Text strong>Zone: {lotissement.nom}</Text>
-                                                <div className="mt-2">
-                                                    <Text type="secondary">Nombre de parcelles: </Text>
-                                                    <Text>{lotissement.parcelles.length}</Text>
-                                                </div>
-                                            </div>
-                                        </Popup>
-                                    </Polygon>
-                                ) : null;
-                            })}
-                        </MapContainer>
+                                        {/* Zones de lotissement */}
+                                        {filters.showZones && validLotissements.map((lotissement) => {
+                                            const boundingBox = createBoundingBox(lotissement.parcelles);
+                                            return boundingBox.length > 0 ? (
+                                                <Polygon
+                                                    key={`zone-${lotissement.id}`}
+                                                    positions={boundingBox}
+                                                    pathOptions={{
+                                                        color: '#2ECC40',
+                                                        fillColor: '#01FF70',
+                                                        fillOpacity: 0.2,
+                                                        weight: 2
+                                                    }}
+                                                >
+                                                    <Popup>
+                                                        <div className="p-2">
+                                                            <Text strong>Zone: {lotissement.nom}</Text>
+                                                            <div className="mt-2">
+                                                                <Text type="secondary">Nombre de parcelles: </Text>
+                                                                <Text>{lotissement.parcelles.length}</Text>
+                                                            </div>
+                                                        </div>
+                                                    </Popup>
+                                                </Polygon>
+                                            ) : null;
+                                        })}
+                                    </MapContainer>
+                                </div>
+                            </Card>
+                        </div>
                     </div>
-                </Card>
-            </div>
+                </div>
+            </section>
+
         </>
     )
 }

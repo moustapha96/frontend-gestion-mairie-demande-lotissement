@@ -103,7 +103,7 @@ const DocumentListe = () => {
             render: (_, record) => (
                 <Space>
                     <Button
-                        type="link"
+                       className="text-primary"
                         icon={<FileTextOutlined />}
                         onClick={() => {
                             setSelectedDocument(record);

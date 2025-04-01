@@ -17,6 +17,7 @@ import slack from "@/assets/images/brand/slack.png";
 import dribble from "@/assets/images/brand/dribbble.png";
 import behance from "@/assets/images/brand/behance.png";
 
+
 const adminMenu = [
   {
     name: "Dashboard",
@@ -73,13 +74,17 @@ const adminMenu = [
     link: "/admin/documents",
     icon: LuShoppingBag,
   },
-  {
-    name: "Modèles Documents",
-    link: "/admin/document-models",
-    icon: LuFileText,
-    role: "ROLE_SUPER_ADMIN"
-  }
+  // {
+  //   name: "Modèles Documents",
+  //   link: "/admin/document-models",
+  //   icon: LuFileText,
+  //   role: "ROLE_SUPER_ADMIN"
+  // }
 ];
+
+
+
+
 
 const apps = [
   {

@@ -13,6 +13,16 @@ export async function createUser(userData) {
     }
 }
 
+export async function inscription(userData) {
+    try {
+        const response = await HttpClient.post(`${urlApi}user/inscription`, userData);
+        return response.data; // Return success message or created user
+    } catch (error) {
+        console.error('Erreur lors de la création de l\'utilisateur:', error);
+        throw error; // Rethrow the error for handling in the calling function
+    }
+}
+
 // Function to verify a user account
 export async function verifyAccount(token) {
     try {

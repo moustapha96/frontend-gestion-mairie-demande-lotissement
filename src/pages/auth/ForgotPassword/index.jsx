@@ -23,13 +23,17 @@ const ForgotPassword = () => {
   });
 
   const onSubmit = async (data) => {
+
+    data={...data,uri : window.location.origin}
+    console.log(data)
     setLoading(true);
     try {
-      const response = await fetch(urlApi + "rh/reset-password/" + data.email, {
-        method: "GET",
+      const response = await fetch(urlApi + "password-reset", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(data),
       });
       const res = await response.json();
       console.log(res)
@@ -67,10 +71,10 @@ const ForgotPassword = () => {
           fullWidth
           control={control}
         />
-        <div className="mb-6 flex flex-col justify-center gap-4">
+        <div className="mb-6 flex flex-col text-center text-sm justify-between items-center gap-x-1 gap-y-2">
           <button
             type="submit"
-            className="relative inline-flex w-full items-center justify-center rounded bg-primary px-6 py-3 text-base capitalize text-white transition-all hover:bg-primary-700"
+            className="group mt-5 inline-flex w-2/3 items-center justify-center rounded bg-primary px-6 py-2.5 text-white backdrop-blur-2xl transition-all hover:text-white"
           >
 
             {loading ? "Chargement..." : "Réinitialiser le mot de passe"}

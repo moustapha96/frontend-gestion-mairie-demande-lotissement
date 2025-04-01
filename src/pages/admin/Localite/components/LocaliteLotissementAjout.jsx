@@ -4,13 +4,21 @@ import { AdminBreadcrumb } from "@/components"
 import { createLocalite, getLocaliteDetails } from "@/services/localiteService"
 import { createLotissement } from "@/services/lotissementService"
 import { cn } from "@/utils"
+
 import { Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { Form, Input, Select, Button, Space, DatePicker } from "antd"
+
+
 const AdminLocaliteLotissementAjouter = () => {
     const { id } = useParams();
+    const { TextArea } = Input;
+    const { Option } = Select;
+
+    const [form] = Form.useForm();
     const [localite, setLocalite] = useState(null)
     const [nom, setNom] = useState("")
     const [localisation, setLocalisation] = useState("")
@@ -33,22 +41,51 @@ const AdminLocaliteLotissementAjouter = () => {
 
         fetchLocalite();
     }, [id])
-    const handleSubmit = async (e) => {
-        e.preventDefault()
+
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault()
+    //     setLoading(true)
+    //     try {
+    //         const body = {
+    //             nom,
+    //             localisation,
+    //             description,
+    //             statut,
+    //             dateCreation: new Date(dateCreation).toLocaleDateString(),
+    //             localiteId: id
+    //         }
+    //         console.log(body)
+    //         const res = await createLotissement(body);
+    //         console.log(res)
+    //         toast.success("Lotissement ajouté avec succès!");
+    //         navigate(`/admin/localites/${id}/details`)
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Erreur lors de l'ajout du lotissement");
+    //     } finally {
+    //         setLoading(false)
+    //     }
+    // }
+
+    const handleSubmit = async (values) => {
+        console.log(values)
         setLoading(true)
         try {
             const body = {
-                nom,
-                localisation,
-                description,
-                statut,
-                dateCreation: new Date(dateCreation).toLocaleDateString(),
+                nom: values.nom,
+                localisation: values.localisation,
+                description: values.description,
+                statut: values.statut,
+                dateCreation: new Date().toLocaleDateString(),
+                longitude: values.longitude,
+                latitude: values.latitude,
                 localiteId: id
             }
             console.log(body)
             const res = await createLotissement(body);
             console.log(res)
             toast.success("Lotissement ajouté avec succès!");
+            form.resetFields();
             navigate(`/admin/localites/${id}/details`)
         } catch (error) {
             console.error(error);
@@ -58,14 +95,37 @@ const AdminLocaliteLotissementAjouter = () => {
         }
     }
 
+    useEffect(() => {
+        const fetchLocalite = async () => {
+            try {
+                const res = await getLocaliteDetails(id)
+                setLocalite(res);
+                form.setFieldsValue({
+                    dateCreation: new Date(),
+                    statut: "en cours"
+                });
+            } catch (error) {
+                console.error(error);
+                toast.error("Erreur lors du chargement de la localité");
+            }
+        };
+
+        fetchLocalite();
+    }, [id, form])
+
+    const handleCancel = () => {
+        form.resetFields();
+        navigate(`/admin/localites/${id}/details`);
+    };
+
     return (
         <>
             <AdminBreadcrumb title="Nouveau lotissement" />
             <section className="flex justify-center items-center min-h-screen">
                 <div className="bg-white shadow-lg rounded-lg overflow-hidden w-full max-w-2xl">
-                    <h2 className="text-2xl font-bold text-center mt-6">Ajouter un nouveau lotissement</h2>
+                    <h2 className="text-2xl font-bold text-center ">Ajouter un nouveau lotissement</h2>
 
-                    <div className="flex justify-center items-center text-2xl font-bold mt-5 " >
+                    <div className="flex justify-center items-center text-2xl font-bold  " >
                         {localite ? <>
                             <span>
                                 Localite :
@@ -80,94 +140,87 @@ const AdminLocaliteLotissementAjouter = () => {
                         </>}
                     </div>
                     <div className="p-6">
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="nom" className="block text-sm font-medium text-gray-700">
-                                    Nom
-                                </label>
-                                <input
-                                    type="text"
-                                    id="nom"
-                                    value={nom}
-                                    onChange={(e) => setNom(e.target.value)}
-                                    required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="localisation" className="block text-sm font-medium text-gray-700">
-                                    Localisation
-                                </label>
-                                <input
-                                    type="text"
-                                    id="localisation"
-                                    value={localisation}
-                                    onChange={(e) => setLocalisation(e.target.value)}
-                                    required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                                    Description
-                                </label>
-                                <textarea
-                                    id="description"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    required
-                                    rows={4}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label htmlFor="statut" className="block text-sm font-medium text-gray-700">
-                                    Statut
-                                </label>
-                                <select
-                                    id="statut"
-                                    value={statut}
-                                    onChange={(e) => setStatut(e.target.value)}
-                                    required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                >
-                                    <option value="en cours">En cours</option>
-                                    <option value="planifié">Planifié</option>
-                                    <option value="achevé">Achevé</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="dateCreation" className="block text-sm font-medium text-gray-700">
-                                    Date de création
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    id="dateCreation"
-                                    disabled
-                                    value={dateCreation}
-                                    onChange={(e) => setDateCreation(e.target.value)}
-                                    required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                />
-                            </div>
-                            <div className="flex justify-center">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className={cn(
-                                        "w-1/2 flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-                                        loading && "opacity-50 cursor-not-allowed",
-                                    )}
-                                >
-                                    {loading ? (
-                                        <Loader2 className="animate-spin mr-2" size={20} />
-                                    ) : (
-                                        <Save className="mr-2" size={20} />
-                                    )}
-                                    {loading ? "Enregistrement" : "Ajouter le lotissement"}
-                                </button>
-                            </div>
-                        </form>
+                        
+                        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                            <Form.Item name="nom" label="Nom" rules={[{ required: true, message: "Le nom est requis" }]}>
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="localisation"
+                                label="Localisation"
+                                rules={[{ required: true, message: "La localisation est requise" }]}
+                            >
+                                <Input />
+                            </Form.Item>
+
+
+
+                            <Form.Item
+                                name="longitude"
+                                label="Longitude"
+                                rules={[{ required: true, message: "La longitude est requise" }]}
+                            >
+                                <Input type="number" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="latitude"
+                                label="Latitude"
+                                
+                                rules={[{ required: true, message: "La latitude est requise" }]}
+                            >
+                                <Input type="number" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="description"
+                                label="Description"
+                                rules={[{ required: true, message: "La description est requise" }]}
+                            >
+                                <TextArea rows={3} />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="statut"
+                                label="Statut"
+                                rules={[{ required: true, message: "Le statut est requis" }]}
+                                initialValue="en cours"
+                            >
+                                <Select>
+                                    <Option value="en cours">En cours</Option>
+                                    <Option value="planifié">Planifié</Option>
+                                    <Option value="achevé">Achevé</Option>
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item name="dateCreation" label="Date de création">
+                                <Input type="datetime-local" disabled defaultValue={new Date().toISOString().slice(0, 16)} />
+                            </Form.Item>
+
+                            <Form.Item className="flex justify-center">
+                                <Space>
+                                    <Button onClick={handleCancel}>Annuler</Button>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                        loading={loading}
+                                        disabled={loading}
+                                        className={cn("bg-primary hover:bg-primary-light text-white", loading && "opacity-50")}
+                                        icon={
+                                            loading ? (
+                                                <Loader2 className="animate-spin mr-2" size={16} />
+                                            ) : (
+                                                <Save className="mr-2" size={16} />
+                                            )
+                                        }
+                                    >
+                                        {loading ? "Enregistrement" : "Ajouter le lotissement"}
+                                    </Button>
+                                </Space>
+                            </Form.Item>
+                        </Form>
+
                     </div>
                 </div>
             </section>

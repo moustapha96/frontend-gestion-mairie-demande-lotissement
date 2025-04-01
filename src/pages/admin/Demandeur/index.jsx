@@ -26,7 +26,7 @@ const AdminDemandeurListe = () => {
       try {
         const data = await getDemandeurListe()
         console.log("demandeur", data)
-        const filteredDemandeurs = data.filter((demandeur) => !demandeur.roles.includes("ROLE_ADMIN"));
+        const filteredDemandeurs = data.filter((demandeur) => demandeur.roles.includes("ROLE_DEMANDEUR"));
         setDemandeurs(filteredDemandeurs)
       } catch (err) {
         setError(err.message)
@@ -151,7 +151,7 @@ const AdminDemandeurListe = () => {
         return (
           <Link to={`/admin/demandeur/${record.id}/demandes`}>
             <Button className="text-primary" icon={<EyeOutlined />}>
-              {record.demandes.length}
+              {record.demandes}
             </Button>
           </Link>
         )

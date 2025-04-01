@@ -34,6 +34,7 @@ const DocumentListe = () => {
 
   const showModal = (document) => {
     setSelectedDocument(document);
+    console.log(document);
     setIsModalVisible(true);
   };
 
@@ -49,7 +50,7 @@ const DocumentListe = () => {
       render: (_, record) =>
         record.type === "PERMIS_OCCUPATION"
           ? record.contenu.numeroPermis
-          : record.contenu.numeroBail,
+          : record.contenu === "PROPOSITION_BAIL" ? record.contenu.numeroProposition : record.contenu.numeroBail,
     },
     {
       title: "Type",
@@ -84,7 +85,7 @@ const DocumentListe = () => {
       key: "actions",
       render: (_, record) => (
         <Button
-          type="link"
+          className="text-primary"
           icon={<FileTextOutlined />}
           onClick={() => showModal(record)}
         >
@@ -143,7 +144,7 @@ const DocumentListe = () => {
         rowKey="id"
         loading={loading}
         pagination={{
-          defaultPageSize: 10,
+          defaultPageSize: 5,
           showSizeChanger: true,
           showTotal: (total) => `Total ${total} documents`,
         }}
@@ -191,8 +192,8 @@ const DocumentListe = () => {
               )}
             </Descriptions.Item>
             <Descriptions.Item label="Demandeur">
-              {selectedDocument.demande.demandeur.prenom}{" "}
-              {selectedDocument.demande.demandeur.nom}
+              {selectedDocument.demandeur.prenom}{" "}
+              {selectedDocument.demandeur.nom}
             </Descriptions.Item>
           </Descriptions>
         )}
