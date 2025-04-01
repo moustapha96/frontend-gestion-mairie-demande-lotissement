@@ -85,6 +85,7 @@ const DemandeListe = () => {
         { text: "VALIDE", value: "VALIDE" },
         { text: "REJETE", value: "REJETE" },
         { text: "EN_COURS", value: "EN_COURS" },
+        { text: "EN_TRAITEMENT", value: "EN_TRAITEMENT" },
       ],
       onFilter: (value, record) => record.statut === value,
     },
@@ -106,7 +107,7 @@ const DemandeListe = () => {
             Détails
           </Link>
 
-          {record.statut !== "VALIDE" && (
+          {record.statut === "REJETE" && (
             <Link
               to={`/demandeur/demandes/${record.id}/modification`}
               className="text-primary hover:text-primary-700 transition-colors duration-200"

@@ -3,7 +3,7 @@ import InfoItem from "./InfoItem";
 
 function DemandeInfoCard({ demande }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations de la demande</h3>
                 <div className="space-y-4">

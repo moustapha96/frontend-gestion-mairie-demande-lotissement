@@ -18,6 +18,7 @@ const authSessionKeyToken = "__GESTIO-MAIRIE_REACT_AUTH__TOKEN"
 const authSessionKeyUser = "__GESTIO-MAIRIE_REACT_AUTH__USER"
 const authSessionKeyAvatar = "__GESTIO-MAIRIE_REACT_AVATAR"
 
+
 export function AuthProvider({ children }) {
   // Initialisation avec priorité au localStorage, puis cookies comme fallback
   const [token, setToken] = useState(() => {

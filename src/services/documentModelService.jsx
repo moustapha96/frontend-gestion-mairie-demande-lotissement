@@ -6,6 +6,7 @@ const BASE_URL = `${urlApi}document-models`;
 /**
  * Service pour la gestion des modèles de documents
  */
+
 class DocumentModelService {
   /**
    * Récupère la liste de tous les modèles de documents

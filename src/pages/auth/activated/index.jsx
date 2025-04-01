@@ -21,7 +21,7 @@ const ActivatedAccount = () => {
     const queryParams = new URLSearchParams(location.search);
     const token = queryParams.get('token');
     const [resultat, setResultat] = useState("");
-
+    const [user , setUser] = useState(null);
 
 
     useEffect(() => {
@@ -33,7 +33,7 @@ const ActivatedAccount = () => {
     const onSubmit = async (token) => {
         try {
             setLoading(true);
-            const response = await fetch(`${urlApi}activated-account/${token}`, {
+            const response = await fetch(`${urlApi}user/activated-account/${token}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,6 +47,8 @@ const ActivatedAccount = () => {
                 return;
             }
 
+            const res = await response.json();
+            setUser(res);
             setResultat('Activation reussie !');
             setTimeout(() => {
                 navigate('/auth/sign-in');
@@ -62,33 +64,36 @@ const ActivatedAccount = () => {
 
     return (
         <>
-            <PageMetaData title="Vérification Compte" />
+            <PageMetaData title="Vérification de votre compte" />
 
             <div className="my-auto text-center">
-                <h4 className="mb-4 text-2xl font-bold text-white">Vérification compte</h4>
+                <h4 className="mb-4 text-2xl font-bold text-white">Vérification de votre compte</h4>
 
                 <div className="flex items-start justify-center">
 
                     {loading &&
                         <Loader className="mr-2 text-primary hover:text-rougeLogo animate-spin" size={70} ></Loader>
                     }
-
+                    {user && <span className="text-primary">{user.nom} {user.prenom}</span>}
                 </div>
 
-                <div className="flex items-start justify-center">
-
-                    {resultat && <span className="text-white">{resultat}</span>}
-
-
+                <div className="flex items-start justify-center mb-4">
+                    {resultat && <span className="text-primary">{resultat}</span>}
                 </div>
 
 
             </div>
             <p className="shrink text-center text-zinc-200">
                 Avez vouc deja u compte ?
-                <Link to="/auth/sign-in" className="ms-1 text-primary">
-                    <b>Se connecter</b>
-                </Link>
+                {user ? (
+                    <Link to={`/auth/sign-in?email=${user.email}`} className="ms-1 text-primary">
+                        <b>Se connecter</b>
+                    </Link>
+                ) : (
+                    <Link to="/auth/sign-in" className="ms-1 text-primary">
+                        <b>Se connecter</b>
+                    </Link>
+                )}
             </p>
 
         </>

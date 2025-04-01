@@ -1,6 +1,3 @@
-
-
-
 import {
   PageMetaData,
   PasswordFormInput,
@@ -10,7 +7,9 @@ import useLogin from "./useLogin";
 import { Link } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
 
+
 const SignIn = () => {
+  
   const { loading, login, control } = useLogin();
 
   return (
@@ -39,8 +38,15 @@ const SignIn = () => {
         />
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-x-1 gap-y-2">
-          <div></div>
-
+          <div className="inline-flex items-center">
+            
+          </div>
+          <Link
+            to="/auth/forgot-pass"
+            className="border-b border-dashed text-zinc-200"
+          >
+            <small>"Mot de passe oublié"</small>
+          </Link>
         </div>
 
         <div className="text-center text-sm justify-between ">

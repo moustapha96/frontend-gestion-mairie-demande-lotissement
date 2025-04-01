@@ -14,12 +14,16 @@ import {
     Briefcase,
     Globe,
     FileText,
+    AlertTriangle,
 } from "lucide-react"
-import { getDemandeDetails, getFileDocument } from "@/services/demandeService"
+import { getDemandeDetails, getFileDocument, updateDemandeRefus } from "@/services/demandeService"
 import { useAuthContext } from "@/context"
 import { AgentBreadcrumb } from "@/components"
 import { cn } from "@/utils"
 import { formatPhoneNumber, formatPrice } from "@/utils/formatters"
+import { EditOutlined, SaveOutlined } from "@ant-design/icons"
+import TextArea from "antd/es/input/TextArea"
+import { Button, message } from "antd"
 
 export default function AgentDemandeDetails() {
     const { id } = useParams()
@@ -52,6 +56,20 @@ export default function AgentDemandeDetails() {
         fetchDemande()
     }, [id])
 
+    const handleMotifRefusUpdate = async (newMotif) => {
+        try {
+            await updateDemandeRefus(id, newMotif);
+            setDemande(prev => ({
+                ...prev,
+                motif_refus: newMotif
+            }));
+            message.success("Motif de rejet mis à jour avec succès");
+        } catch (error) {
+            message.error("Erreur lors de la mise à jour du motif de rejet");
+            console.error("Erreur:", error);
+        }
+    };
+
     if (loading) return <LoadingSkeleton />
     if (error) return <ErrorDisplay error={error} />
 
@@ -75,19 +93,20 @@ export default function AgentDemandeDetails() {
                                             <DemandeurInfoCard demandeur={demande.demandeur} />
                                             <LocaliteInfoCard localite={demande.localite} demande={demande} />
                                             {/* {demande.document && <DocumentInfoCard document={demande.document} typeDocument={demande.typeDocument} />} */}
-                                            {demande.documentGenerer && <DocumentInfoCard document={demande.documentGenerer} />}
+                                            {/* {demande.documentGenerer && <DocumentInfoCard document={demande.documentGenerer} />} */}
+
+                                            {demande.documentGenerer && demande.documentGenerer.isGenerated && <>
+                                                <DocumentInfoCard document={demande.documentGenerer} />
+                                            </>}
+
+                                        </div>
+                                        <div className="grid gap-6 md:grid-cols-1  mt-8">
+                                            {demande.statut === "REJETE" && (
+                                                <DemandeRefusInfoCard demande={demande} onMotifUpdate={handleMotifRefusUpdate} />
+                                            )}
                                         </div>
                                     </div>
-                                    {/* {fichier && (
-                                        <div>
-                                            <div className="mt-8 prevent-select">
-                                                <h2 className="text-2xl font-bold text-gray-800 mb-4">{"Previsualisation"}</h2>
-                                                <div className="bg-gray-200 rounded-lg p-4">
-                                                    <iframe src={`data:application/pdf;base64,${fichier}`} title="Document" width="100%" height="600px" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )} */}
+
 
                                     {
                                         (rectoFile || versoFile) && (
@@ -101,42 +120,7 @@ export default function AgentDemandeDetails() {
                                         )
                                     }
 
-                                    {/* {(rectoFile || versoFile) && (
-                                        <div className="mt-8">
-                                            <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
-                                            <div className="grid gap-6 md:grid-cols-2">
-                                                {rectoFile && (
-                                                    <div className="bg-white shadow rounded-lg overflow-hidden">
-                                                        <div className="px-4 py-5 sm:p-6">
-                                                            <h3 className="text-lg font-medium text-gray-900 mb-4">Recto du document</h3>
-                                                            <div className="bg-gray-200 rounded-lg p-4">
-                                                                <iframe
-                                                                    src={`data:application/pdf;base64,${rectoFile}`}
-                                                                    title="Recto"
-                                                                    className="w-full h-[400px]"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
 
-                                                {versoFile && (
-                                                    <div className="bg-white shadow rounded-lg overflow-hidden">
-                                                        <div className="px-4 py-5 sm:p-6">
-                                                            <h3 className="text-lg font-medium text-gray-900 mb-4">Verso du document</h3>
-                                                            <div className="bg-gray-200 rounded-lg p-4">
-                                                                <iframe
-                                                                    src={`data:application/pdf;base64,${versoFile}`}
-                                                                    title="Verso"
-                                                                    className="w-full h-[400px]"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )} */}
                                 </main>
                             </div>
                         </div>
@@ -150,7 +134,7 @@ export default function AgentDemandeDetails() {
 
 function DemandeInfoCard({ demande }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations de la demande</h3>
                 <div className="space-y-4">
@@ -210,10 +194,97 @@ function DemandeInfoCard({ demande }) {
     );
 }
 
+function DemandeRefusInfoCard({ demande, onMotifUpdate }) {
+    const [isEditing, setIsEditing] = useState(false)
+    const [motif, setMotif] = useState(demande.motif_refus || "")
+    const [saving, setSaving] = useState(false)
+    const { user } = useAuthContext()
+
+    // Vérifier si l'utilisateur a les droits d'édition (admin ou super admin)
+    const canEdit = user && (user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN") || user.roles.includes("ROLE_AGENT"))
+    console.log("user", canEdit)
+    const handleSave = async () => {
+        if (!motif.trim()) {
+            message.error("Le motif de rejet ne peut pas être vide")
+            return
+        }
+
+        setSaving(true)
+        try {
+            await onMotifUpdate(motif)
+            setIsEditing(false)
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde:", error)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    return (
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-primary border-l-4">
+            <div className="px-4 py-5 sm:p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium leading-6 text-red-700 flex items-center">
+                        <AlertTriangle className="w-5 h-5 mr-2" />
+                        Motif du rejet de la demande
+                    </h3>
+                    {canEdit && !isEditing && (
+                        <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            onClick={() => setIsEditing(true)}
+                            className="text-primary hover:text-primary-dark"
+                            disabled={!canEdit}
+                        >
+                            Modifier
+                        </Button>
+                    )}
+                </div>
+
+                {isEditing ? (
+                    <div className="space-y-4">
+                        <TextArea
+                            value={motif}
+                            onChange={(e) => setMotif(e.target.value)}
+                            rows={4}
+                            placeholder="Saisissez le motif du rejet"
+                            className="w-full"
+                        />
+                        <div className="flex justify-end space-x-2">
+                            <Button
+                                onClick={() => {
+                                    setIsEditing(false)
+                                    setMotif(demande.motif_refus || "")
+                                }}
+                            >
+                                Annuler
+                            </Button>
+                            <Button
+                                type="primary"
+                                icon={<SaveOutlined />}
+                                onClick={handleSave}
+                                loading={saving}
+                                className="bg-primary hover:bg-primary-dark text-white"
+                                disabled={!canEdit}
+                            >
+                                Enregistrer
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">
+                        {demande.motif_refus || "Aucun motif spécifié"}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
 // Mise à jour de DemandeurInfoCard
 function DemandeurInfoCard({ demandeur }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations du demandeur</h3>
                 <div className="space-y-4">
@@ -265,7 +336,7 @@ function DemandeurInfoCard({ demandeur }) {
 
 function LocaliteInfoCard({ localite, demande }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Informations sur a localité"}</h3>
                 <div className="space-y-4">
@@ -285,7 +356,7 @@ function LocaliteInfoCard({ localite, demande }) {
 
 function DocumentInfoCard({ document }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Document"}</h3>
                 <div className="space-y-4">
@@ -300,7 +371,7 @@ function DocumentInfoCard({ document }) {
 // Ajout du nouveau composant pour le document généré
 function DocumentGenereInfoCard({ documentGenerer }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Document généré</h3>
                 <div className="space-y-4">
@@ -363,7 +434,7 @@ function LoadingSkeleton() {
                 <div className="px-4 py-6 sm:px-0">
                     <div className="grid gap-6 md:grid-cols-2">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden">
+                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
                                 <div className="px-4 py-5 sm:p-6">
                                     <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
                                     {[...Array(5)].map((_, j) => (
@@ -388,7 +459,7 @@ function LoadingSkeleton() {
 function ErrorDisplay({ error }) {
     return (
         <div className="flex justify-center items-center h-screen bg-gray-100">
-            <div className="bg-white shadow rounded-lg overflow-hidden w-full max-w-md">
+            <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary w-full max-w-md">
                 <div className="px-4 py-5 sm:p-6">
                     <h3 className="text-lg font-medium leading-6 text-red-600 mb-4">Erreur</h3>
                     <p className="text-center">{error}</p>
@@ -404,7 +475,7 @@ function FilePreview({ file, title }) {
             : 'application/pdf'
 
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
                 <div className="bg-gray-200 rounded-lg p-4">

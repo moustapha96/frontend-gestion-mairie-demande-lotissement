@@ -10,7 +10,7 @@ function LoadingSkeleton() {
                 <div className="px-4 py-6 sm:px-0">
                     <div className="grid gap-6 md:grid-cols-2">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden">
+                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
                                 <div className="px-4 py-5 sm:p-6">
                                     <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
                                     {[...Array(5)].map((_, j) => (

@@ -4,7 +4,7 @@ function FilePreview({ file, title }) {
             : 'application/pdf'
 
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
                 <div className="bg-gray-200 rounded-lg p-4">

@@ -15,7 +15,8 @@ import {
     Globe,
     FileText,
     Clock,
-    MapPinCheck
+    MapPinCheck,
+    AlertTriangle
 } from "lucide-react"
 import { getDemandeDetails, getFileDocument } from "@/services/demandeService"
 import { useAuthContext } from "@/context"
@@ -78,12 +79,26 @@ export default function DemandeurDemandeDetails() {
 
                                         <div className="grid gap-6 md:grid-cols-2">
                                             <DemandeInfoCard demande={demande} />
+
                                             {/* <DemandeurInfoCard demandeur={demande.demandeur} /> */}
                                             <LocaliteInfoCard localite={demande.localite} />
                                             {demande.documentGenerer && demande.documentGenerer.isGenerated && (
                                                 <DocumentGenereInfoCard documentGenerer={demande.documentGenerer} />
                                             )}
                                         </div>
+                                        <div className="grid gap-6 md:grid-cols-1  mt-8">
+                                            {demande.statut === "REJETE" && (
+                                                <DemandeRefusInfoCard demande={demande} />
+                                            )}
+                                        </div>
+
+                                        {demande.localite && demande.localite.longitude && demande.localite.latitude && (
+
+                                            <div className="grid gap-6 md:grid-cols-1 mt-8">
+                                                <DemandeInfoCarteCard localite={demande.localite} />
+                                            </div>
+                                        )}
+
                                     </div>
 
                                     {
@@ -111,7 +126,7 @@ export default function DemandeurDemandeDetails() {
 
 function DemandeInfoCard({ demande }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations de la demande</h3>
                 <div className="space-y-4">
@@ -169,10 +184,51 @@ function DemandeInfoCard({ demande }) {
     );
 }
 
+function DemandeInfoCarteCard({ localite }) {
+    return (
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
+            <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Visualtion sur la carte</h3>
+                <div className="space-y-4">
+
+                    <InfoItem
+                        icon={<MapPinCheck className="w-5 h-5" />}
+                        label={"Coordonnées"}
+                        value={formatCoordinates(localite.latitude, localite.longitude)}
+                    />
+                    {localite.longitude && localite.latitude && <MapCar selectedItem={localite} type="localite" />}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function DemandeRefusInfoCard({ demande }) {
+
+
+    return (
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary border-l-4 border-red-500">
+            <div className="px-4 py-5 sm:p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium leading-6 text-red-700 flex items-center">
+                        <AlertTriangle className="w-5 h-5 mr-2" />
+                        Motif du rejet de la demande
+                    </h3>
+
+                </div>
+
+                <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">
+                    {demande.motif_refus || "Aucun motif spécifié"}
+                </div>
+            </div>
+        </div>
+    )
+}
+
 // Mise à jour de DemandeurInfoCard
 function DemandeurInfoCard({ demandeur }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations du demandeur</h3>
                 <div className="space-y-4">
@@ -224,7 +280,7 @@ function DemandeurInfoCard({ demandeur }) {
 
 function LocaliteInfoCard({ localite, demande }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Informations sur a localité"}</h3>
                 <div className="space-y-4">
@@ -240,7 +296,7 @@ function LocaliteInfoCard({ localite, demande }) {
                         label={"Coordonnées"}
                         value={formatCoordinates(localite.latitude, localite.longitude)}
                     />
-                    {localite.longitude && localite.latitude && <MapCar selectedItem={localite} type="localite" />}
+
                 </div>
             </div>
         </div>
@@ -249,7 +305,7 @@ function LocaliteInfoCard({ localite, demande }) {
 
 function DocumentInfoCard({ document }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Document"}</h3>
                 <div className="space-y-4">
@@ -264,7 +320,7 @@ function DocumentInfoCard({ document }) {
 // Ajout du nouveau composant pour le document généré
 function DocumentGenereInfoCard({ documentGenerer }) {
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Document généré</h3>
                 <div className="space-y-4">
@@ -327,7 +383,7 @@ function LoadingSkeleton() {
                 <div className="px-4 py-6 sm:px-0">
                     <div className="grid gap-6 md:grid-cols-2">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden">
+                            <div key={i} className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
                                 <div className="px-4 py-5 sm:p-6">
                                     <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
                                     {[...Array(5)].map((_, j) => (
@@ -352,7 +408,7 @@ function LoadingSkeleton() {
 function ErrorDisplay({ error }) {
     return (
         <div className="flex justify-center items-center h-screen bg-gray-100">
-            <div className="bg-white shadow rounded-lg overflow-hidden w-full max-w-md">
+            <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary w-full max-w-md">
                 <div className="px-4 py-5 sm:p-6">
                     <h3 className="text-lg font-medium leading-6 text-red-600 mb-4">Erreur</h3>
                     <p className="text-center">{error}</p>
@@ -368,7 +424,7 @@ function FilePreview({ file, title }) {
             : 'application/pdf'
 
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
                 <div className="bg-gray-200 rounded-lg p-4">

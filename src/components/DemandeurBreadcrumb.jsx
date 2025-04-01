@@ -1,8 +1,10 @@
 import { LuChevronsRight } from "react-icons/lu";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageMetaData from "./PageMetaData";
+import { MoveLeft } from "lucide-react";
 
 const DemandeurBreadcrumb = ({ title, SubTitle }) => {
+  const navigate = useNavigate();
   return (
     <>
       <PageMetaData title={title} />
@@ -38,6 +40,19 @@ const DemandeurBreadcrumb = ({ title, SubTitle }) => {
               </div>
 
             </div>
+
+            {window.location.pathname !== "/demandeur/dashboard" && <>
+              <div className="flex items-center justify-end border-b gap-4 border-gray-200 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className=" text-primary flex items-center gap-1"
+                >
+                  <MoveLeft className="mr-1" /> Retour
+                </button>
+              </div>
+            </>}
+
           </div>
         </div>
       </section>

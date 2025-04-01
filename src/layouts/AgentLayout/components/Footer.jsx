@@ -10,7 +10,7 @@ const Footer = () => {
             {new Date().getFullYear()} © &nbsp;
             <Link
               className="text-primary text-bold"
-              to=""
+              to="https://gestionmairie.sn/"
               target="_blank"
             >
               {/* <span className="text-primary" >Mairie</span> */}
@@ -24,9 +24,9 @@ const Footer = () => {
             <Link to="" className="font-medium text-default-500">
               Confidentialité
             </Link>
-            <Link to="" className="font-medium text-default-500">
+            {/* <Link to="" className="font-medium text-default-500">
               Cookies
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

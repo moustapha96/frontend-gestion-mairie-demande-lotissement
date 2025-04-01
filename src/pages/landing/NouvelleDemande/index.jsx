@@ -45,7 +45,7 @@ const applicantSchema = yup.object({
     }),
   numeroElecteur: yup
     .string()
-    .required("Le numéro de carte nationale est requis")
+    .required("Le Numéro d'Identification National  est requis")
     .matches(/^\d{13}$/, "Le numéro doit contenir exactement 13 chiffres"),
 
   possedeAutreTerrain: yup.boolean(),
@@ -393,11 +393,11 @@ export default function NouvelleDemandePage() {
                 {...register('typeDocument')}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
-                <option value="">Sélectionnez le type</option>
-                <option value="CNI">CNI</option>
-                <option value="PASSPORT">Passport</option>
+                {/* <option value="">Sélectionnez le type</option> */}
+                <option selected value="CNI">CNI</option>
+                {/* <option value="PASSPORT">Passport</option>
                 <option value="EXTRAIT DE NAISSANCE">Extrait de Naissance</option>
-                <option value="AUTRE">Autre</option>
+                <option value="AUTRE">Autre</option> */}
               </select>
               {errors.typeDocument && <p className="mt-2 text-sm text-red-600">{errors.typeDocument.message}</p>}
             </div>
@@ -437,17 +437,17 @@ export default function NouvelleDemandePage() {
 
             <div>
               <label htmlFor="numeroElecteur" className="block text-sm font-medium text-gray-700">
-                Numéro de carte nationale
+                Numéro d'Identification National
               </label>
               <input
                 id="numeroElecteur"
                 type="text" // Changer en type text pour permettre la validation personnalisée
-                maxLength={14} // Limiter à 14 caractères
-                pattern="\d*" // N'autoriser que les chiffres sur mobile
+                maxLength={13} // Limiter à 13 caractères
+                pattern="/^\d{13}$/" // N'autoriser que les chiffres sur mobile
                 inputMode="numeric" // Afficher le clavier numérique sur mobile
                 {...register('numeroElecteur')}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="14 chiffres"
+                placeholder="13 chiffres"
               />
               {errors.numeroElecteur && (
                 <p className="mt-2 text-sm text-red-600">
@@ -455,7 +455,7 @@ export default function NouvelleDemandePage() {
                 </p>
               )}
               <p className="mt-1 text-xs text-gray-500">
-                Le numéro doit contenir exactement 14 chiffres
+                Le numéro doit contenir exactement 13 chiffres
               </p>
             </div>
 
