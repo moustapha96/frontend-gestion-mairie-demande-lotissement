@@ -15,6 +15,16 @@ export async function getDocumentDemandeur(id) {
     }
 }
 
+export async function getFileDocument(id) {
+    try {
+        const response = await HttpClient.get(`${urlApi}document/${id}/file`);
+        console.log(response)
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la recuperation des demandes:', error);
+        throw error;
+    }
+}
 
 export async function getDocuments() {
     try {

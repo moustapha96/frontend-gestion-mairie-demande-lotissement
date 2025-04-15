@@ -84,7 +84,6 @@ const DemandeurProfile = () => {
             ...prev,
             [name]: value,
         }))
-        // saveUser({ ...user, [name]: value })
     }
 
     const handleUpdateUser = async (e) => {
