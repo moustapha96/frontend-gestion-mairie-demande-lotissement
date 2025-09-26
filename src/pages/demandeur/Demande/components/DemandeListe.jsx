@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Table, Input, Card, Tag, Space } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { Table, Input, Card, Tag, Space, Button } from "antd";
+import { EditOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { getDemandesDemandeur } from "@/services/demandeService";
 import { useAuthContext } from "@/context";
 
@@ -99,23 +99,27 @@ const DemandeListe = () => {
       title: "Actions",
       key: "actions",
       render: (_, record) => <>
-        <Space>
+        <div className="flex flex-wrap gap-2">
           <Link
             to={`/demandeur/demandes/${record.id}/details`}
-            className="text-primary hover:text-primary-700 transition-colors duration-200"
           >
-            Détails
+            <Button className="bg-primary text-white transition-colors duration-200" icon={<EyeOutlined />} >
+              Détails
+            </Button>
+
           </Link>
 
           {record.statut === "REJETE" && (
             <Link
               to={`/demandeur/demandes/${record.id}/modification`}
-              className="text-primary hover:text-primary-700 transition-colors duration-200"
             >
-              Modifier
+              <Button className="bg-primary text-white transition-colors duration-200" icon={<EditOutlined />} >
+                Modifier
+              </Button>
+
             </Link>
           )}
-        </Space>
+        </div>
       </>,
     },
   ];
@@ -132,6 +136,7 @@ const DemandeListe = () => {
       </div>
 
       <Table
+        scroll={{ x: 'max-content' }}
         columns={columns}
         dataSource={demandes}
         rowKey="id"

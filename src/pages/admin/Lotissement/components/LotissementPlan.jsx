@@ -83,7 +83,7 @@ const AdminLotissementPlan = () => {
       key: "actions",
       render: (_, record) => (
         <Button
-         className="text-primary"
+          className="text-primary"
           icon={<FileTextOutlined />}
           onClick={() => handleViewDocument(record)}
         >
@@ -133,6 +133,7 @@ const AdminLotissementPlan = () => {
                   dataSource={plans.filter((plan) =>
                     plan.description.toLowerCase().includes(searchText.toLowerCase())
                   )}
+                  scroll={{ x: 'max-content' }}
                   rowKey="id"
                   loading={loading}
                   pagination={{

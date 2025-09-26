@@ -55,7 +55,6 @@ const createBoundingBox = (parcelles) => {
 };
 
 const AdminMap = () => {
-    const { user } = useAuthContext()
     const [lotissements, setLotissements] = useState([])
     const [loading, setLoading] = useState(true)
     const [mapLoaded, setMapLoaded] = useState(false)
@@ -130,7 +129,14 @@ const AdminMap = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <Spin size="large" tip="Chargement de la carte..." />
+                <Spin
+                    spinning={true}
+                    size="large"
+                    tip="Chargement de la carte..."
+                    fullscreen
+                // nested
+                />
+
             </div>
         )
     }

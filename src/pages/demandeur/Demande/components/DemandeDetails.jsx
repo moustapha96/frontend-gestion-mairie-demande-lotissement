@@ -105,7 +105,7 @@ export default function DemandeurDemandeDetails() {
                                         (rectoFile || versoFile) && (
                                             <div className="mt-8">
                                                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
-                                                <div className="grid gap-6 md:grid-cols-2">
+                                                <div className="grid gap-6 md:grid-cols-1">
                                                     {rectoFile && <FilePreview file={rectoFile} title="Recto du document" />}
                                                     {versoFile && <FilePreview file={versoFile} title="Verso du document" />}
                                                 </div>
@@ -188,7 +188,7 @@ function DemandeInfoCarteCard({ localite }) {
     return (
         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
             <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Visualtion sur la carte</h3>
+                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Visualisation sur la carte</h3>
                 <div className="space-y-4">
 
                     <InfoItem

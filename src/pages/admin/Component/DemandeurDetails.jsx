@@ -5,6 +5,7 @@ import { getDemandeur } from "../../../services/demandeurService";
 import { updateDemande, getDemandeDetails } from "../../../services/demandeService";
 import { User, Phone, Mail, MapPin, Briefcase, Calendar, MapPinned, CheckCircle, XCircle, Clock, ChevronRight, Edit } from "lucide-react";
 import { toast } from "react-toastify";
+import { Button } from "antd";
 
 const DemandeurDetails = () => {
     const { id } = useParams();
@@ -130,10 +131,17 @@ const DemandeurDetails = () => {
                                                                     <Edit className="w-4 h-4 mr-1" />
                                                                     Modifier
                                                                 </button>
-                                                                <Link to={`/admin/demandes/${demande.id}/details`} className="text-blue-600 hover:text-blue-900 inline-flex items-center">
+
+                                                                <Link to={`/admin/demandes/${demande.id}/details`}>
+                                                                    <Button className="text-primary" icon={<ChevronRight />}>
+                                                                        Détails
+                                                                    </Button>
+                                                                </Link>
+
+                                                                {/* <Link to={`/admin/demandes/${demande.id}/details`} className="text-blue-600 hover:text-blue-900 inline-flex items-center">
                                                                     Détails
                                                                     <ChevronRight className="w-4 h-4 ml-1" />
-                                                                </Link>
+                                                                </Link> */}
                                                             </td>
                                                         </tr>
                                                     ))}

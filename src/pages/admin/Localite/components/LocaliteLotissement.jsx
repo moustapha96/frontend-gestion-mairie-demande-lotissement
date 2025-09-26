@@ -204,9 +204,9 @@ const AdminLocaliteLotissement = () => {
                             <div className="mb-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <Space direction="vertical" size={4}>
-                                        <Title level={4} className="!mb-0">Lotissements de la Localité</Title>
+                                        <Title level={4} className="!mb-0">Lotissements du Quartié</Title>
                                         {localite && (
-                                            <Link to={`/admin/localites/${id}/details`} className="text-primary text-sm">
+                                            <Link to={`/admin/quartiers/${id}/details`} className="text-primary text-sm">
                                                 Localité: {localite.nom}
                                             </Link>
                                         )}
@@ -216,7 +216,7 @@ const AdminLocaliteLotissement = () => {
                                             className="text-primary"
                                             icon={<PlusOutlined />}
                                         >
-                                            Ajouter un lotissement
+                                            Ajouter un Lotissement
                                         </Button>
                                     </Link>
                                 </div>

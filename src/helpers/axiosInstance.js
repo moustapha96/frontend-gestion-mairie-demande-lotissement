@@ -4,7 +4,7 @@ import { deleteCookie, getCookie } from "cookies-next";
 // Créer une instance d'Axios
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:8000/api',
-  // baseURL: 'https://orbitcity.sn/api/',
+  // baseURL: "https://backendgl.kaolackcommune.sn/api",
   headers: {
       'Content-Type': 'application/json', 
       'Accept': 'application/json'
@@ -44,6 +44,19 @@ axiosInstance.interceptors.request.use(
             Authorization : 'No Authorization'
         };
     }
+
+    // if (['post', 'put', 'patch'].includes(config.method)) {
+    //   config.headers['Content-Type'] = 'application/json';
+    // }
+
+    // if (['post', 'put', 'patch'].includes(config.method)) {
+    //   if (!config.headers['Content-Type']) {
+    //     config.headers['Content-Type'] = 'application/json';
+    //   }
+    // }
+
+
+    // config.headers['Accept'] = 'application/json';
     
     return config;
   },

@@ -21,7 +21,7 @@ const AdminLocaliteListe = () => {
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingLocalite, setEditingLocalite] = useState(null);
-   
+
     const fetchLocalite = async () => {
         setLoading(true);
         try {
@@ -62,11 +62,11 @@ const AdminLocaliteListe = () => {
             key: "lotissements",
             render: (_, record) => (
                 record.lotissements.length > 0 ? (
-                    <Link to={`/admin/localites/${record.id}/lotissements`} className="text-primary" >
+                    <Link to={`/admin/quartiers/${record.id}/lotissements`} className="text-primary" >
                         {record.lotissements.length} Lotissement(s)
                     </Link>
                 ) : (
-                    <Link to={`/admin/localites/${record.id}/lotissements/nouveau`}>
+                        <Link to={`/admin/quartiers/${record.id}/lotissements/nouveau`}>
                         <Button className="text-primary" icon={<PlusOutlined />}>
                             Ajouter
                         </Button>
@@ -80,7 +80,7 @@ const AdminLocaliteListe = () => {
             render: (_, record) => (
                 <Space>
 
-                    <Link to={`/admin/localites/${record.id}/details`}>
+                    <Link to={`/admin/quartiers/${record.id}/details`}>
                         <Button
                             className="text-primary"
                             icon={<EyeOutlined />}
@@ -95,7 +95,7 @@ const AdminLocaliteListe = () => {
                     >
                         Modifier
                     </Button>
-{/* 
+                    {/*
                     <Popconfirm
                         title="Êtes-vous sûr de vouloir supprimer ce localité ?"
                         onConfirm={() => handleDelete(record.id)}
@@ -105,7 +105,7 @@ const AdminLocaliteListe = () => {
                         <Button type="link" danger icon={<DeleteOutlined />} title="Supprimer" />
                     </Popconfirm> */}
 
-                    {/* <Link to={`/admin/localites/${record.id}/modification`}>
+                    {/* <Link to={`/admin/quartiers/${record.id}/modification`}>
                         <Button
                             className="text-primary"
                             icon={<EditOutlined />}
@@ -163,7 +163,7 @@ const AdminLocaliteListe = () => {
 
     return (
         <>
-            <AdminBreadcrumb title="Liste des Lots" />
+            <AdminBreadcrumb title="Liste des Quartiers" />
             <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
@@ -173,15 +173,15 @@ const AdminLocaliteListe = () => {
 
                         <Card className="shadow-lg rounded-lg">
                             <div className="flex justify-between items-center mb-4">
-                                <Title level={4}>Liste des localités</Title>
-                               
+                                <Title level={4}>Liste des Quartiers</Title>
+
 
                                 <Button
                                     className="text-primary"
                                     icon={<PlusOutlined />}
                                     onClick={() => showModal()}
                                 >
-                                    Ajouter une localité
+                                    Ajouter un quartier
                                 </Button>
                             </div>
 
@@ -207,10 +207,11 @@ const AdminLocaliteListe = () => {
                                     showSizeChanger: true,
                                     showTotal: (total) => `Total ${total} localités`,
                                 }}
+                                scroll={{ x: 'max-content' }}
                             />
 
                             <Modal
-                                title={editingLocalite ? "Modifier la localité" : "Ajouter une localité"}
+                                title={editingLocalite ? "Modifier la localité" : "Ajouter un quartier"}
                                 open={isModalVisible}
                                 onCancel={handleCancel}
                                 footer={null}
@@ -220,7 +221,7 @@ const AdminLocaliteListe = () => {
                                     form={form}
                                     layout="vertical"
                                     onFinish={handleSubmit}
-                                   
+
                                 >
                                     <Form.Item
                                         name="nom"

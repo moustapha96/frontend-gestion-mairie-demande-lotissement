@@ -8,7 +8,8 @@ import ProfileDropdown from "./ProfileDropdown";
 import { useAuthContext } from "@/context";
 
 const TopBar = () => {
-  const { logout } = useAuthContext();
+  const { user ,logout } = useAuthContext();
+  console.log(user)
   return (
     <header className="sticky top-0 z-50">
       <div className="z-50 flex w-full flex-wrap border-b border-default-200 bg-zinc-950 py-2.5 text-sm sm:flex-nowrap sm:justify-start sm:py-4">

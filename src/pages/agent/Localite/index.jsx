@@ -47,7 +47,7 @@
 //     if (error) return <div className="flex justify-center items-center h-screen text-red-500">Erreur: {error}</div>
 
 //     return <>
-//         <AgentBreadcrumb title="Liste des localités" />
+//         <AgentBreadcrumb title="Liste des Quartiers" />
 //         <section>
 //             <div className="container">
 //                 <div className="my-6 space-y-6">
@@ -55,7 +55,7 @@
 //                         <div className="bg-white dark:bg-default-50 shadow-lg rounded-lg overflow-hidden">
 
 //                             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-//                                 <h4 className="text-xl font-semibold text-gray-800 dark:text-white uppercase">Liste des localités</h4>
+//                                 <h4 className="text-xl font-semibold text-gray-800 dark:text-white uppercase">Liste des Quartiers</h4>
 //                             </div>
 
 
@@ -64,7 +64,7 @@
 //                                     to="/agent/localites/nouvelle"
 //                                     className="text-primary flex items-center gap-2"
 //                                 >
-//                                     <LuPlusSquare className="mr-2" />  Ajouter une localité
+//                                     <LuPlusSquare className="mr-2" />  Ajouter un quartier
 //                                 </Link>
 //                             </div>
 
@@ -265,7 +265,7 @@ const AgentLocaliteListe = () => {
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingLocalite, setEditingLocalite] = useState(null);
-   
+
     const fetchLocalite = async () => {
         setLoading(true);
         try {
@@ -391,7 +391,7 @@ const AgentLocaliteListe = () => {
 
     return (
         <>
-            <AgentBreadcrumb title="Liste des Localités" />
+            <AgentBreadcrumb title="Liste des Quartiers" />
             <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
@@ -401,15 +401,15 @@ const AgentLocaliteListe = () => {
 
                         <Card className="shadow-lg rounded-lg">
                             <div className="flex justify-between items-center mb-4">
-                                <Title level={4}>Liste des localités</Title>
-                               
+                                <Title level={4}>Liste des Quartiers</Title>
+
 
                                 <Button
                                     className="text-primary"
                                     icon={<PlusOutlined />}
                                     onClick={() => showModal()}
                                 >
-                                    Ajouter une localité
+                                    Ajouter un quartier
                                 </Button>
                             </div>
 
@@ -422,6 +422,7 @@ const AgentLocaliteListe = () => {
                             />
 
                             <Table
+                                scroll={{ x: 'max-content' }}
                                 columns={columns}
                                 dataSource={localites.filter(
                                     (item) =>
@@ -438,7 +439,7 @@ const AgentLocaliteListe = () => {
                             />
 
                             <Modal
-                                title={editingLocalite ? "Modifier la localité" : "Ajouter une localité"}
+                                title={editingLocalite ? "Modifier la localité" : "Ajouter un quartier"}
                                 open={isModalVisible}
                                 onCancel={handleCancel}
                                 footer={null}
@@ -448,7 +449,7 @@ const AgentLocaliteListe = () => {
                                     form={form}
                                     layout="vertical"
                                     onFinish={handleSubmit}
-                                   
+
                                 >
                                     <Form.Item
                                         name="nom"

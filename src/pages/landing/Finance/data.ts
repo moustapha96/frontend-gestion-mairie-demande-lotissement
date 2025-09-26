@@ -8,15 +8,15 @@ import finance5 from '@/assets/images/landing/finance/img-5.jpg'
 
 const experts: ExpertType[] = [
   {
-    name: "Eric Houston",
-    position: "Founder & CEO of Luminous",
-    description: "Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Sed fringilla mauris sit amet nibh.Sed consequat.",
+    name: "Nom Expert 1",
+    position: "Poste de l'expert 1",
+    description: "Description de l'expert 1. Par exemple, ses réalisations ou son expertise en gestion foncière.",
     image: avatar1,
   },
   {
-    name: "Robby Winston",
-    position: "CEO of Product",
-    description: "Vault's expert support enabled us to secure the necessary capital for our expansion. Plus, it's quicker and more cost-effective than hiring a consultant. Sed fringilla mauris sit amet nibh.Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,",
+    name: "Nom Expert 2",
+    position: "Poste de l'expert 2",
+    description: "Description de l'expert 2. Par exemple, ses réalisations ou son expertise en gestion foncière.",
     image: avatar3,
   },
 ]

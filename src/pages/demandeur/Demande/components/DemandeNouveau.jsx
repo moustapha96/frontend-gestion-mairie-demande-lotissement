@@ -1,16 +1,5 @@
 "use client"
 
-// import { LuSearch, LuChevronLeft, LuChevronRight, LuFileText, LuUpload } from "react-icons/lu"
-// import { Link } from "react-router-dom"
-// import { useState, useEffect } from "react"
-// import { cn } from "@/utils"
-// import { useAuthContext } from "@/context"
-// import { getAllLocalites } from "@/services/locliteService"
-// import { useForm } from 'react-hook-form'
-// import { yupResolver } from '@hookform/resolvers/yup'
-// import * as yup from 'yup';
-// "use client";
-
 import { LuSearch, LuChevronLeft, LuChevronRight, LuFileText, LuUpload } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -62,7 +51,8 @@ const DemandeNouveau = () => {
             localiteId: null,
             typeDemande: "",
             recto: null,
-            verso: null
+            verso: null,
+            typeDocument: "CNI"
         },
     });
 
@@ -220,37 +210,6 @@ const DemandeNouveau = () => {
                                                     {errors.usagePrevu && <p className="mt-1 text-sm text-red-600">{errors.usagePrevu.message}</p>}
                                                 </div>
 
-                                                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-gray-700">Type de document</label>
-                                                        <select
-                                                            {...register("typeDocument")}
-                                                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900  focus:outline-none focus:ring-1 focus:bg-primary-light"
-                                                        >
-                                                            <option value="">Sélectionnez le type</option>
-                                                            <option value="CNI">CNI</option>
-                                                            <option value="PASSPORT">Passport</option>
-                                                            <option value="EXTRAIT DE NAISSANCE">Extrait de Naissance</option>
-                                                            <option value="AUTRE">Autre</option>
-                                                        </select>
-                                                        {errors.typeDocument && <p className="mt-1 text-sm text-red-600">{errors.typeDocument.message}</p>}
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-gray-700">Document justificatif</label>
-                                                        <div className="mt-1 flex items-center">
-                                                            <input
-                                                                type="file"
-                                                                {...register("document")}
-                                                                accept=".pdf"
-                                                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-primary hover:file:bg-blue-100"
-                                                            />
-                                                            <LuUpload className="h-5 w-5 text-gray-400 ml-2" />
-                                                        </div>
-                                                        <p className="mt-1 text-sm text-gray-500">Formats acceptés: PDF</p>
-                                                        {errors.document && <p className="mt-1 text-sm text-red-600">{errors.document.message}</p>}
-                                                    </div>
-                                                </div> */}
 
                                                 <div className="space-y-4">
                                                     <div>
@@ -259,11 +218,11 @@ const DemandeNouveau = () => {
                                                             {...register("typeDocument")}
                                                             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-1 focus:bg-primary-light"
                                                         >
-                                                            <option value="">Sélectionnez le type</option>
+                                                            <option >Sélectionnez le type</option>
                                                             <option value="CNI" selected>CNI</option>
-                                                            {/* <option value="PASSPORT">Passport</option>
+                                                            <option value="PASSPORT">Passport</option>
                                                             <option value="EXTRAIT DE NAISSANCE">Extrait de Naissance</option>
-                                                            <option value="AUTRE">Autre</option> */}
+                                                            {/* <option value="AUTRE">Autre</option> */}
                                                         </select>
                                                         {errors.typeDocument && <p className="mt-1 text-sm text-red-600">{errors.typeDocument.message}</p>}
                                                     </div>

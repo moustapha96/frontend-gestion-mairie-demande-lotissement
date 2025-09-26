@@ -260,11 +260,10 @@ function DemandeRefusInfoCard({ demande, onMotifUpdate }) {
                                 Annuler
                             </Button>
                             <Button
-                                type="primary"
+                                className="ant-btn-primary"
                                 icon={<SaveOutlined />}
                                 onClick={handleSave}
                                 loading={saving}
-                                className="bg-primary hover:bg-primary-dark text-white"
                                 disabled={!canEdit}
                             >
                                 Enregistrer

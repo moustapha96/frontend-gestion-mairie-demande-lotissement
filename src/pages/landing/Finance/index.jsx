@@ -1,38 +1,44 @@
 import { PageMetaData, TopNavBar } from "@/components"
 import Hero from "./components/Hero"
 import MarqueeGroup from "./components/MarqueeGroup"
-import Experts from "./components/Experts"
 import Feature1 from "./components/Feature1"
-import Feature2 from "./components/Feature2"
-import Feature3 from "./components/Feature3"
 import ValuableAssets from "./components/ValuableAssets"
-import OnBoarding from "./components/OnBoarding"
-import SearchPlan from "./components/SearchPlan"
+import ArticlesPage from "./components/ArticlePage"
+import Contact from "./components/Contact"
+import { menuItems } from "@/assets/data"
 
 const Finance = () => {
   return (
     <>
       <PageMetaData title="Gestion de la Mairie" />
 
-      <TopNavBar menuItems={["accueil", "services", "ressources", "nouvelle-demande"]} position="fixed" />
+      {/* <TopNavBar menuItems={["accueil", "services", "ressources", "actualités", "nouvelle-demande", "contact"]} position="fixed" /> */}
+
+
+      <TopNavBar
+        menuItems={menuItems}
+        hasDownloadButton
+        position="fixed"
+      />
 
       <Hero />
 
-      {/* <MarqueeGroup /> */}
-
-      {/* <Experts /> */}
+      <MarqueeGroup />
 
       <Feature1 />
 
-      <Feature2 />
-
-      <Feature3 />
-
       <ValuableAssets />
 
-      {/* <OnBoarding /> */}
+      <ArticlesPage />
 
-      <SearchPlan />
+
+      {/* <OnBoarding /> */}
+      {/* <Experts /> */}
+
+
+      {/* <SearchPlan /> */}
+
+      <Contact />
     </>
 
   )

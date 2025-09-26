@@ -103,7 +103,7 @@ const AdminLocaliteLotissement = () => {
                                     <h4 className="text-xl font-semibold text-gray-800 uppercase">Lotissements Localité</h4>
                                     {localite && <>
                                         <h4 className="text-xl font-semibold text-gray-800 uppercase">
-                                            <Link to={`/admin/localites/${id}/details`} >Localité :
+                                            <Link to={`/admin/quartiers/${id}/details`} >Localité :
                                                 <span className="ml-2 text-primary">
                                                     {localite.nom}
                                                 </span>

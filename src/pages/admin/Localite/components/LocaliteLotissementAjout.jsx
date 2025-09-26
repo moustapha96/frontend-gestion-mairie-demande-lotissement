@@ -58,7 +58,7 @@ const AdminLocaliteLotissementAjouter = () => {
     //         const res = await createLotissement(body);
     //         console.log(res)
     //         toast.success("Lotissement ajouté avec succès!");
-    //         navigate(`/admin/localites/${id}/details`)
+    //         navigate(`/admin/quartiers/${id}/details`)
     //     } catch (error) {
     //         console.error(error);
     //         toast.error("Erreur lors de l'ajout du lotissement");
@@ -86,7 +86,7 @@ const AdminLocaliteLotissementAjouter = () => {
             console.log(res)
             toast.success("Lotissement ajouté avec succès!");
             form.resetFields();
-            navigate(`/admin/localites/${id}/details`)
+            navigate(`/admin/quartiers/${id}/details`)
         } catch (error) {
             console.error(error);
             toast.error("Erreur lors de l'ajout du lotissement");
@@ -115,7 +115,7 @@ const AdminLocaliteLotissementAjouter = () => {
 
     const handleCancel = () => {
         form.resetFields();
-        navigate(`/admin/localites/${id}/details`);
+        navigate(`/admin/quartiers/${id}/details`);
     };
 
     return (
@@ -131,7 +131,7 @@ const AdminLocaliteLotissementAjouter = () => {
                                 Localite :
                             </span>
                             <span className=" text-primary text-center ml-3 ">
-                                <Link to={`/admin/localites/${localite.id}/details`} >
+                                <Link to={`/admin/quartiers/${localite.id}/details`} >
                                     {localite.nom}
                                 </Link>
                             </span>
@@ -202,11 +202,11 @@ const AdminLocaliteLotissementAjouter = () => {
                                 <Space>
                                     <Button onClick={handleCancel}>Annuler</Button>
                                     <Button
-                                        type="primary"
+
                                         htmlType="submit"
                                         loading={loading}
                                         disabled={loading}
-                                        className={cn("bg-primary hover:bg-primary-light text-white", loading && "opacity-50")}
+                                        className={cn("ant-btn-primary ", loading && "opacity-50")}
                                         icon={
                                             loading ? (
                                                 <Loader2 className="animate-spin mr-2" size={16} />

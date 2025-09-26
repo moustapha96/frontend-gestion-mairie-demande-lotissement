@@ -8,6 +8,7 @@ import { useAuthContext } from "@/context";
 import { createLot } from "@/services/lotsService";
 import { createPlanLotissement } from "@/services/planLotissement";
 import { toast } from "sonner";
+import { set } from "react-hook-form";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -20,7 +21,7 @@ const AdminLotissementListe = () => {
     const [searchText, setSearchText] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
     const [planModalVisible, setPlanModalVisible] = useState(false);
-   
+
     const [selectedLotissement, setSelectedLotissement] = useState(null);
     const [form] = Form.useForm();
     const [planForm] = Form.useForm();
@@ -42,20 +43,46 @@ const AdminLotissementListe = () => {
         }
     };
 
-    const handleUpdateStatut = async (lotissementId, nouveauStatut) => {
-        try {
-            await updateLotissementStatut(lotissementId, nouveauStatut);
-            const updatedLotissements = lotissements.map(lotissement => {
-                if (lotissement.id === lotissementId) {
-                    return { ...lotissement, statut: nouveauStatut };
+    // const handleUpdateStatut = async (lotissementId, nouveauStatut) => {
+    //     try {
+    //         await updateLotissementStatut(lotissementId, nouveauStatut);
+    //         const updatedLotissements = lotissements.map(lotissement => {
+    //             if (lotissement.id === lotissementId) {
+    //                 return { ...lotissement, statut: nouveauStatut };
+    //             }
+    //             return lotissement;
+    //         });
+    //         setLotissements(updatedLotissements);
+    //         message.success("Statut mis à jour avec succès");
+    //     } catch (error) {
+    //         message.error("Erreur lors de la mise à jour du statut");
+    //     }
+    // };
+    const handleUpdateStatut = (lotissementId, nouveauStatut) => {
+        Modal.confirm({
+            title: "Confirmation de modification",
+            content: "Êtes-vous sûr de vouloir changer le statut de ce lotissement ?",
+            okText: "Oui, confirmer",
+            cancelText: "Annuler",
+            okButtonProps: {
+                style: { backgroundColor: "#28a745", borderColor: "#28a745", color: "white" }
+            },
+            onOk: async () => {
+                try {
+                    await updateLotissementStatut(lotissementId, nouveauStatut);
+                    const updatedLotissements = lotissements.map(lotissement => {
+                        if (lotissement.id === lotissementId) {
+                            return { ...lotissement, statut: nouveauStatut };
+                        }
+                        return lotissement;
+                    });
+                    setLotissements(updatedLotissements);
+                    message.success("Statut mis à jour avec succès");
+                } catch (error) {
+                    message.error("Erreur lors de la mise à jour du statut");
                 }
-                return lotissement;
-            });
-            setLotissements(updatedLotissements);
-            message.success("Statut mis à jour avec succès");
-        } catch (error) {
-            message.error("Erreur lors de la mise à jour du statut");
-        }
+            }
+        });
     };
 
     const handleOpenModal = (lotissement) => {
@@ -84,9 +111,18 @@ const AdminLotissementListe = () => {
 
 
     const handleLotSubmit = async (values) => {
+        setLoading(true);
+        const datas = {
+                ...values,
+                prix: values.prix == '' ? null : values.prix,
+                superficie: values.superficie == '' ? null : values.superficie,
+                lotissementId: selectedLotissement.id
+            }
+            console.log(datas)
         try {
             await createLot({
                 ...values,
+                prix: values.prix == '' ? null : values.prix,
                 lotissementId: selectedLotissement.id
             });
             message.success("Lot ajouté avec succès");
@@ -95,6 +131,8 @@ const AdminLotissementListe = () => {
             form.resetFields();
         } catch (error) {
             message.error("Erreur lors de l'ajout du lot");
+        }finally {
+            setLoading(false);
         }
     };
 
@@ -127,7 +165,7 @@ const AdminLotissementListe = () => {
             title: "Localité",
             key: "localite",
             render: (_, record) => (
-                <Link to={`/admin/localites/${record.localite.id}/details`}>
+                <Link to={`/admin/quartiers/${record.localite.id}/details`}>
                     {record.localite.nom}
                 </Link>
             ),
@@ -163,17 +201,17 @@ const AdminLotissementListe = () => {
             key: "lots",
             render: (_, record) => (
                 record.lots.length > 0 ? <>
-                    <Link to={`/admin/lotissements/${record.id}/lots`}>
+                    <Link to={`/admin/lotissements/${record.id}/lots`} className="text-primary  " >
                         {record.lots.length} Lots
                     </Link>
                 </> : <>
-                <Button
-                    className="text-primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => handleOpenModal(record)}
-                >
-                    Ajouter Lot
-                </Button>
+                        <Button
+                            className="text-primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => handleOpenModal(record)}
+                        >
+                            Ajouter Lot
+                        </Button>
                 </>
             ),
         },
@@ -182,12 +220,12 @@ const AdminLotissementListe = () => {
             key: "plans",
             render: (_, record) => (
                 record.planLotissements.length > 0 ? (
-                    <Link to={`/admin/lotissements/${record.id}/plans`}>
+                    <Link to={`/admin/lotissements/${record.id}/plans`} className="text-primary" >
                         {record.planLotissements.length} Plans
                     </Link>
                 ) : (
                     <Button
-                       className="text-primary"
+                            className="text-primary"
                         icon={<UploadOutlined />}
                         onClick={() => handleOpenPlanModal(record)}
                     >
@@ -202,12 +240,12 @@ const AdminLotissementListe = () => {
             render: (_, record) => (
                 <Space>
                     <Link to={`/admin/lotissements/${record.id}/details`}>
-                        <Button  className="text-primary" icon={<EyeOutlined />}>
+                        <Button className="text-primary" icon={<EyeOutlined />}>
                             Détails
                         </Button>
                     </Link>
                     <Link to={`/admin/lotissements/${record.id}/modification`}>
-                        <Button  className="text-primary" icon={<EditOutlined />}>
+                        <Button className="text-primary" icon={<EditOutlined />}>
                             Modifier
                         </Button>
                     </Link>
@@ -250,6 +288,7 @@ const AdminLotissementListe = () => {
                                 />
 
                                 <Table
+                                    scroll={{ x: 'max-content' }}
                                     columns={columns}
                                     dataSource={lotissements.filter(
                                         (item) =>
@@ -262,13 +301,13 @@ const AdminLotissementListe = () => {
                                         defaultPageSize: 5,
                                         showSizeChanger: true,
                                         showTotal: (total) => `Total ${total} lotissements`,
-                                      }}
+                                    }}
                                 />
 
                                 <Modal
                                     title={
                                         <div>
-                                            <Text strong>Ajouter un Lot</Text>
+                                            <Text strong>Ajouter un iLot</Text>
                                             <Text type="secondary" style={{ display: 'block' }}>
                                                 Lotissement: {selectedLotissement?.nom}
                                             </Text>
@@ -287,7 +326,7 @@ const AdminLotissementListe = () => {
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                             <Form.Item
                                                 name="numeroLot"
-                                                label="Numéro du Lot"
+                                                label="Numéro du iLot"
                                                 rules={[{ required: true, message: 'Champ requis' }]}
                                             >
                                                 <Input />
@@ -296,7 +335,6 @@ const AdminLotissementListe = () => {
                                             <Form.Item
                                                 name="superficie"
                                                 label="Superficie (m²)"
-                                                rules={[{ required: true, message: 'Champ requis' }]}
                                             >
                                                 <InputNumber style={{ width: '100%' }} min={0} />
                                             </Form.Item>
@@ -304,7 +342,6 @@ const AdminLotissementListe = () => {
                                             <Form.Item
                                                 name="prix"
                                                 label="Prix (FCFA)"
-                                                rules={[{ required: true, message: 'Champ requis' }]}
                                             >
                                                 <InputNumber style={{ width: '100%' }} min={0} />
                                             </Form.Item>
@@ -326,14 +363,14 @@ const AdminLotissementListe = () => {
                                         <Form.Item
                                             name="usage"
                                             label="Usage prévu"
-                                            rules={[{ required: true, message: 'Champ requis' }]}
                                         >
                                             <TextArea rows={3} />
                                         </Form.Item>
 
                                         <Form.Item>
                                             <Space>
-                                                <Button className="text-primary" htmlType="submit">
+                                                <Button className="text-primary" htmlType="submit"
+                                                loading={loading} >
                                                     Enregistrer
                                                 </Button>
                                                 <Button onClick={() => setModalVisible(false)}>
@@ -356,7 +393,7 @@ const AdminLotissementListe = () => {
                                     open={planModalVisible}
                                     onCancel={() => setPlanModalVisible(false)}
                                     footer={null}
-                                   
+
                                 >
                                     <Form
                                         form={planForm}

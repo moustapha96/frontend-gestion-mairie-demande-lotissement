@@ -41,6 +41,7 @@ import ResponsiveAuthLayout from '../../../layouts/ResponsiveAuthLayout'
 import { AppContext } from '../../../AppContext'
 import { toast } from "sonner";
 import { LoaderCircleIcon } from 'lucide-react'
+import { menuItems } from '@/assets/data'
 
 const institutSchema = yup.object({
     name: yup.string().required("Veuillez entrer le nom de l'institut"),
@@ -104,7 +105,7 @@ export default function VerifierDocumentPage() {
         <>
             <PageMetaData title="Inscription en tant qu'institut" />
 
-            <TopNavBar
+            {/* <TopNavBar
                 menuItems={[
                     "Accueil",
                     "A propos",
@@ -116,6 +117,12 @@ export default function VerifierDocumentPage() {
                 ]}
                 position="fixed"
                 hasDownloadButton
+            /> */}
+
+            <TopNavBar
+                menuItems={menuItems}
+                hasDownloadButton
+                position="fixed"
             />
 
             <ResponsiveAuthLayout title="Créer un compte en tant qu'Institut">

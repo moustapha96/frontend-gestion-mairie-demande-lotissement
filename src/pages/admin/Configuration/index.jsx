@@ -1,8 +1,9 @@
 
+
 "use client"
 
 import { useEffect, useState } from "react"
-import { Layout, Card, Tabs, Form, Input, Button, Table, Tag, Select, DatePicker, Typography, Spin, Alert, Popover, Space } from "antd"
+import { Layout, Card, Tabs, Form, Input, Button, Table, Tag, Select, DatePicker, Typography, Spin, Alert, Popover, Space, Modal } from "antd"
 import {
   SaveOutlined,
   BuildOutlined,
@@ -17,6 +18,9 @@ import {
   BankOutlined,
   InfoCircleOutlined,
   SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons"
 import { AdminBreadcrumb } from "@/components"
 import { toast } from "sonner"
@@ -25,14 +29,28 @@ import { getAllAccounts, updateActivatedStatus, createAdminUser, updateUserRole 
 import { useAuthContext } from "@/context"
 import { getDetaitHabitant } from "../../../services/userService"
 
+import { getLevels, createLevel, updateLevel, deleteLevel, getHistoriques } from "@/services/validationService"
+
 const { Content } = Layout
 const { TabPane } = Tabs
-const { Title, Text } = Typography
+const { Title } = Typography
 const { TextArea } = Input
 const { Option } = Select
 
 const AdminConfiguration = () => {
   const { user } = useAuthContext()
+
+  // ACCÈS: niveaux + historique visibles pour ADMIN et SUPER_ADMIN
+  const canSeeValidation = Array.isArray(user?.roles) && (
+    user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN")
+  )
+
+  const [levels, setLevels] = useState([])
+  const [loadingLevels, setLoadingLevels] = useState(false)
+  const [levelModalOpen, setLevelModalOpen] = useState(false)
+  const [editingLevel, setEditingLevel] = useState(null)
+  const [levelForm] = Form.useForm()
+
   const [form] = Form.useForm()
   const [adminForm] = Form.useForm()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -46,29 +64,79 @@ const AdminConfiguration = () => {
     nomMaire: "",
   })
 
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState("")
   const [activeTab, setActiveTab] = useState("config")
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
-  const [newAdmin, setNewAdmin] = useState({
-    email: "",
-    nom: "",
-    prenom: "",
-    dateNaissance: "",
-    lieuNaissance: "",
-    numeroElecteur: "",
-    telephone: "",
-    adresse: "",
-    profession: "",
-  })
   const [loadingUser, setLoadingUser] = useState(null)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
 
-
   const [habitantData, setHabitantData] = useState({})
   const [loadingHabitant, setLoadingHabitant] = useState({})
+
+  // Redirige si l'utilisateur n'a pas accès aux onglets validation/historique
+  useEffect(() => {
+    if (!canSeeValidation && (activeTab === "levels" || activeTab === "history")) {
+      setActiveTab("config")
+    }
+  }, [canSeeValidation, activeTab])
+
+  const fetchLevels = async () => {
+    setLoadingLevels(true)
+    try {
+      const data = await getLevels()
+      // service retourne { success, items, ... } ou un tableau direct selon ton impl
+      const rows = Array.isArray(data) ? data : (data.items || [])
+      setLevels(rows)
+    } catch (e) {
+      toast.error("Erreur lors du chargement des niveaux")
+    } finally {
+      setLoadingLevels(false)
+    }
+  }
+
+  const openCreateLevel = () => {
+    setEditingLevel(null)
+    levelForm.resetFields()
+    setLevelModalOpen(true)
+  }
+  const openEditLevel = (rec) => {
+    setEditingLevel(rec)
+    levelForm.setFieldsValue({
+      nom: rec.nom,
+      roleRequis: rec.roleRequis,
+      ordre: rec.ordre,
+    })
+    setLevelModalOpen(true)
+  }
+
+  const submitLevel = async () => {
+    const values = await levelForm.validateFields()
+    try {
+      if (editingLevel) {
+        await updateLevel(editingLevel.id, values)
+        toast.success("Niveau mis à jour")
+      } else {
+        await createLevel(values)
+        toast.success("Niveau créé")
+      }
+      setLevelModalOpen(false)
+      fetchLevels()
+    } catch (e) {
+      toast.error("Échec enregistrement niveau")
+    }
+  }
+  const confirmDeleteLevel = async (id) => {
+    try {
+      await deleteLevel(id)
+      toast.success("Niveau supprimé")
+      fetchLevels()
+    } catch (e) {
+      toast.error("Suppression impossible (niveau déjà utilisé ?)")
+    }
+  }
 
   useEffect(() => {
     const fetchConfigurations = async () => {
@@ -83,7 +151,6 @@ const AdminConfiguration = () => {
           siteWeb: response.siteWeb,
           adresse: response.adresse,
         }
-
         setConfig(configObj)
         form.setFieldsValue(configObj)
       } catch (err) {
@@ -93,7 +160,6 @@ const AdminConfiguration = () => {
         setLoading(false)
       }
     }
-
     fetchConfigurations()
   }, [form])
 
@@ -101,18 +167,20 @@ const AdminConfiguration = () => {
     if (activeTab === "users") {
       fetchUsers()
     }
-  }, [activeTab])
+    if (activeTab === "levels" && canSeeValidation) {
+      fetchLevels()
+    }
+  }, [activeTab, canSeeValidation])
 
   const fetchUsers = async () => {
     setLoading(true)
     try {
       const data = await getAllAccounts()
-
       if (user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN")) {
         setUsers(data)
       } else {
         const filteredUsers = data.filter(
-          (user) => !user.roles.includes("ROLE_ADMIN") && !user.roles.includes("ROLE_SUPER_ADMIN"),
+          (u) => !u.roles.includes("ROLE_ADMIN") && !u.roles.includes("ROLE_SUPER_ADMIN"),
         )
         setUsers(filteredUsers)
       }
@@ -157,7 +225,6 @@ const AdminConfiguration = () => {
 
   const handleSubmit = async (values) => {
     setIsSubmitting(true)
-
     try {
       await Promise.all(Object.entries(values).map(([key, value]) => updateConfiguration(key, value)))
       toast.success("Configurations mises à jour avec succès")
@@ -172,12 +239,10 @@ const AdminConfiguration = () => {
   const handleAdminSubmit = async (values) => {
     setIsSubmitting(true)
     try {
-      // Format date to string if it's a dayjs object
       const formattedValues = {
         ...values,
         dateNaissance: values.dateNaissance ? values.dateNaissance.format("YYYY-MM-DD") : "",
       }
-
       await createAdminUser(formattedValues)
       toast.success("Administrateur créé avec succès")
       adminForm.resetFields()
@@ -188,23 +253,9 @@ const AdminConfiguration = () => {
     }
   }
 
-  const formatRoleDisplay = (role) => {
-    const roleMap = {
-      ROLE_DEMANDEUR: "Demandeur",
-      ROLE_AGENT: "Agent",
-      ROLE_ADMIN: "Administrateur",
-      ROLE_SUPER_ADMIN: "Super Administrateur",
-    }
-    return roleMap[role] || role
-  }
-
   const renderHabitantContent = (userId) => {
     const data = habitantData[userId]
-
-    if (!data) {
-      return <div>Chargement des informations...</div>
-    }
-
+    if (!data) return <div>Chargement des informations...</div>
     return (
       <div className="max-w-3xl">
         <div className="grid grid-cols-3 gap-2">
@@ -219,13 +270,10 @@ const AdminConfiguration = () => {
   }
 
   const fetchHabitantInfo = async (userId) => {
-    if (habitantData[userId]) return // Already fetched
-
+    if (habitantData[userId]) return
     setLoadingHabitant((prev) => ({ ...prev, [userId]: true }))
-
     try {
       const habitantInfo = await getDetaitHabitant(userId)
-      console.log("habitante", habitantInfo)
       setHabitantData((prev) => ({ ...prev, [userId]: habitantInfo }))
     } catch (error) {
       console.error("Erreur lors de la récupération des informations du habitant:", error)
@@ -233,7 +281,8 @@ const AdminConfiguration = () => {
       setLoadingHabitant((prev) => ({ ...prev, [userId]: false }))
     }
   }
-  // Table columns
+
+  // Colonnes tableau utilisateurs
   const columns = [
     {
       title: "Nom",
@@ -256,7 +305,6 @@ const AdminConfiguration = () => {
       title: "Habitant",
       dataIndex: "isHabitant",
       key: "isHabitant",
-      // render: (text, record) => record.isHabitant ? "Oui" : "Non",
       sorter: (a, b) => a.isHabitant - b.isHabitant,
       render: (text, record) => {
         if (!record.isHabitant) return "Non"
@@ -269,10 +317,8 @@ const AdminConfiguration = () => {
               trigger="click"
               placement="right"
               overlayStyle={{ maxWidth: "800px" }}
-              onVisibleChange={(visible) => {
-                if (visible) {
-                  fetchHabitantInfo(record.id)
-                }
+              onOpenChange={(visible) => {
+                if (visible) fetchHabitantInfo(record.id)
               }}
             >
               <Button
@@ -313,17 +359,13 @@ const AdminConfiguration = () => {
       dataIndex: "activated",
       key: "activated",
       render: (activated) => <Tag color={activated ? "success" : "error"}>{activated ? "Activé" : "Désactivé"}</Tag>,
-      sorter: (a, b) => {
-        if (a.activated === b.activated) return 0
-        return a.activated ? 1 : -1
-      },
+      sorter: (a, b) => (a.activated === b.activated ? 0 : a.activated ? 1 : -1),
       filters: [
         { text: "Activé", value: true },
         { text: "Désactivé", value: false },
       ],
       onFilter: (value, record) => record.activated === value,
     },
-
     {
       title: "Actions",
       key: "actions",
@@ -349,7 +391,6 @@ const AdminConfiguration = () => {
       key: "password",
       render: (_, record) => (
         <Button
-
           className="text-primary"
           onClick={() => {
             if (record.passwordClaire) {
@@ -384,8 +425,7 @@ const AdminConfiguration = () => {
                 <Card>
                   <Tabs activeKey={activeTab} onChange={setActiveTab} tabBarStyle={{ color: "primary" }} type="card">
 
-                    <TabPane tab="Configuration" key="config"  >
-
+                    <TabPane tab="Configuration" key="config">
                       <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={config}>
                         <div
                           style={{
@@ -435,7 +475,7 @@ const AdminConfiguration = () => {
                             label="Email"
                             rules={[
                               { required: true, message: "Veuillez saisir l'email" },
-                              { type: "email", message: "Veuillez saisir un email valide" },
+                              { type: "email, message: 'Veuillez saisir un email valide'" },
                             ]}
                           >
                             <Input prefix={<MailOutlined />} placeholder="Email" />
@@ -465,11 +505,9 @@ const AdminConfiguration = () => {
                           </Button>
                         </Form.Item>
                       </Form>
-
                     </TabPane>
 
                     <TabPane tab="Utilisateurs" key="users">
-
                       <Input
                         placeholder="Rechercher par nom, prénom ou email..."
                         prefix={<SearchOutlined />}
@@ -499,6 +537,7 @@ const AdminConfiguration = () => {
                       />
                     </TabPane>
 
+                    {/* Nouvel Admin: SUPER_ADMIN uniquement */}
                     {user.roles.includes("ROLE_SUPER_ADMIN") && (
                       <TabPane tab="Nouvel Admin" key="new-admin">
                         <Form form={adminForm} layout="vertical" onFinish={handleAdminSubmit}>
@@ -541,11 +580,7 @@ const AdminConfiguration = () => {
                               label="Date de Naissance"
                               rules={[{ required: true, message: "Veuillez sélectionner la date de naissance" }]}
                             >
-                              <DatePicker
-                                style={{ width: "100%" }}
-                                format="DD/MM/YYYY"
-                                placeholder="Sélectionner une date"
-                              />
+                              <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder="Sélectionner une date" />
                             </Form.Item>
 
                             <Form.Item
@@ -561,13 +596,7 @@ const AdminConfiguration = () => {
                               label="Numéro d'Identification National"
                               rules={[
                                 { required: true, message: "Veuillez saisir le Numéro d'Identification National" },
-                                {
-                                  max: 13,
-                                  min: 13,
-                                  message: "Le Numéro d'Identification National doit contenir 13 chiffres",
-                                  pattern: /^[0-9]{13}$/,
-                                },
-
+                                { max: 15, min: 13, message: "Doit contenir entre 13 et 15 caratcères", pattern: /^[0-9A-Za-z]{15}$/ },
                               ]}
                             >
                               <Input prefix={<UserAddOutlined />} placeholder="Numéro d'Identification National" />
@@ -580,8 +609,7 @@ const AdminConfiguration = () => {
                                 { required: true, message: "Veuillez saisir le numéro de téléphone" },
                                 {
                                   pattern: /^(70|76|77|78|79)[0-9]{7}$/,
-                                  message:
-                                    "Le numéro de téléphone doit être composé de 9 chiffres et commencer par 70, 76, 77, 78 ou 79",
+                                  message: "9 chiffres, commence par 70/76/77/78/79",
                                 },
                               ]}
                             >
@@ -606,17 +634,86 @@ const AdminConfiguration = () => {
                           </div>
 
                           <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
-                            <Button
-                              className="text-primary"
-                              htmlType="submit"
-                              loading={isSubmitting}
-                              icon={<SaveOutlined />}
-                              size="large"
-                            >
+                            <Button className="text-primary" htmlType="submit" loading={isSubmitting} icon={<SaveOutlined />} size="large">
                               Créer l'administrateur
                             </Button>
                           </Form.Item>
                         </Form>
+                      </TabPane>
+                    )}
+
+                    {/* Niveaux & Historique: ADMIN + SUPER_ADMIN */}
+                    {canSeeValidation && (
+                      <TabPane tab="Niveaux de validation" key="levels">
+                        <div className="flex items-center justify-between mb-3">
+                          <Title level={4} className="!mb-0">Workflow de validation</Title>
+                          <Button className="ant-btn-primary" icon={<PlusOutlined />} onClick={openCreateLevel}>
+                            Nouveau niveau
+                          </Button>
+                        </div>
+
+                        <Table
+                          rowKey="id"
+                          loading={loadingLevels}
+                          dataSource={levels}
+                          pagination={{ pageSize: 10 }}
+                          columns={[
+                            { title: "Ordre", dataIndex: "ordre", sorter: (a, b) => a.ordre - b.ordre, width: 90 },
+                            { title: "Nom", dataIndex: "nom" },
+                            { title: "Rôle requis", dataIndex: "roleRequis" },
+                            {
+                              title: "Actions",
+                              key: "actions",
+                              width: 160,
+                              render: (_, rec) => (
+                                <Space>
+                                  <Button icon={<EditOutlined />} onClick={() => openEditLevel(rec)}>Éditer</Button>
+                                  <Button danger icon={<DeleteOutlined />} onClick={() => confirmDeleteLevel(rec.id)}>Supprimer</Button>
+                                </Space>
+                              )
+                            }
+                          ]}
+                        />
+
+                        <Modal
+                          title={editingLevel ? "Modifier le niveau" : "Nouveau niveau"}
+                          open={levelModalOpen}
+                          onCancel={() => setLevelModalOpen(false)}
+                          onOk={submitLevel}
+                          okText={editingLevel ? "Enregistrer" : "Créer"}
+                          confirmLoading={isSubmitting}
+                          destroyOnClose
+                        >
+                          <Form layout="vertical" form={levelForm}>
+                            <Form.Item name="nom" label="Nom" rules={[{ required: true, message: "Nom requis" }]}>
+                              <Input placeholder="Ex: Chef de service, Maire..." />
+                            </Form.Item>
+                            <Form.Item name="roleRequis" label="Rôle requis" rules={[{ required: true, message: "Rôle requis" }]}>
+                              <Select
+                                placeholder="Choisir un rôle"
+                                options={[
+                                  { value: "ROLE_AGENT", label: "Agent" },
+                                  { value: "ROLE_DEMANDEUR", label: "Demandeur" },
+                                  { value: "ROLE_ADMIN", label: "Admin" },
+                                  { value: "ROLE_SUPER_ADMIN", label: "Super Admin" },
+                                  { value: "ROLE_MAIRE", label: "Maire" },
+                                  { value: "ROLE_CHEF_SERVICE", label: "Chef de service" },
+                                  { value: "ROLE_PRESIDENT_COMMISSION", label: "Président commission" },
+                                  { value: "ROLE_PERCEPTEUR", label: "Percepteur" },
+                                ]}
+                              />
+                            </Form.Item>
+                            <Form.Item name="ordre" label="Ordre" rules={[{ required: true, message: "Ordre requis" }]}>
+                              <Input type="number" min={1} />
+                            </Form.Item>
+                          </Form>
+                        </Modal>
+                      </TabPane>
+                    )}
+
+                    {canSeeValidation && (
+                      <TabPane tab="Historique des validations" key="history">
+                        <HistoriqueValidationsTab />
                       </TabPane>
                     )}
 
@@ -655,5 +752,90 @@ function ErrorDisplay({ error }) {
   )
 }
 
-export default AdminConfiguration
+function HistoriqueValidationsTab() {
+  const [form] = Form.useForm()
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [total, setTotal] = useState(0)
+  const [filters, setFilters] = useState({ demandeId: null, validateurId: null, action: null, from: null, to: null })
 
+  const fetchData = async (keepPage = true) => {
+    try {
+      setLoading(true)
+      const params = {
+        page: keepPage ? page : 1,
+        pageSize,
+        ...filters,
+        from: filters.from || undefined,
+        to: filters.to || undefined,
+      }
+      const data = await getHistoriques(params)
+      const ok = data?.success ?? true
+      const items = Array.isArray(data) ? data : (data.items || [])
+      const t = typeof data?.total === "number" ? data.total : items.length
+      if (!ok) throw new Error()
+      setRows(items)
+      setTotal(t)
+      if (!keepPage) setPage(1)
+    } catch {
+      // noop
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchData(true) }, [page, pageSize])
+  useEffect(() => { fetchData(true) }, [])
+
+  const columns = [
+    { title: "Date", dataIndex: "dateAction", width: 170 },
+    { title: "Action", dataIndex: "action", width: 110, render: (s) => <Tag color={s === "validé" ? "green" : "red"}>{s}</Tag> },
+    { title: "Demande", dataIndex: ["demande", "id"], width: 110 },
+    { title: "Validateur", dataIndex: ["validateur", "fullName"] },
+    { title: "Email", dataIndex: ["validateur", "email"] },
+    { title: "Motif", dataIndex: "motif", ellipsis: true },
+  ]
+
+  return (
+    <>
+      <Form form={form} layout="inline" onFinish={() => fetchData(false)} className="flex flex-wrap gap-3 mb-4">
+        <Form.Item label="Demande ID">
+          <Input placeholder="ex: 123" onChange={(e) => setFilters(s => ({ ...s, demandeId: e.target.value || null }))} />
+        </Form.Item>
+        <Form.Item label="Validateur ID">
+          <Input placeholder="ex: 5" onChange={(e) => setFilters(s => ({ ...s, validateurId: e.target.value || null }))} />
+        </Form.Item>
+        <Form.Item label="Action">
+          <Select allowClear style={{ minWidth: 140 }}
+            onChange={(v) => setFilters(s => ({ ...s, action: v || null }))}
+            options={[{ value: "validé", label: "validé" }, { value: "rejeté", label: "rejeté" }]}
+          />
+        </Form.Item>
+        <Form.Item label="Du">
+          <DatePicker onChange={(d) => setFilters(s => ({ ...s, from: d ? d.format("YYYY-MM-DD") : null }))} />
+        </Form.Item>
+        <Form.Item label="Au">
+          <DatePicker onChange={(d) => setFilters(s => ({ ...s, to: d ? d.format("YYYY-MM-DD") : null }))} />
+        </Form.Item>
+        <Button icon={<SearchOutlined />} htmlType="submit">Rechercher</Button>
+      </Form>
+
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={rows}
+        scroll={{ x: 'max-content' }}
+        pagination={{
+          current: page, pageSize, total, showSizeChanger: true,
+          showTotal: (t) => `Total ${t} enregistrement(s)`,
+          onChange: (p, ps) => { setPage(p); setPageSize(ps) }
+        }}
+      />
+    </>
+  )
+}
+
+export default AdminConfiguration

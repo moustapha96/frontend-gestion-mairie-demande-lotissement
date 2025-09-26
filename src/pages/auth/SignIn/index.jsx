@@ -63,7 +63,7 @@ const SignIn = () => {
 
 
           <p className="mt-4 text-center text-sm text-primary-light ">
-            Déjà inscrit ?{' '}
+            Vous êtes nouveau ?{' '}
             <Link to={'/inscription'} className="font-medium text-primary hover:text-primary-dark">
               {"S'inscrire"}
             </Link>

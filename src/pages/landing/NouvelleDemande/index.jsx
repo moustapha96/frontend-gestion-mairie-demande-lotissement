@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import dayjs from "dayjs";
 import { PageMetaData, TopNavBar } from '@/components'
 import ResponsiveAuthLayout from '../../../layouts/ResponsiveAuthLayout'
 import { AppContext } from '../../../AppContext'
@@ -12,6 +13,7 @@ import { LoaderCircleIcon } from 'lucide-react'
 import { nouvelleDemande } from '@/services/demandeService'
 import { getLocalitesWeb } from '@/services/localiteService'
 import { formatPhoneNumber, formatPrice } from '@/utils/formatters'
+import { menuItems } from '@/assets/data'
 
 
 const applicantSchema = yup.object({
@@ -21,32 +23,30 @@ const applicantSchema = yup.object({
   email: yup.string().email("Veuillez entrer un email valide").required("L'email est requis"),
   telephone: yup
     .string()
-    .matches(/^(70|76|77|78|79)[0-9]{7}$/, "Le numéro de téléphone doit commencer par 70, 76, 77, 78 ou 79 suivis de 7 chiffres")
+    .matches(/^(70|76|77|78|79|75)[0-9]{7}$/, "Le numéro de téléphone doit commencer par 70, 76, 77, 78, 75 ou 79 suivis de 7 chiffres")
     .required("Le numéro de téléphone est requis"),
   adresse: yup.string().required("L'adresse est requise"),
   profession: yup.string().required("La profession est requise"),
   lieuNaissance: yup.string().required("Le lieu de naissance est requis"),
+
   dateNaissance: yup
     .date()
     .required("La date de naissance est requise")
-    .max(new Date(), "La date ne peut pas être dans le futur")
+    .max(dayjs().subtract(18, "year").toDate(), "Vous devez avoir au moins 18 ans")
     .test("age", "Vous devez avoir au moins 18 ans", function (value) {
       if (!value) return false;
-      const today = new Date();
-      const birthDate = new Date(value);
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-
-      return age >= 18;
+      return dayjs().diff(dayjs(value), "year") >= 18;
     }),
+  // numeroElecteur: yup
+  //   .string()
+  //   .required("Le Numéro d'Identification National  est requis")
+  //   .matches(/^\d{13}$/, "Le numéro doit contenir exactement 13 chiffres"),
   numeroElecteur: yup
     .string()
-    .required("Le Numéro d'Identification National  est requis")
+    .transform((value) => value.replace(/\s/g, '')) // Supprimer les espaces
+    .required("Le Numéro d'Identification National est requis")
     .matches(/^\d{13}$/, "Le numéro doit contenir exactement 13 chiffres"),
+
 
   possedeAutreTerrain: yup.boolean(),
   typeDocument: yup.string().required("Le type de document est requis"),
@@ -439,7 +439,7 @@ export default function NouvelleDemandePage() {
               <label htmlFor="numeroElecteur" className="block text-sm font-medium text-gray-700">
                 Numéro d'Identification National
               </label>
-              <input
+              {/* <input
                 id="numeroElecteur"
                 type="text" // Changer en type text pour permettre la validation personnalisée
                 maxLength={13} // Limiter à 13 caractères
@@ -448,7 +448,18 @@ export default function NouvelleDemandePage() {
                 {...register('numeroElecteur')}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="13 chiffres"
+              /> */}
+              <input
+                id="numeroElecteur"
+                type="text"
+                maxLength={13}
+                pattern="^\d{13}$" // <-- corrigé (sans les / /)
+                inputMode="numeric"
+                {...register('numeroElecteur')}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                placeholder="13 chiffres"
               />
+
               {errors.numeroElecteur && (
                 <p className="mt-2 text-sm text-red-600">
                   {errors.numeroElecteur.message}
@@ -483,7 +494,12 @@ export default function NouvelleDemandePage() {
   return (
     <>
       <PageMetaData title="Nouvelle demande de terrain" />
-      <TopNavBar menuItems={["accueil", "services", "ressources"]} position="fixed" hasDownloadButton />
+
+      <TopNavBar
+        menuItems={menuItems}
+        hasDownloadButton
+        position="fixed"
+      />
 
       <section className="md:py-20 flex items-center justify-center relative overflow-hidden bg-cover bg-gradient-to-l from-primary/20 to-primary/20 via-primary/0">
         <div className="container">
@@ -612,6 +628,7 @@ export default function NouvelleDemandePage() {
                     )}
                   </button>
                 )}
+
               </div>
             </form>
           </ResponsiveAuthLayout>

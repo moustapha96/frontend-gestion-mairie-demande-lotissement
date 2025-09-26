@@ -3,6 +3,25 @@ import { HttpClient } from '../helpers';
 const urlApi = import.meta.env.VITE_API_URL;
 
 
+
+export async function getDemandesPaginated(params = {}) {
+    const q = new URLSearchParams();
+    const map = [
+        'page', 'size', 'sort', 'search', 'statut', 'typeDemande', 'typeDocument',
+        'userId', 'localiteId', 'from', 'to', 'includeActor'
+    ];
+    map.forEach(k => {
+        if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
+            q.append(k, params[k]);
+        }
+    });
+
+    const url = `${urlApi}demandes?${q.toString()}`;
+    const { data } = await HttpClient.get(url);
+    return data;
+}
+
+
 export async function getDemandes() {
     try {
         const response = await HttpClient.get(`${urlApi}demande/liste`);
@@ -50,6 +69,16 @@ export async function getDemandeDetails(demandeId) {
     }
 }
 
+export async function deleteDocumentGenerer(demandeId) {
+    try {
+        const response = await HttpClient.delete(`${urlApi}demande/document-generer/${demandeId}/delete`);
+        console.log(response)
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression du document:', error);
+        throw error;
+    }
+}
 export async function getFileDocument(demandeId) {
     try {
         const response = await HttpClient.get(`${urlApi}demande/file/${demandeId}`);
@@ -107,56 +136,47 @@ export async function updateDemandeStatut(id, statut) {
     }
 }
 
-export async function updateDemande(id, data) {
+// export async function updateDemande(id, data) {
 
-    // formData.append("userId", user.id);
-    // formData.append("superficie", values.superficie);
-    // formData.append("usagePrevu", values.usagePrevu);
-    // formData.append("localiteId", values.localiteId);
-    // formData.append("typeDemande", values.typeDemande);
-    // formData.append("typeDocument", values.typeDocument);
-    // formData.append("possedeAutreTerrain", values.possedeAutreTerrain);
-    // formData.append("statut", "EN_COURS");
+//     console.log("userId", data.get("userId"))
+//     console.log("superficie", data.get("superficie"))
+//     console.log("usagePrevu", data.get("usagePrevu"))
+//     console.log("localiteId", data.get("localiteId"))
+//     console.log("typeDemande", data.get("typeDemande"))
+//     console.log("typeDocument", data.get("typeDocument"))
+//     console.log("possedeAutreTerrain", data.get("possedeAutreTerrain"))
+//     console.log("statut", data.get("statut"))
+//     console.log("id", id)
+//     console.log("data", data)
 
-    console.log("userId", data.get("userId"))
-    console.log("superficie", data.get("superficie"))
-    console.log("usagePrevu", data.get("usagePrevu"))
-    console.log("localiteId", data.get("localiteId"))
-    console.log("typeDemande", data.get("typeDemande"))
-    console.log("typeDocument", data.get("typeDocument"))
-    console.log("possedeAutreTerrain", data.get("possedeAutreTerrain"))
-    console.log("statut", data.get("statut"))
-    console.log("id", id)
-    console.log("data", data)
+//     try {
 
-    try {
+//         if (!(data instanceof FormData)) {
+//             const formData = new FormData()
+//             // Convertir l'objet en FormData
+//             Object.keys(data).forEach((key) => {
+//                 formData.append(key, data[key])
+//             })
+//             data = formData
+//         }
+//         if (data.get("localiteId")) {
+//             // Renommer localiteId en localite_id si nécessaire selon votre API
+//             const localiteId = data.get("localiteId")
+//             data.delete("localiteId")
+//             data.append("localiteId", localiteId)
+//         }
 
-        if (!(data instanceof FormData)) {
-            const formData = new FormData()
-            // Convertir l'objet en FormData
-            Object.keys(data).forEach((key) => {
-                formData.append(key, data[key])
-            })
-            data = formData
-        }
-        if (data.get("localiteId")) {
-            // Renommer localiteId en localite_id si nécessaire selon votre API
-            const localiteId = data.get("localiteId")
-            data.delete("localiteId")
-            data.append("localiteId", localiteId)
-        }
-
-        const response = await HttpClient.post(`${urlApi}demande/${id}/update`, data, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour de la demande:', error);
-        throw error;
-    }
-}
+//         const response = await HttpClient.post(`${urlApi}demande/${id}/update`, data, {
+//             headers: {
+//                 'Content-Type': 'multipart/form-data',
+//             }
+//         });
+//         return response.data;
+//     } catch (error) {
+//         console.error('Erreur lors de la mise à jour de la demande:', error);
+//         throw error;
+//     }
+// }
 
 export const importDemandes = async (file) => {
     try {
@@ -184,6 +204,29 @@ export const generateDocument = async (demandeId, documentData) => {
     }
 };
 
+export const downloadDocument = async (documentId) => {
+    try {
+        const response = await api.get(`/document/${documentId}/download`, {
+            responseType: 'blob'
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error downloading document:', error);
+        throw error;
+    }
+};
+
+export const getDocumentDetails = async (documentId) => {
+    try {
+        const response = await api.get(`/document/${documentId}/details`);
+        return response.data;
+    } catch (error) {
+        console.error('Error getting document details:', error);
+        throw error;
+    }
+};
+
+
 export const getDemandeurDemandes = async (id) => {
     try {
         const response = await HttpClient.get(`${urlApi}demande/demandeur/${id}/liste`);
@@ -203,3 +246,47 @@ export const deleteDemande = async (id) => {
         throw error;
     }
 };
+
+
+
+
+export async function getDemandeFiles(demandeId) {
+    // renvoie { recto: base64, verso: base64 }
+    const { data } = await HttpClient.get(`${urlApi}demande/file/${demandeId}`);
+    return data;
+}
+
+
+export async function createDemandeForUser(payload) {
+  
+    const { data } = await HttpClient.post(`${urlApi}demande/create`, payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+}
+
+
+export async function updateDemande(id, payload, isMultipart = false) {
+    // payload peut contenir: statut, recommandation, rapport, decisionCommission, typeTitre, terrainAKaolack, terrainAilleurs, etc.
+    let body = payload;
+    let headers = {};
+    if (isMultipart) {
+        const fd = new FormData();
+        Object.entries(payload).forEach(([k, v]) => {
+            if (v !== undefined && v !== null) fd.append(k, v);
+        });
+        body = fd;
+        headers = { "Content-Type": "multipart/form-data" };
+    }
+    const { data } = await HttpClient.post(`${urlApi}demande/${id}/update`, body, { headers });
+    return data;
+}
+
+
+
+export async function createDemandeFromElecteur(formData) {
+    const { data } = await HttpClient.post(`${urlApi}demande/create-from-electeur` , formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+}

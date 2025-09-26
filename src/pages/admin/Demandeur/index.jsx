@@ -26,7 +26,7 @@ const AdminDemandeurListe = () => {
       try {
         const data = await getDemandeurListe()
         console.log("demandeur", data)
-        const filteredDemandeurs = data.filter((demandeur) => demandeur.roles.includes("ROLE_DEMANDEUR"));
+        const filteredDemandeurs = data.filter((demandeur) => demandeur.demandes > 0);
         setDemandeurs(filteredDemandeurs)
       } catch (err) {
         setError(err.message)
@@ -75,23 +75,16 @@ const AdminDemandeurListe = () => {
 
   const columns = [
     {
-      title: "#",
-      dataIndex: "id",
-      key: "id",
-      width: 80,
-      render: (id) => `#${id}`,
+      title: "Prénom",
+      dataIndex: "prenom",
+      key: "prenom",
+      sorter: (a, b) => a.prenom.localeCompare(b.prenom),
     },
     {
       title: "Nom",
       dataIndex: "nom",
       key: "nom",
       sorter: (a, b) => a.nom.localeCompare(b.nom),
-    },
-    {
-      title: "Prénom",
-      dataIndex: "prenom",
-      key: "prenom",
-      sorter: (a, b) => a.prenom.localeCompare(b.prenom),
     },
     {
       title: "Email",
@@ -113,7 +106,8 @@ const AdminDemandeurListe = () => {
         if (!isHabitant) return "Non"
 
         return (
-          <Space>
+
+          <div className="flex flex-wrap gap-2">
             <span>Oui</span>
             <Popover
               content={renderHabitantContent(record.id)}
@@ -134,7 +128,8 @@ const AdminDemandeurListe = () => {
                 loading={loadingHabitant[record.id]}
               />
             </Popover>
-          </Space>
+          </div>
+
         )
       },
       filters: [
@@ -152,6 +147,20 @@ const AdminDemandeurListe = () => {
           <Link to={`/admin/demandeur/${record.id}/demandes`}>
             <Button className="text-primary" icon={<EyeOutlined />}>
               {record.demandes}
+            </Button>
+          </Link>
+        )
+      },
+    },
+     {
+      title: "Parcelles",
+      dataIndex: "parcelles",
+      key: "parcelles",
+      render: (_, record) => {
+        return (
+          <Link to={`/admin/demandeur/${record.id}/parcelles`}>
+            <Button className="text-primary" icon={<EyeOutlined />}>
+              {record.parcelles || 0}
             </Button>
           </Link>
         )
@@ -188,7 +197,7 @@ const AdminDemandeurListe = () => {
                   <Title level={4}>Liste des Demandeurs</Title>
 
 
-                  <Space>
+                  <div className="flex flex-wrap gap-2">
 
 
                     <Button
@@ -214,7 +223,7 @@ const AdminDemandeurListe = () => {
                       Exporter Habitants
                     </Button>
 
-                  </Space>
+                  </div>
                 </div>
 
                 <Input
@@ -235,6 +244,7 @@ const AdminDemandeurListe = () => {
                   )}
                   rowKey="id"
                   loading={loading}
+                  scroll={{ x: 'max-content' }}
                   pagination={{
                     defaultPageSize: 5,
                     showSizeChanger: true,

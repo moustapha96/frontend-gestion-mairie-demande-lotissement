@@ -50,7 +50,7 @@ const AdminLocaliteModifier = () => {
             }
             await updateLocalite(id, body);
             toast.success("Localité mise à jour avec succès!")
-            navigate("/admin/localites")
+            navigate("/admin/quartiers")
         } catch (error) {
             console.log(error);
             toast.error("Erreur lors de la mise à jour de la localité");

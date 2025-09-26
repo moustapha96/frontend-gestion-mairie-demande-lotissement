@@ -6,6 +6,8 @@ import { AdminBreadcrumb } from "@/components";
 import { getLotissementDetails, getLotissementLot } from "@/services/lotissementService";
 import { createLot, updateLot } from "@/services/lotsService";
 import { formatCoordinates, formatPrice } from "@/utils/formatters";
+import TextArea from "antd/es/input/TextArea";
+import { set } from "react-hook-form";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -57,6 +59,8 @@ const AdminLotissementLot = () => {
   };
 
   const handleSubmit = async (values) => {
+    console.log(values)
+    setLoading(true);
     try {
       if (editingLot) {
         await updateLot(editingLot.id, values);
@@ -70,12 +74,14 @@ const AdminLotissementLot = () => {
       setLots(updatedLots);
     } catch (error) {
       message.error("Erreur lors de l'ajout ou de la modification du lot");
+    }finally {
+      setLoading(false);
     }
   };
 
   const columns = [
     {
-      title: "Numéro Lot",
+      title: "Numéro iLot",
       dataIndex: "numeroLot",
       key: "numeroLot",
       sorter: (a, b) => a.numeroLot.localeCompare(b.numeroLot),
@@ -84,7 +90,7 @@ const AdminLotissementLot = () => {
       title: "Superficie",
       dataIndex: "superficie",
       key: "superficie",
-      render: (superficie) => `${superficie} m²`,
+      render: (superficie) => superficie ? `${superficie} m²` : "Non renseigné",
       sorter: (a, b) => a.superficie - b.superficie,
     },
     {
@@ -140,7 +146,7 @@ const AdminLotissementLot = () => {
 
   return (
     <>
-      <AdminBreadcrumb title="Liste des Lots" />
+      <AdminBreadcrumb title="Liste des iLots" />
       <section>
         <div className="container">
           <div className="my-6 space-y-6">
@@ -148,7 +154,7 @@ const AdminLotissementLot = () => {
               <Card className="shadow-lg rounded-lg">
                 <div className="flex justify-between items-center mb-4">
                   <Space direction="vertical" size="small">
-                    <Title level={4}>Liste des Lots</Title>
+                    <Title level={4}>Liste des iLots</Title>
                     {lotissement && (
                       <Link to={`/admin/lotissements/${id}/details`}>
                         Lotissement: <span className="text-primary">{lotissement.nom}</span>
@@ -160,7 +166,7 @@ const AdminLotissementLot = () => {
                     icon={<PlusOutlined />}
                     onClick={() => showModal()}
                   >
-                    Ajouter un Lot
+                    Ajouter un iLot
                   </Button>
                 </div>
 
@@ -179,6 +185,7 @@ const AdminLotissementLot = () => {
                       lot.numeroLot.toLowerCase().includes(searchText.toLowerCase()) ||
                       lot.usage.toLowerCase().includes(searchText.toLowerCase())
                   )}
+                  scroll={{ x: 'max-content' }}
                   rowKey="id"
                   loading={loading}
                   pagination={{
@@ -194,7 +201,7 @@ const AdminLotissementLot = () => {
       </section>
 
       <Modal
-        title={editingLot ? "Modifier le lot" : "Ajouter un lot"}
+        title={editingLot ? "Modifier le lot" : "Ajouter un iLot"}
         open={isModalVisible}
         onCancel={handleCancel}
         footer={null}
@@ -207,7 +214,7 @@ const AdminLotissementLot = () => {
         >
           <Form.Item
             name="numeroLot"
-            label="Numéro du lot"
+            label="Numéro du iLot"
             rules={[{ required: true, message: "Le numéro du lot est requis" }]}
           >
             <Input />
@@ -216,15 +223,13 @@ const AdminLotissementLot = () => {
           <Form.Item
             name="superficie"
             label="Superficie (m²)"
-            rules={[{ required: true, message: "La superficie est requise" }]}
           >
             <InputNumber style={{ width: "100%" }} min={0} />
           </Form.Item>
 
           <Form.Item
             name="prix"
-            label="Prix"
-            rules={[{ required: true, message: "Le prix est requis" }]}
+            label="Prix (FCFA)"
           >
             <InputNumber
               style={{ width: "100%" }}
@@ -234,12 +239,28 @@ const AdminLotissementLot = () => {
             />
           </Form.Item>
 
+          <div className="flex gap-4 justify-between"  >
+            <Form.Item
+              name="latitude"
+              label="Latitude"
+            >
+              <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item
+              name="longitude"
+              label="Longitude"
+            >
+              <InputNumber style={{ width: "100%" }} />
+            </Form.Item>
+          </div>
+
+
           <Form.Item
             name="usage"
             label="Usage"
-            rules={[{ required: true, message: "L'usage est requis" }]}
           >
-            <Input />
+            <TextArea rows={3} />
           </Form.Item>
 
           <Form.Item
@@ -254,26 +275,13 @@ const AdminLotissementLot = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="latitude"
-            label="Latitude"
-            rules={[{ required: true, message: "La latitude est requise" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
 
-          <Form.Item
-            name="longitude"
-            label="Longitude"
-            rules={[{ required: true, message: "La longitude est requise" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
+
 
           <Form.Item className="mb-0">
             <Space className="w-full justify-end">
               <Button onClick={handleCancel}>Annuler</Button>
-              <Button className="text-primary" htmlType="submit">
+              <Button className="text-primary" htmlType="submit" loading={loading}  >
                 {editingLot ? "Modifier" : "Ajouter"}
               </Button>
             </Space>

@@ -1,21 +1,56 @@
 import { LuFacebook, LuInstagram, LuLinkedin, LuTwitter } from "react-icons/lu";
 
+
+export const menuItems = [
+  {
+    name: "Accueil",
+    link: "/#accueil",
+    page: false
+  },
+  {
+    name: "Nos Services",
+    link: "/#services",
+    page: false
+  },
+  {
+    name: "Ressources",
+    link: "/#resources",
+    page: false
+  },
+  {
+    name: "Actualités",
+    link: "/#actualites",
+    page: false
+  },
+  {
+    name: "Nouvelle Demande",
+    link: "/nouvelle-demande",
+    page: true
+  },
+  {
+    name: "Contact",
+    link: "/#contact",
+    page: false
+  }
+]
+
+
 export const footerLinks = [
   {
     title: "Liens utiles",
     items: [
       {
-        name: "A propos", link: "A propos" ,  page: false
+        name: "Ressources", link: "/#resources" ,  page: false
       },
       {
-        name: "Nos Services",link : "Nos Services" ,  page: false
+        name: "Nos Services",link : "/#services" ,  page: false
       },
       {
-        name: "Tarification",link : "Tarification" ,  page: false
+        name: "Contact",link :  "/#contact" ,  page: false
       },
       {
-        name: "Contact",link :  "Contact" ,  page: false
-      },
+        name : "Nouvelle Demande", link : "/nouvelle-demande" ,  page: true
+      }
     ],
   },
 
@@ -45,10 +80,10 @@ export const footerLinks = [
     title: "Mentions légales",
     items: [
       {
-        name: "politique de confidentialité",link : "/privacy-policy" , page: true
+        name: "politique de confidentialité", link : "/privacy-policy" , page: true
       },
       {
-        name: "Conditions générales",link: "/terms-and-conditions" , page: true
+        name: "Conditions générales", link: "/terms-and-conditions" , page: true
       },
       
     ],

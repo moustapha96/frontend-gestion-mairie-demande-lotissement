@@ -19,7 +19,16 @@ const ProfileDropdown = () => {
         <img className="inline-block size-9 rounded-full" src={user?.avatar ? `data:image/jpeg;base64,${user?.avatar}` : avatar1} />
         <div className="hidden text-start lg:block">
           <p className="text-sm font-bold text-white">{user.email}</p>
-          <p className="mt-1 text-xs font-semibold text-zinc-400">{user.roles.includes('ROLE_SUPER_ADMIN') ? 'Super Admin' : 'Admin'}  </p>
+          <p className="mt-1 text-xs font-semibold text-zinc-400">
+
+            {user.roles.includes('ROLE_SUPER_ADMIN') ? 'Super Admin' :
+              user.roles.includes('ROLE_MAIRE') ? 'Maire' :
+                user.roles.includes('ROLE_CHEF_SERVICE') ? 'Chef Service' :
+                  user.roles.includes('ROLE_PRESIDENT_COMMISSION') ? 'President Commission' :
+                    user.roles.includes('ROLE_PERCEPTEUR') ? 'Percepteur' :
+                      user.roles.includes('ROLE_AGENT') ? 'Agent' : 'Admin'}
+
+          </p>
         </div>
       </button>
       <div className="hs-dropdown-menu duration mt-2 hidden min-w-[12rem] rounded-lg border border-default-200 bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100 dark:bg-default-50">

@@ -291,7 +291,7 @@ import React, { useState, useEffect } from "react";
 import { Table, Input, Card, Space, Button, Typography, Upload, Modal, Select, message, Spin } from "antd";
 import { SearchOutlined, FileExcelOutlined, FilePdfOutlined, DownloadOutlined, ImportOutlined, EyeOutlined, EditOutlined, FileTextFilled, ExclamationOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import { AgentBreadcrumb  } from "@/components";
+import { AgentBreadcrumb } from "@/components";
 import { getDemandes, updateDemandeStatut, getFileDocument } from "@/services/demandeService";
 import { useAuthContext } from "@/context";
 import { exportDemandesToCSV, exportDemandesToPDF } from "@/utils/export_demande";
@@ -380,7 +380,7 @@ const AgentDemandeListe = () => {
     Modal.confirm({
       title: "Confirmation",
       okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } },
-      cancelButtonProps: { style: { backgroundColor: "#dc3545", borderColor: "#dc3545" , color: "#FFFFFF" } },
+      cancelButtonProps: { style: { backgroundColor: "#dc3545", borderColor: "#dc3545", color: "#FFFFFF" } },
       content: "Voulez-vous vraiment supprimer cette demande ?",
       onOk: async () => {
         try {
@@ -437,7 +437,7 @@ const AgentDemandeListe = () => {
       render: (_, record) => (
         record.demandeur ? (
           <Link
-          to={`/agent/demandeur/${record.demandeur.id}/details`}
+            to={`/agent/demandeur/${record.demandeur.id}/details`}
             className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1"
           >
             {record.demandeur.nom} {record.demandeur.prenom}
@@ -503,16 +503,16 @@ const AgentDemandeListe = () => {
               Générer document
             </Link>
           )} */}
-          <Link  to={`/agent/demandes/${record.id}/details`}>
+          <Link to={`/agent/demandes/${record.id}/details`}>
             <Button className="bg-primary text-white" icon={<EyeOutlined />} title="Voir les détails" >Détails</Button>
           </Link>
-          
+
         </Space>
       ),
     },
   ];
 
-  
+
 
   if (error) {
     return (
@@ -524,7 +524,7 @@ const AgentDemandeListe = () => {
 
   return (
     <>
-      <AgentBreadcrumb  title="Liste des demandes" />
+      <AgentBreadcrumb title="Liste des demandes" />
       <section>
         <div className="container">
           <div className="my-6 space-y-6">
@@ -578,6 +578,7 @@ const AgentDemandeListe = () => {
                 />
 
                 <Table
+                  scroll={{ x: 'max-content' }}
                   columns={columns}
                   dataSource={demandes.filter(
                     (item) =>

@@ -2,6 +2,7 @@ import { PageMetaData, TopNavBar } from "@/components";
 import AboutUs from "./components/About";
 import { useAuthContext } from "../../../context/useAuthContext";
 import { useEffect } from "react";
+import { menuItems } from "@/assets/data";
 
 
 const Dashboard = () => {
@@ -14,10 +15,13 @@ const Dashboard = () => {
   return (
     <>
       <PageMetaData title="Dashboard CCBME" />
+
       <TopNavBar
-        menuItems={["Accueil"]}
+        menuItems={menuItems}
+        hasDownloadButton
         position="fixed"
       />
+
       <AboutUs />
       {/* <Hero />
       <AboutUs />
