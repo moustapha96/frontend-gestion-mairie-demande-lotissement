@@ -1,5 +1,5 @@
 // src/pages/admin/AdminDemandesPaginated.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Table,
   Input,
@@ -13,6 +13,7 @@ import {
   List,
   Card,
   Popover,
+  message,
 } from "antd";
 import {
   SearchOutlined,
@@ -20,11 +21,19 @@ import {
   EyeOutlined,
   FilterOutlined,
   InfoCircleOutlined,
+  ImportOutlined,
+  DownloadOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import { getDemandesPaginated } from "@/services/demandeService";
+import { getDemandesPaginated, importDemandes } from "@/services/demandeService";
 import { AdminBreadcrumb } from "@/components";
 import { getDetaitHabitant } from "@/services/userService";
+import { Import, Upload } from "lucide-react";
+import { templateDemande } from "@/utils/export_demandeur";
+import { exportDemandesToCSV, exportDemandesToPDF } from "@/utils/export_demande";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -64,13 +73,14 @@ export default function AdminDemandesPaginated() {
   const [statut, setStatut] = useState();
   const [typeDemande, setTypeDemande] = useState();
   const [typeDocument, setTypeDocument] = useState();
-
+  const [importLoading, setImportLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [sorter, setSorter] = useState({ field: "id", order: "descend" });
   const [habitantData, setHabitantData] = useState({})
   const [loadingHabitant, setLoadingHabitant] = useState({})
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const fileInputRef = useRef(null);
 
   const sortParam = useMemo(() => {
     const fieldMap = {
@@ -112,19 +122,67 @@ export default function AdminDemandesPaginated() {
     }
   };
 
-   const fetchHabitantInfo = async (userId) => {
-      if (habitantData[userId]) return 
-      setLoadingHabitant((prev) => ({ ...prev, [userId]: true }))
-      try {
-        const habitantInfo = await getDetaitHabitant(userId)
-        console.log("habitante", habitantInfo)
-        setHabitantData((prev) => ({ ...prev, [userId]: habitantInfo }))
-      } catch (error) {
-        console.error("Erreur lors de la récupération des informations du habitant:", error)
-      } finally {
-        setLoadingHabitant((prev) => ({ ...prev, [userId]: false }))
-      }
+  const fetchHabitantInfo = async (userId) => {
+    if (habitantData[userId]) return
+    setLoadingHabitant((prev) => ({ ...prev, [userId]: true }))
+    try {
+      const habitantInfo = await getDetaitHabitant(userId)
+      console.log("habitante", habitantInfo)
+      setHabitantData((prev) => ({ ...prev, [userId]: habitantInfo }))
+    } catch (error) {
+      console.error("Erreur lors de la récupération des informations du habitant:", error)
+    } finally {
+      setLoadingHabitant((prev) => ({ ...prev, [userId]: false }))
     }
+  }
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setImportLoading(true);
+      const response = await importDemandes(formData);
+      console.log(response)
+      message.success("Demandes importées avec succès");
+      fetchData();
+    } catch (error) {
+      console.error("Erreur lors de l'importation : ", error);
+      message.error("Erreur lors de l'importation des demandes : " + error.message);
+    } finally {
+      setImportLoading(false);
+      event.target.value = ''; // Réinitialise l'input file
+    }
+  };
+
+  const handleImport = async ({ file, onSuccess, onError }) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setImportLoading(true);
+      const response = await importDemandes(formData);
+
+      if (response.success) {
+        message.success("Demandes importées avec succès");
+        fetchData(); // Rafraîchir les données après import
+        onSuccess(); // Indiquer à Ant Design que l'upload est réussi
+      } else {
+        message.error(response.message || "Erreur lors de l'importation des demandes");
+        onError(); // Indiquer à Ant Design que l'upload a échoué
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'importation : ", error);
+      message.error("Erreur lors de l'importation des demandes : " + error.message);
+      onError(); // Indiquer à Ant Design que l'upload a échoué
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     fetchData();
@@ -141,7 +199,7 @@ export default function AdminDemandesPaginated() {
     fetchData();
   };
 
-   const renderHabitantContent = (userId) => {
+  const renderHabitantContent = (userId) => {
     const data = habitantData[userId]
 
     if (!data) {
@@ -163,7 +221,7 @@ export default function AdminDemandesPaginated() {
 
   // Colonnes responsives (certaines visibles seulement ≥ md/≥ lg)
   const columns = [
-     {
+    {
       title: "Habitant",
       dataIndex: "isHabitant",
       key: "isHabitant",
@@ -199,7 +257,7 @@ export default function AdminDemandesPaginated() {
         { text: "Oui", value: true },
         { text: "Non", value: false },
       ],
-       onFilter: (value, record) => record.isHabitant === value,
+      onFilter: (value, record) => record.isHabitant === value,
     },
     {
       title: "Demandeur",
@@ -260,12 +318,12 @@ export default function AdminDemandesPaginated() {
       render: (d) =>
         d
           ? new Date(d).toLocaleString(undefined, {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
           : "—",
       responsive: ["md"],
     },
@@ -527,9 +585,48 @@ export default function AdminDemandesPaginated() {
     <>
       <AdminBreadcrumb title="Liste des demandes" />
 
+
       <section className="container mx-auto px-3 sm:px-4 md:px-6 py-4">
         {isMdUp ? DesktopFilters : MobileHeader}
         {!isMdUp && DrawerFilters}
+
+
+        <div className="flex flex-wrap gap-2">
+
+          <Button icon={<DownloadOutlined />} onClick={templateDemande}>
+            Télécharger Template
+          </Button>
+          <Button icon={<FileExcelOutlined />} onClick={() => exportDemandesToCSV(rows)}>
+            Exporter CSV
+          </Button>
+          <Button icon={<FilePdfOutlined />} onClick={() => exportDemandesToPDF(rows)}>
+            Exporter PDF
+          </Button>
+
+          <div className="flex items-center justify-center">
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".xlsx,.xls"
+              style={{ display: 'none' }}
+            />
+            <Button
+              type="primary"
+              icon={importLoading ? <LoadingOutlined /> : <ImportOutlined />}
+              loading={importLoading}
+              onClick={() => fileInputRef.current.click()}
+            >
+              {importLoading ? 'Importation en cours...' : 'Importer Excel'}
+            </Button>
+
+          </div>
+
+
+        </div>
+
+
 
         {isMdUp ? (
           <Table

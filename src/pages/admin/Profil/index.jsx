@@ -561,9 +561,9 @@ function FieldText({ id, name, label, icon: Icon, value, onChange, type = "text"
                 {label}
             </label>
             <div className="relative">
-                {Icon && (
+                {/* {Icon && (
                     <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                )}
+                )} */}
                 <input
                     id={id}
                     name={name}
@@ -652,7 +652,7 @@ function LoadingSkeleton() {
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
                     <div className="grid gap-6 md:grid-cols-2">
-                        {[...Array(4)].map((_, i) => (
+                        {[...Array(2)].map((_, i) => (
                             <div key={i} className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
                                 <div className="px-4 py-5 sm:p-6">
                                     <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>

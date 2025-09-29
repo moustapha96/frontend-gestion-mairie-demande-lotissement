@@ -82,16 +82,10 @@ const AdminTitreForm = () => {
                         <Card title={isEdit ? "Modifier le titre foncier" : "Créer un titre foncier"}>
                             <Form form={form} layout="vertical" onFinish={onFinish}>
 
-
-
-                                <Form.Item name="numero" label="Numéro">
-                                    <Input placeholder="TF-2025-001" />
-                                </Form.Item>
-
                                 <Form.Item
                                     name="type"
                                     placeholder="Sélectionner le type de titre"
-                                    label="Type"
+                                    label="Type de titre"
                                     rules={[{ required: true, message: "Le type est requis" }]}
                                 >
                                     <Select>
@@ -103,6 +97,14 @@ const AdminTitreForm = () => {
                                 </Form.Item>
 
 
+
+                                <Form.Item name="numero" label="Numéro">
+                                    <Input placeholder="TF-2025-001" />
+                                </Form.Item>
+
+
+
+
                                 <Form.Item name="numeroLot" label="Numéro de lot">
                                     <Input placeholder="L-45" />
                                 </Form.Item>
@@ -110,7 +112,7 @@ const AdminTitreForm = () => {
                                 <Form.Item name="superficie" label="Superficie (m²)">
                                     <InputNumber style={{ width: '100%' }} min={0} placeholder="Ex: 300" />
                                 </Form.Item>
-                                
+
                                 <Form.Item name="quartierId" label="Quartier">
                                     <Select
                                         allowClear
@@ -118,11 +120,11 @@ const AdminTitreForm = () => {
                                         options={localites.map(l => ({ label: l.nom, value: l.id }))}
                                     />
                                 </Form.Item>
-                                
+
                                 <Form.Item name="etatDroitReel" label="État du droit réel">
                                     <Input.TextArea rows={4} placeholder="Texte libre..." />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="titreFigure"
                                     label="Titre figure (JSON array)"

@@ -344,6 +344,7 @@ export default function AdminAccountManagement() {
                 width: 110,
                 render: (v) => <Tag>{Number(v || 0)}</Tag>,
             },
+            
             {
                 title: "Activé",
                 dataIndex: "activated",
@@ -357,7 +358,8 @@ export default function AdminAccountManagement() {
                             loading={updatingId === r.id}
                             checkedChildren="Oui"
                             unCheckedChildren="Non"
-                           className={r.activated ? "custom-switch-activated" : "custom-switch-deactivated"}
+                             rootClassName="enabled-switch"
+                           
                         />
 
                         <Tag color={r.activated ? "green" : "red"}>
@@ -371,7 +373,7 @@ export default function AdminAccountManagement() {
                 ],
                 filteredValue: activatedFilter === undefined ? null : [activatedFilter],
             },
-        
+
             {
                 title: "Actions",
                 key: "actions",

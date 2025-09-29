@@ -5,9 +5,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
 import { getTitres, deleteTitre } from "@/services/titreFoncierService";
 import { getLocalites } from "@/services/localiteService";
+import { useAuthContext } from "@/context";
 
 const AdminTitresList = () => {
     const [form] = Form.useForm();
+     const { user } = useAuthContext();
+     console.log( user, user.roles.includes("ROLE_SUPER_ADMIN"))
     const navigate = useNavigate();
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -67,7 +70,10 @@ const AdminTitresList = () => {
             render: (_, r) => (
                 <div className="flex gap-2">
                     <Button icon={<EditOutlined />} onClick={() => navigate(`/admin/titres/${r.id}/edit`)}>Éditer</Button>
-                    <Button danger icon={<DeleteOutlined />} onClick={() => onDelete(r.id)} />
+
+                    {user && user.roles.includes("ROLE_SUPER_ADMIN") &&
+                        <Button danger icon={<DeleteOutlined />} onClick={() => onDelete(r.id)} />
+                    }
                 </div>
             ),
         },
@@ -93,7 +99,7 @@ const AdminTitresList = () => {
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold">Patrimoine foncier de la Mairie</h3>
                                 <Link to="/admin/titres/new">
-                                    <Button  className="text-primary"  icon={<PlusOutlined />}>Nouveau titre</Button>
+                                    <Button className="text-primary" icon={<PlusOutlined />}>Nouveau titre</Button>
                                 </Link>
                             </div>
 
@@ -104,18 +110,18 @@ const AdminTitresList = () => {
                                 className="flex flex-wrap gap-3 mb-4"
                             >
 
-                                 <Form.Item
-                                            name="type"
-                                            label="Type"
-                                            rules={[{ required: true, message: "Le type est requis" }]}
-                                          >
-                                            <Select>
-                                              <Option value="Bail">Bail</Option>
-                                              <Option value="Titre foncier">Titre foncier</Option>
-                                              <Option value="Place publique">Place publique</Option>
-                                              <Option value="Domaine état">Domaine état</Option>
-                                            </Select>
-                                          </Form.Item>
+                                <Form.Item
+                                    name="type"
+                                    label="Type de titre"
+                                    rules={[{ required: true, message: "Le type est requis" }]}
+                                >
+                                    <Select>
+                                        <Option value="Bail">Bail</Option>
+                                        <Option value="Titre foncier">Titre foncier</Option>
+                                        <Option value="Place publique">Place publique</Option>
+                                        <Option value="Domaine état">Domaine état</Option>
+                                    </Select>
+                                </Form.Item>
 
                                 <Form.Item label="Numéro">
                                     <Input
@@ -146,7 +152,7 @@ const AdminTitresList = () => {
                                 <Form.Item label="Superficie ≤">
                                     <InputNumber min={0} onChange={(v) => setQ(s => ({ ...s, superficieMax: v ?? null }))} />
                                 </Form.Item>
-                                <Button htmlType="submit"  loading={loading} className="text-primary" icon={<SearchOutlined />}>Rechercher</Button>
+                                <Button htmlType="submit" loading={loading} className="text-primary" icon={<SearchOutlined />}>Rechercher</Button>
                             </Form>
 
                             <Table

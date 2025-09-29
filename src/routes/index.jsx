@@ -78,6 +78,8 @@ import AdminAccountManagement from "@/pages/admin/users";
 import AdminDemandesPaginated from "@/pages/admin/Demande/AdminDemandesPaginated";
 import DemandeCreatePaginatedForMe from "@/pages/admin/Demande/DemandeCreateForMe";
 import DemandeurParcelles from "@/pages/admin/Demandeur/demandeurParcelle";
+import AdminHistoriqueValidation from "@/pages/admin/Configuration/HistoriqueValidation";
+import NiveauxValidation from "@/pages/admin/Configuration/NiveauValidation";
 
 const DemandeurDemandeDetails = lazy(
   () => import("@/pages/demandeur/Demande/components/DemandeDetails")
@@ -418,6 +420,14 @@ const adminRoutes = [
   {
     path: "/admin/demande/nouvelle",
     element: <DemandeCreatePaginatedForMe />,
+  },
+  {
+    path : "/admin/historiques-validations",
+    element: <AdminHistoriqueValidation />
+  },
+  {
+    path: "/admin/niveaux-validations",
+    element: <NiveauxValidation />,
   }
 ];
 

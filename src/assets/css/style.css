@@ -221,3 +221,79 @@ h3 {
         scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.05);
     }
 }
+
+
+/* src/pages/admin/admin-switches.css */
+
+
+/* ===== Switch ACTIVATED: vert quand checked, rouge sinon ===== */
+
+.status-switch.ant-switch {
+    background-color: #ef4444;
+    /* rouge (unchecked) */
+    box-shadow: none;
+}
+
+.status-switch.ant-switch:hover {
+    background-color: #dc2626;
+    /* rouge hover */
+}
+
+.status-switch.ant-switch-checked {
+    background-color: #10b981 !important;
+    /* vert (checked) */
+}
+
+.status-switch.ant-switch-checked:hover {
+    background-color: #059669 !important;
+    /* vert hover */
+}
+
+
+/* focus ring plus discret */
+
+.status-switch.ant-switch:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+}
+
+.status-switch.ant-switch-checked:focus-visible {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+}
+
+
+/* désactivé */
+
+.status-switch.ant-switch-disabled {
+    opacity: .6;
+}
+
+
+/* ===== Switch ENABLED: orange quand checked, gris sinon ===== */
+
+.enabled-switch.ant-switch {
+    background-color: #9ca3af;
+    /* gris (unchecked) */
+}
+
+.enabled-switch.ant-switch:hover {
+    background-color: #6b7280;
+}
+
+.enabled-switch.ant-switch-checked {
+    background-color: #f59e0b !important;
+    /* orange (checked) */
+}
+
+.enabled-switch.ant-switch-checked:hover {
+    background-color: #d97706 !important;
+}
+
+.enabled-switch.ant-switch:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
+}
+
+.enabled-switch.ant-switch-disabled {
+    opacity: .6;
+}

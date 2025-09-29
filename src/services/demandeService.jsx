@@ -178,10 +178,8 @@ export async function updateDemandeStatut(id, statut) {
 //     }
 // }
 
-export const importDemandes = async (file) => {
+export const importDemandes = async (formData) => {
     try {
-        const formData = new FormData();
-        formData.append('file', file);
 
         const response = await HttpClient.post(`${urlApi}demande/import`, formData, {
             headers: {
@@ -289,4 +287,43 @@ export async function createDemandeFromElecteur(formData) {
         headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
+}
+
+
+export const updateRapportDemande1 = async (id, body) => {
+    try {
+        const response = await HttpClient.put(`${urlApi}demande/${id}/update-rapport`, body );
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du rapport de la demande:', error);
+        throw error;
+    }
+}
+
+export async function updateRapportDemande(id, body) {
+  // body = { rapport: string }
+  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/rapport`, body);
+  return data;
+}
+
+export async function updateRecommandation(id, body) {
+  // body = { recommandation: string }
+  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/recommandation`, body);
+  return data;
+}
+
+export async function updateDecisionCommission(id, body) {
+  // body = { decision: string }
+  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/decision`, body);
+  return data;
+}
+
+export async function validerEtape(id) {
+  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/valider`);
+  return data;
+}
+
+export async function rejeterDemande(id, motif) {
+  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/rejeter`, { motif });
+  return data;
 }
