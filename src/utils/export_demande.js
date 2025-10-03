@@ -4,7 +4,7 @@ export function exportDemandesToCSV(demandes) {
     const headers = ['ID', 'Type de Demande', 'Type de Document', 'Superficie', 'Usage Prévu', 'Statut', 'Date de Création', 'Nom Demandeur', 'Localité', 'Electeur'];
     const data = demandes.map(demande => [
         demande.id,
-        demande.typeDemande === 'PERMIS_OCCUPATION' ? 'Permis d\'occuper' : demande.typeDemande === 'PROPOSITION_BAIL' ? 'Proposition de Bail' : 'Bail Communal',
+        demande.typeDemande,
         demande.typeDocument,
         `${demande.superficie} m²`,
         demande.usagePrevu,
@@ -40,7 +40,9 @@ export function exportDemandesToPDF(demandes) {
     doc.text(`Exporté le ${new Date().toLocaleDateString('fr-FR')}`, 15, 30);
 
     autoTable(doc, {
-        head: [['ID', 'Type de Demande', 'Type de Document', 'Superficie', 'Usage Prévu', 'Statut', 'Date de Création', 'Nom Demandeur', 'Localité','Electeur']],
+        head: [
+            ['ID', 'Type de Demande', 'Type de Document', 'Superficie', 'Usage Prévu', 'Statut', 'Date de Création', 'Nom Demandeur', 'Localité', 'Electeur']
+        ],
         body: demandes.map(demande => [
             demande.id,
             demande.typeDemande === 'PERMIS_OCCUPATION' ? 'Permis d\'occuper' : demande.typeDemande === 'PROPOSITION_BAIL' ? 'Proposition de Bail' : 'Bail Communal',
@@ -51,7 +53,7 @@ export function exportDemandesToPDF(demandes) {
             new Date(demande.dateCreation).toLocaleDateString('fr-FR'),
             `${demande.demandeur.nom} ${demande.demandeur.prenom}`,
             demande.localite.nom,
-             demande.demandeur.numeroElecteur
+            demande.demandeur.numeroElecteur
         ]),
         startY: 40,
         theme: 'grid',

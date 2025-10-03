@@ -40,16 +40,29 @@ export default function ResponsiveAuthLayout({ children, title }) {
         // </div>
 
 
-        <div className="min-h-screen m-8 bg-gray-100 flex items-center justify-center">
-            <div className="w-full max-w-4xl flex flex-col items-center">
+        // <div className="min-h-screen m-8  flex items-center justify-center">
+        //     <div className="w-full max-w-4xl flex flex-col items-center">
 
-                <div className="w-full bg-gray-200 rounded shadow-lg z-0 mt-16 p-4">
-                    <h2 className="text-center md:text-lg lg:text-3xl font-extrabold text-gray-900">{title}</h2>
-                    <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        //         <div className="w-full bg-primary/35 rounded shadow-lg z-0 mt-16 p-4">
+        //             <h2 className="text-center md:text-lg lg:text-3xl font-extrabold text-gray-900">{title}</h2>
+        //             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        //                 {children}
+        //             </div>
+        //         </div>
+        //     </div>
+        // </div>
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="w-full max-w-4xl flex flex-col items-center">
+                <div className="w-full bg-primary/50 rounded-2xl shadow-xl mt-10 p-6">
+                    <h2 className="text-center text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900">
+                        {title}
+                    </h2>
+                    <div className="bg-white py-8 px-6 shadow-md rounded-lg sm:px-10 mt-6">
                         {children}
                     </div>
                 </div>
             </div>
         </div>
+
     )
 }

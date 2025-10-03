@@ -3,6 +3,7 @@ import {
   LuArchive,
   LuComponent,
   LuFile,
+  LuFileText,
   LuMessagesSquare,
   LuRadar,
   LuShieldOff,
@@ -58,6 +59,11 @@ const agentMenu = [
     link: "/agent/localites",
     icon: LuTarget,
   },
+   {
+      name: "Articles",
+      link: "/agent/articles",
+      icon: LuFileText,
+    },
   
 
 ];

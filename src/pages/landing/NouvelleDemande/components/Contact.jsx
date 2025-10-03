@@ -34,28 +34,28 @@ const Contact = () => {
               <LuPhone className="h-10 w-10" />
             </div>
             <h4 className="text-xl font-medium text-default-950 mt-5">Appelez-nous</h4>
-            <p className="text-base text-default-800 mt-1">+0088 66956 66</p>
+            <p className="text-base text-default-800 mt-1">33 941 12 56 / 33 941 15 35</p>
           </div>
           <div className="text-center">
             <div className="h-20 w-20 rounded-md border border-default-200 text-default-950 bg-white/5 mx-auto flex items-center justify-center">
               <LuMail className="h-10 w-10" />
             </div>
             <h4 className="text-xl font-medium text-default-950 mt-5">Envoyez-nous un email</h4>
-            <p className="text-base text-default-800 mt-1">support@authenticpage.com</p>
+            <p className="text-base text-default-800 mt-1">support@kaolackcommune.sn</p>
           </div>
           <div className="text-center">
             <div className="h-20 w-20 rounded-md border border-default-200 text-default-950 bg-white/5 mx-auto flex items-center justify-center">
               <LuLineChart className="h-10 w-10" />
             </div>
             <h4 className="text-xl font-medium text-default-950 mt-5">Suivez-nous</h4>
-            <p className="text-base text-default-800 mt-1">Facebook.com/AuthenticPage</p>
+            <p className="text-base text-default-800 mt-1">Facebook.com/kaolackcommune</p>
           </div>
           <div className="text-center">
             <div className="h-20 w-20 rounded-md border border-default-200 text-default-950 bg-white/5 mx-auto flex items-center justify-center">
               <LuSave className="h-10 w-10" />
             </div>
             <h4 className="text-xl font-medium text-default-950 mt-5">Découvrez notre travail</h4>
-            <p className="text-base text-default-800 mt-1">authenticpage.com</p>
+            <p className="text-base text-default-800 mt-1">kaolackcommune.sn</p>
           </div>
         </div>
 

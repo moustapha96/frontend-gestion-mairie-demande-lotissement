@@ -97,13 +97,13 @@ const AgentLotissementLot = () => {
 
     return (
         <>
-            <AgentBreadcrumb title="Liste des Lots" />
+            <AgentBreadcrumb title="Liste des iLots" />
             <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
                         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
                             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                                <h4 className="text-xl font-semibold text-gray-800 uppercase">Liste des Lots</h4>
+                                <h4 className="text-xl font-semibold text-gray-800 uppercase">Liste des iLots</h4>
 
                                 {lotissement && <>
                                     <h4 className="text-xl font-semibold text-gray-800 uppercase">
@@ -120,7 +120,7 @@ const AgentLotissementLot = () => {
                             <div className="flex items-center justify-end border-b border-gray-200 px-6 py-4">
 
                                 <button onClick={() => handleOpenModal()} className="text-primary flex items-center gap-2">
-                                    <LuPlusCircle /> Ajouter un Lot
+                                    <LuPlusCircle /> Ajouter un iLot
                                 </button>
                             </div>
                             <div className="p-6">
@@ -137,7 +137,7 @@ const AgentLotissementLot = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numéro Lot</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numéro iLot</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Superficie</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prix</th>
@@ -186,7 +186,7 @@ const AgentLotissementLot = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-8 max-w-md w-full">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">{editingLot ? "Modifier le Lot" : "Ajouter un Lot"}</h3>
+                            <h3 className="text-lg font-medium text-gray-900">{editingLot ? "Modifier le Lot" : "Ajouter un iLot"}</h3>
                             <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-500">
                                 <LuX className="h-6 w-6" />
                             </button>
@@ -194,7 +194,7 @@ const AgentLotissementLot = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label htmlFor="numeroLot" className="block text-sm font-medium text-gray-700">
-                                    Numéro du Lot
+                                    Numéro du iLot
                                 </label>
                                 <input
                                     type="text"

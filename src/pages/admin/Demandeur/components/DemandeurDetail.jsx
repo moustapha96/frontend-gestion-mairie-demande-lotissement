@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
 import { getDemandeurDetails } from "@/services/userService";
-import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, IdcardOutlined, CalendarOutlined, RightOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, IdcardOutlined, CalendarOutlined, RightOutlined, InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { cn } from "@/utils";
 import { formatPhoneNumber } from "@/utils/formatters";
 import { Card, Typography, Descriptions, Table, Tag, Skeleton, Result, Space, Popover, Button } from "antd";
@@ -20,43 +20,54 @@ const AdminDemandeurDetails = () => {
 
     const [loadingHabitant, setLoadingHabitant] = useState(false)
     const [habitantData, setHabitantData] = useState(null)
-  
+
     useEffect(() => {
-      fetchHabitantInfo()
+        fetchHabitantInfo()
     }, [demandeur])
-  
+
     const renderHabitantContent = () => {
-      const data = habitantData
-  
-      if (!data) {
-        return <div>Chargement des informations...</div>
-      }
-  
-      return (
-        <div className="max-w-3xl">
-          <div className="grid grid-cols-3 gap-2">
-            {Object.entries(data).map(([key, value]) => (
-              <div key={key} className="border-b pb-1">
-                <strong>{key}:</strong> {value || "-"}
-              </div>
-            ))}
-          </div>
-        </div>
-      )
+        const data = habitantData
+
+        if (!data) {
+            return <div>Chargement des informations...</div>
+        }
+
+        return (
+            <div className="max-w-3xl">
+                <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(data).map(([key, value]) => (
+                        <div key={key} className="border-b pb-1">
+                            <strong>{key}:</strong> {value || "-"}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
     }
-  
+
     const fetchHabitantInfo = async () => {
-      setLoadingHabitant(true)
-      try {
-        const habitantInfo = await getDetaitHabitant(demandeur.id)
-        console.log("habitante", habitantInfo)
-        setHabitantData(habitantInfo)
-      } catch (error) {
-        console.error("Erreur lors de la récupération des informations du habitant:", error)
-      } finally {
-        setLoadingHabitant(false)
-      }
+        setLoadingHabitant(true)
+        try {
+            const habitantInfo = await getDetaitHabitant(demandeur.id)
+            console.log("habitante", habitantInfo)
+            setHabitantData(habitantInfo)
+        } catch (error) {
+            console.error("Erreur lors de la récupération des informations du habitant:", error)
+        } finally {
+            setLoadingHabitant(false)
+        }
     }
+
+
+    const statutColor = (s) => {
+        switch (s) {
+            case "En attente": return "orange";
+            case "En cours de traitement": return "gold";
+            case "Approuvée": return "green";
+            case "Rejetée": return "red";
+            default: return "default";
+        }
+    };
 
 
     useEffect(() => {
@@ -101,18 +112,9 @@ const AdminDemandeurDetails = () => {
             title: "Statut",
             dataIndex: "statut",
             key: "statut",
-            render: (statut) => (
-                <Tag
-                    className={cn({
-                        'bg-yellow-200 border-yellow-200': statut === 'EN_COURS',
-                        'bg-yellow-100 text-yellow-800 border-yellow-500': statut === 'EN_TRAITEMENT',
-                        'bg-green-100 text-green-800 border-green-500': statut === 'VALIDE',
-                        'bg-red-100 text-red-800 border-red-500': statut === 'REJETE'
-                    })}
-                >
-                    {statut}
-                </Tag>
-            ),
+            sorter: true,
+            render: (statut) => <Tag color={statutColor(statut)}>{statut}</Tag>,
+            width: 180,
         },
         {
             title: "Date de Création",
@@ -125,10 +127,12 @@ const AdminDemandeurDetails = () => {
             key: "actions",
             render: (_, record) => (
                 <Link to={`/admin/demandes/${record.id}/details`}>
-                    <Space>
+
+                    <Button className="bg-primary text-white" icon={<EyeOutlined />} >
                         Détails
-                        <RightOutlined />
-                    </Space>
+                    </Button>
+
+
                 </Link>
             ),
         },
@@ -144,20 +148,29 @@ const AdminDemandeurDetails = () => {
                     <div className="grid gap-8 md:grid-cols-2 mt-6">
                         <Card title="Informations Personnelles" className="bg-gray-50">
                             <Descriptions column={1}>
+
+                                 <Descriptions.Item label={<Space><CalendarOutlined />Nom Complet</Space>}>
+                                    {demandeur.prenom +' '+ demandeur.nom}
+                                </Descriptions.Item>
                                 <Descriptions.Item label={<Space><CalendarOutlined /> Date de Naissance</Space>}>
                                     {new Date(demandeur.dateNaissance).toLocaleDateString()}
                                 </Descriptions.Item>
                                 <Descriptions.Item label={<Space><EnvironmentOutlined /> Lieu de Naissance</Space>}>
-                                    {demandeur.lieuNaissance}
+                                    {demandeur.lieuNaissance ?? "Non renseigné"}
                                 </Descriptions.Item>
                                 <Descriptions.Item label={<Space><IdcardOutlined /> Numéro Électeur</Space>}>
-                                    {demandeur.numeroElecteur}
+                                    {demandeur.numeroElecteur ?? "Non renseigné"}
                                 </Descriptions.Item>
+
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Nombre d'Enfant</Space>}>
+                                    {demandeur.nombreEnfant ?? 0}
+                                </Descriptions.Item>
+
                                 <Descriptions.Item label={<Space><EnvironmentOutlined />Habitant</Space>}>
                                     <Tag color={demandeur?.isHabitant ? 'success' : 'error'} className="px-4 py-1 text-sm font-medium">
                                         {demandeur?.isHabitant ? 'Oui' : 'Non'}
                                     </Tag>
-                                    
+
 
                                     {demandeur.isHabitant && (
                                         <Space>
@@ -193,6 +206,16 @@ const AdminDemandeurDetails = () => {
                                 <Descriptions.Item label={<Space><EnvironmentOutlined /> Adresse</Space>}>
                                     {demandeur.adresse}
                                 </Descriptions.Item>
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Situation Matrimoniale</Space>}>
+                                    {demandeur.situationMatrimoniale ?? "Non renseigné"}
+                                </Descriptions.Item>
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Statut logement</Space>}>
+                                    {demandeur.situationDemandeur ?? "Non renseigné"}
+                                </Descriptions.Item>
+
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Profession</Space>}>
+                                    {demandeur.profession ?? "Non renseigné"}
+                                </Descriptions.Item>
                             </Descriptions>
                         </Card>
                     </div>
@@ -200,6 +223,7 @@ const AdminDemandeurDetails = () => {
                     {demandeur.demandes && demandeur.demandes.length > 0 && (
                         <Card title="Demandes Associées" className="mt-8">
                             <Table
+                                scroll={{ x: 'max-content' }}
                                 columns={demandesColumns}
                                 dataSource={demandeur.demandes}
                                 rowKey="id"

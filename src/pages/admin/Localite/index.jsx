@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Card, Space, Button, Typography, Form, Modal, Select, Popconfirm, message } from "antd";
-import { SearchOutlined, PlusOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { SearchOutlined, PlusOutlined, EditOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
-import { getLocalites } from "@/services/localiteService";
+import { deleteLocalite, getLocalites } from "@/services/localiteService";
 import { formatCoordinates, formatPrice } from "@/utils/formatters";
 import TextArea from "antd/es/input/TextArea";
 import { updateLocalite, createLocalite } from "@/services/localiteService"
 import { getLotissements } from "@/services/lotissementService";
+import { useAuthContext } from "@/context";
 
 const { Title } = Typography;
 
 const AdminLocaliteListe = () => {
     const [form] = Form.useForm();
+    const { user } = useAuthContext();
+
     const [loading, setLoading] = useState(false);
     const [loadingModal, setLoadingModal] = useState(false);
     const [localites, setLocalites] = useState([]);
@@ -21,7 +24,19 @@ const AdminLocaliteListe = () => {
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingLocalite, setEditingLocalite] = useState(null);
-   
+
+    const handleDelete = async (id) => {
+        try {
+            await deleteLocalite(id);
+            message.success("Localité supprimée avec succès.");
+            fetchLocalite();
+        } catch (error) {
+            console.error(error);
+            message.error(error?.response?.data || "Une erreur s'est produite lors de la suppression de la localité.");
+        }
+    }
+
+
     const fetchLocalite = async () => {
         setLoading(true);
         try {
@@ -62,11 +77,11 @@ const AdminLocaliteListe = () => {
             key: "lotissements",
             render: (_, record) => (
                 record.lotissements.length > 0 ? (
-                    <Link to={`/admin/localites/${record.id}/lotissements`} className="text-primary" >
+                    <Link to={`/admin/quartiers/${record.id}/lotissements`} className="text-primary" >
                         {record.lotissements.length} Lotissement(s)
                     </Link>
                 ) : (
-                    <Link to={`/admin/localites/${record.id}/lotissements/nouveau`}>
+                    <Link to={`/admin/quartiers/${record.id}/lotissements/nouveau`}>
                         <Button className="text-primary" icon={<PlusOutlined />}>
                             Ajouter
                         </Button>
@@ -80,7 +95,7 @@ const AdminLocaliteListe = () => {
             render: (_, record) => (
                 <Space>
 
-                    <Link to={`/admin/localites/${record.id}/details`}>
+                    <Link to={`/admin/quartiers/${record.id}/details`}>
                         <Button
                             className="text-primary"
                             icon={<EyeOutlined />}
@@ -95,23 +110,21 @@ const AdminLocaliteListe = () => {
                     >
                         Modifier
                     </Button>
-{/* 
-                    <Popconfirm
-                        title="Êtes-vous sûr de vouloir supprimer ce localité ?"
-                        onConfirm={() => handleDelete(record.id)}
-                        okText="Oui"
-                        cancelText="Non"
-                    >
-                        <Button type="link" danger icon={<DeleteOutlined />} title="Supprimer" />
-                    </Popconfirm> */}
+                    {user && (user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN") ||
+                        user.roles.includes("ROLE_MAIRE")
+                    ) && (
 
-                    {/* <Link to={`/admin/localites/${record.id}/modification`}>
-                        <Button
-                            className="text-primary"
-                            icon={<EditOutlined />}
-                            title="Modifier"
-                        />
-                    </Link> */}
+                            <Popconfirm
+                                title="Êtes-vous sûr de vouloir supprimer ce localité ?"
+                                onConfirm={() => handleDelete(record.id)}
+                                okText="Oui"
+                                cancelText="Non"
+                            >
+                                <Button type="link" danger icon={<DeleteOutlined />} title="Supprimer" />
+                            </Popconfirm>
+                        )}
+
+
                 </Space>
             ),
         },
@@ -143,14 +156,21 @@ const AdminLocaliteListe = () => {
     };
 
     const handleSubmit = async (values) => {
+        console.log(values)
+        const body = {
+            ...values,
+            prix : values.prix == '' ? 0 : values.prix,
+            longitude: values.longitude != '' ?  parseFloat(values.longitude) : 0,
+            latitude: values.latitude != '' ?  parseFloat(values.latitude) : 0
+        }
         setLoadingModal(true);
         try {
             if (editingLocalite) {
-                await updateLocalite(editingLocalite.id, values);
-                message.success("Localité mise à jour avec succès");
+                await updateLocalite(editingLocalite.id, body);
+                message.success("Quartier mise à jour avec succès");
             } else {
                 await createLocalite(values);
-                message.success("Localité ajoutée avec succès");
+                message.success("Quartier ajoutée avec succès");
             }
             handleCancel();
             fetchLocalite();
@@ -163,7 +183,7 @@ const AdminLocaliteListe = () => {
 
     return (
         <>
-            <AdminBreadcrumb title="Liste des Lots" />
+            <AdminBreadcrumb title="Liste des Quartiers" />
             <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
@@ -173,15 +193,15 @@ const AdminLocaliteListe = () => {
 
                         <Card className="shadow-lg rounded-lg">
                             <div className="flex justify-between items-center mb-4">
-                                <Title level={4}>Liste des localités</Title>
-                               
+                                <Title level={4}>Liste des Quartiers</Title>
+
 
                                 <Button
                                     className="text-primary"
                                     icon={<PlusOutlined />}
                                     onClick={() => showModal()}
                                 >
-                                    Ajouter une localité
+                                    Ajouter un quartier
                                 </Button>
                             </div>
 
@@ -205,12 +225,13 @@ const AdminLocaliteListe = () => {
                                 pagination={{
                                     defaultPageSize: 5,
                                     showSizeChanger: true,
-                                    showTotal: (total) => `Total ${total} localités`,
+                                    showTotal: (total) => `Total ${total} quartier`,
                                 }}
+                                scroll={{ x: 'max-content' }}
                             />
 
                             <Modal
-                                title={editingLocalite ? "Modifier la localité" : "Ajouter une localité"}
+                                title={editingLocalite ? "Modifier le quartier" : "Ajouter un quartier"}
                                 open={isModalVisible}
                                 onCancel={handleCancel}
                                 footer={null}
@@ -220,11 +241,11 @@ const AdminLocaliteListe = () => {
                                     form={form}
                                     layout="vertical"
                                     onFinish={handleSubmit}
-                                   
+
                                 >
                                     <Form.Item
                                         name="nom"
-                                        label="Nom"
+                                        label="Nom du quartier"
                                         rules={[{ required: true, message: "Le nom est requis" }]}
                                     >
                                         <Input />
@@ -233,7 +254,6 @@ const AdminLocaliteListe = () => {
                                     <Form.Item
                                         name="longitude"
                                         label="Longitude"
-                                        rules={[{ required: true, message: "La longitude est requise" }]}
                                     >
                                         <Input type="number" />
                                     </Form.Item>
@@ -241,7 +261,6 @@ const AdminLocaliteListe = () => {
                                     <Form.Item
                                         name="latitude"
                                         label="Latitude"
-                                        rules={[{ required: true, message: "La latitude est requise" }]}
                                     >
                                         <Input type="number" />
                                     </Form.Item>
@@ -249,24 +268,10 @@ const AdminLocaliteListe = () => {
                                     <Form.Item
                                         name="prix"
                                         label="Prix"
-                                        rules={[{ required: true, message: "Le prix est requis" }]}
                                     >
                                         <Input type="number" />
                                     </Form.Item>
 
-                                    {/* <Form.Item
-                                        name="lotissementId"
-                                        label="Lotissement"
-                                        rules={[{ required: true, message: "Le lotissement est requis" }]}
-                                    >
-                                        <Select placeholder="Sélectionner un lotissement">
-                                            {lotissements.map(lot => (
-                                                <Option key={lot.id} value={lot.id} selected={editingLocalite?.lotissement.id === lot.id}>
-                                                    {lot.nom}
-                                                </Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item> */}
 
                                     <Form.Item className="flex justify-end">
                                         <Space>

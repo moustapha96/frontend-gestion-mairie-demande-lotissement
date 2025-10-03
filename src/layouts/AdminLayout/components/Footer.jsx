@@ -11,7 +11,7 @@ const Footer = () => {
 
             <Link
               className="text-primary text-bold"
-              to="https://gestionmairie.sn/"
+              to="https://kaolackcommune.sn/"
               target="_blank"
             >
               {new Date().getFullYear()} © &nbsp;

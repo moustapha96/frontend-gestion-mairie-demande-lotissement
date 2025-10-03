@@ -24,6 +24,7 @@ export default function AdminLotissementDetails() {
         const fetchLotissement = async () => {
             try {
                 const data = await getLotissementDetails(id);
+                console.log(data);
                 setLotissement(data);
                 if (data.planLotissements?.length > 0) {
                     const response = await getFileDocumentPlan(data.planLotissements[0].id);
@@ -72,7 +73,7 @@ export default function AdminLotissementDetails() {
 
     const lotColumns = [
         {
-            title: 'Numéro de Lot',
+            title: 'Numéro de iLot',
             dataIndex: 'numeroLot',
             key: 'numeroLot',
         },
@@ -124,12 +125,12 @@ export default function AdminLotissementDetails() {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
-                <Button
-                    type="text"
-                    icon={<FileOutlined />}
-                    onClick={() => handleViewDocument(record)}
-                    title="Visualiser le document"
-                />
+
+                <Button className="bg-primary text-white"
+                    icon={<FileOutlined />} onClick={() => handleViewDocument(record)}
+                    title="Voir les détails">
+                    document
+                </Button>
 
             ),
         },
@@ -157,7 +158,10 @@ export default function AdminLotissementDetails() {
                                 <Descriptions.Item label="Nom">{lotissement.nom}</Descriptions.Item>
                                 <Descriptions.Item label="Localisation">{lotissement.localisation}</Descriptions.Item>
                                 <Descriptions.Item label="Statut">
-                                    <Tag color={statusColors[lotissement.statut]}>{lotissement.statut}</Tag>
+                                    <Tag color={statusColors[lotissement.statut]}>
+                                        {lotissement.statut == "en_cours" ? "En cours" : lotissement.statut == "achevé" ? "Achevé" : "Rejeté"}
+
+                                    </Tag>
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Coordonnées">
                                     <Space>
@@ -165,10 +169,26 @@ export default function AdminLotissementDetails() {
                                         <Tooltip title="Voir sur la carte">
                                             <Button
                                                 type="text"
+                                                className="bg-primary text-white"
                                                 icon={<EnvironmentOutlined />}
                                                 onClick={() => setShowMap(!showMap)}
                                             />
                                         </Tooltip>
+                                    </Space>
+                                </Descriptions.Item>
+
+
+                            </Descriptions>
+                            <Descriptions
+                                bordered
+                                column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
+                                className="mt-4"
+                            >
+
+                                <Descriptions.Item label="Déscription">
+                                    <Space>
+                                        {lotissement.description}
+
                                     </Space>
                                 </Descriptions.Item>
                             </Descriptions>
@@ -183,6 +203,7 @@ export default function AdminLotissementDetails() {
                                 <div className="mt-6">
                                     <Title level={5}>Informations des Lots</Title>
                                     <Table
+                                        scroll={{ x: 'max-content' }}
                                         columns={lotColumns}
                                         dataSource={lotissement.lots}
                                         rowKey="id"
@@ -196,6 +217,7 @@ export default function AdminLotissementDetails() {
                                 <div className="mt-6">
                                     <Title level={5}>Plans de Lotissement</Title>
                                     <Table
+                                        scroll={{ x: 'max-content' }}
                                         columns={planColumns}
                                         dataSource={lotissement.planLotissements}
                                         rowKey="id"

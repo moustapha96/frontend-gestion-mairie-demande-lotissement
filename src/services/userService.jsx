@@ -155,6 +155,13 @@ export const getDemandeurDetails = async (id) => {
     }
 }
 
+
+export async function getDemandeurs(params = {}) {
+  const { data } = await HttpClient.get(`${urlApi}user/demandeurs`, { params });
+  return data; // tableau d'utilisateurs
+}
+
+
 export const getDemandeurListe = async () => {
     try {
         const response = await HttpClient.get(`${urlApi}user/liste`);
@@ -195,4 +202,16 @@ export const getDetaitHabitant = async (id) => {
         console.error('Erreur lors de la recuperation des details du habitant:', error);
         throw error;
     }
+}
+
+
+
+// Créer un compte utilisateur
+export async function createUserAccount(payload) {
+  const { data } = await HttpClient.post(
+    `${urlApi}user/create`,
+    JSON.stringify(payload),
+    { headers: { "Content-Type": "application/json" } }
+  );
+  return data; 
 }

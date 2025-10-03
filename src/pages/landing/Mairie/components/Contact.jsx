@@ -52,10 +52,10 @@ const Contact = () => {
         {/* Section de contact rapide */}
         <div className="flex flex-wrap justify-around gap-8 mb-12">
           {[
-            { icon: LuPhone, title: "Appelez-nous", details: "+0088 66956 66" },
-            { icon: LuMail, title: "Envoyez-nous un email", details: "support@authenticpage.com" },
-            { icon: LuLineChart, title: "Suivez-nous", details: "Facebook.com/AuthenticPage" },
-            { icon: LuSave, title: "Découvrez notre travail", details: "authenticpage.com" },
+            { icon: LuPhone, title: "Appelez-nous", details: "33 941 12 56 / 33 941 15 35" },
+            { icon: LuMail, title: "Envoyez-nous un email", details: "support@kaolackcommune.sn" },
+            { icon: LuLineChart, title: "Suivez-nous", details: "Facebook.com/kaolackcommune" },
+            { icon: LuSave, title: "Découvrez notre travail", details: "kaolackcommune.sn" },
           ].map((contact, idx) => (
             <div
               key={idx}

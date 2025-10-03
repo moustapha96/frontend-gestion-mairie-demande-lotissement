@@ -14,7 +14,7 @@ import AdminClientDetail from "@/pages/admin/Clients/AdminClientDetail";
 
 import DashboardDemandeur from "@/pages/demandeur/Dashboard";
 import DashboardAgent from "@/pages/agent/Dashboard";
-import AdminDashboard from "@/pages/admin/Dashboard";
+
 import Finance from "@/pages/landing/Finance";
 import DemandeNouveau from "@/pages/demandeur/Demande/components/DemandeNouveau";
 import DemandeurProfile from "@/pages/demandeur/Profile";
@@ -67,25 +67,50 @@ import AdminMap from "@/pages/admin/Map";
 import AdminDocumentModel from "../pages/admin/DocumentModel";
 import AdminDemandeurDemandes from "../pages/admin/Demandeur/components/DemandeurDemandes";
 import DemandeurDemandeModification from "../pages/demandeur/Demande/components/DemandeModification";
+import AdminNouvelleDemande from "@/pages/admin/Demande/nouvelleDemande";
+import AdminElecteurRecherche from "@/pages/admin/Demande/nouvelleDemande";
+import AdminCreerDemandeFromElecteur from "@/pages/admin/Demande/AdminCreerDemandeFromElecteur";
+import AdminTitresList from "@/pages/admin/titres/AdminTitresList";
+import AdminTitreForm from "@/pages/admin/titres/AdminTitreForm";
+import Unauthorized from "@/pages/auth/unauthorized";
+import AdminAuditLogs from "@/pages/admin/audit";
+import AdminAccountManagement from "@/pages/admin/users";
+import AdminDemandesPaginated from "@/pages/admin/Demande/AdminDemandesPaginated";
+import DemandeCreatePaginatedForMe from "@/pages/admin/Demande/DemandeCreateForMe";
+import DemandeurParcelles from "@/pages/admin/Demandeur/demandeurParcelle";
+import AdminHistoriqueValidation from "@/pages/admin/Configuration/HistoriqueValidation";
+import NiveauxValidation from "@/pages/admin/Configuration/NiveauValidation";
+import RequestList from "@/pages/admin/request/list-request";
+import RequestCreate from "@/pages/admin/request/create-request";
+import RequestEdit from "@/pages/admin/request/edit-request";
+import RequestDetails from "@/pages/admin/request/details-request";
+import RequestListElector from "@/pages/admin/request/list-elector";
+import RequestCreateElector from "@/pages/admin/request/create-request-elector";
+import ValidateRequest from "@/pages/admin/request/validate-request";
+import ElectorRequests from "@/pages/admin/request/elector-requests";
 
-
-
-const DemandeurDemandeDetails = lazy(() => import("@/pages/demandeur/Demande/components/DemandeDetails"));
+const DemandeurDemandeDetails = lazy(
+  () => import("@/pages/demandeur/Demande/components/DemandeDetails")
+);
 
 const DemandeurDocument = lazy(() => import("@/pages/demandeur/Document"));
 const DemandeurDemande = lazy(() => import("@/pages/demandeur/Demande"));
 
 // landing routes
-const NouvelleDemandePage = lazy(() => import("@/pages/landing/NouvelleDemande"));
+const NouvelleDemandePage = lazy(
+  () => import("@/pages/landing/NouvelleDemande")
+);
 // admin routes
-const Dashboard = lazy(() => import("@/pages/admin/Dashboard"));
+const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 // auth routes
 const SignIn = lazy(() => import("@/pages/auth/SignIn"));
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const Logout = lazy(() => import("@/pages/auth/Logout"));
+const AdminArticlePage = lazy(() => import("@/pages/admin/articles/index"));
 
+const AgentArticlePage = lazy(() => import("@/pages/agent/articles/index"));
 
 const agentRoutes = [
   {
@@ -93,96 +118,99 @@ const agentRoutes = [
     element: <DashboardAgent />,
   },
   {
-    path: '/agent/demandes',
-    element: <AgentDemandeListe />
+    path: "/agent/articles",
+    element: <AgentArticlePage />,
   },
   {
-    path: '/agent/demandes/:id/details',
-    element: <AgentDemandeDetails />
+    path: "/agent/demandes",
+    element: <AgentDemandeListe />,
   },
   {
-    path: '/agent/demandes/:id/confirmation',
-    element: <AgentDemandeConfirmation />
+    path: "/agent/demandes/:id/details",
+    element: <AgentDemandeDetails />,
+  },
+  {
+    path: "/agent/demandes/:id/confirmation",
+    element: <AgentDemandeConfirmation />,
   },
 
   {
-    path: '/agent/demandeur/:id/details',
-    element: <AgentDemandeurDetails />
+    path: "/agent/demandeur/:id/details",
+    element: <AgentDemandeurDetails />,
   },
   {
-    path: '/agent/demandeurs',
-    element: <AgentDemandeurListe />
+    path: "/agent/demandeurs",
+    element: <AgentDemandeurListe />,
   },
   {
-    path: '/agent/lotissements',
-    element: <AgentLotissementListe />
+    path: "/agent/lotissements",
+    element: <AgentLotissementListe />,
   },
   {
-    path: '/agent/lotissements/nouveau',
-    element: <AgentLotissementAjouter />
+    path: "/agent/lotissements/nouveau",
+    element: <AgentLotissementAjouter />,
   },
   {
-    path: '/agent/lotissements/:id/modification',
-    element: <AgentLotissementModifier />
+    path: "/agent/lotissements/:id/modification",
+    element: <AgentLotissementModifier />,
   },
   {
-    path: '/agent/lotissements/:id/details',
-    element: <AgentLotissementDetails />
+    path: "/agent/lotissements/:id/details",
+    element: <AgentLotissementDetails />,
   },
   {
-    path: '/agent/lotissements/:id/plans',
-    element: <AgentLotissementPlan />
+    path: "/agent/lotissements/:id/plans",
+    element: <AgentLotissementPlan />,
   },
   {
-    path: '/agent/lots',
-    element: <AgentLot />
+    path: "/agent/lots",
+    element: <AgentLot />,
   },
   {
-    path: '/agent/plans',
-    element: <AgentPlan />
+    path: "/agent/plans",
+    element: <AgentPlan />,
   },
   {
-    path: '/agent/parcelles',
-    element: <AgentParcelle />
+    path: "/agent/parcelles",
+    element: <AgentParcelle />,
   },
   {
-    path: '/agent/lotissements/:id/lots',
-    element: <AgentLotissementLot />
+    path: "/agent/lotissements/:id/lots",
+    element: <AgentLotissementLot />,
   },
   {
-    path: '/agent/localites',
-    element: <AgentLocaliteListe />
+    path: "/agent/localites",
+    element: <AgentLocaliteListe />,
   },
   {
-    path: '/agent/localites/:id/details',
-    element: <AgentLocaliteDetails />
+    path: "/agent/localites/:id/details",
+    element: <AgentLocaliteDetails />,
   },
   // {
   //   path: '/agent/localites/:id/lotissements',
   //   element: <AgentLocaliteLotissement />
   // },
   {
-    path: '/agent/localites/:id/lotissements/nouveau',
-    element: <AgentLocaliteLotissementAjouter />
+    path: "/agent/localites/:id/lotissements/nouveau",
+    element: <AgentLocaliteLotissementAjouter />,
   },
   {
-    path: '/agent/localites/nouvelle',
-    element: <AgentLocaliteAjouter />
+    path: "/agent/localites/nouvelle",
+    element: <AgentLocaliteAjouter />,
   },
   {
-    path: '/agent/localites/:id/modification',
-    element: <AgentLocaliteModifier />
+    path: "/agent/localites/:id/modification",
+    element: <AgentLocaliteModifier />,
   },
   {
-    path: '/agent/documents',
-    element: <AgentDocument />
+    path: "/agent/documents",
+    element: <AgentDocument />,
   },
   {
-    path: '/agent/profile',
-    element: <AgentProfile />
-  }
-
-]
+    path: "/agent/profile",
+    element: <AgentProfile />,
+  },
+];
 
 const demandeurRoutes = [
   {
@@ -203,20 +231,21 @@ const demandeurRoutes = [
   },
   {
     path: "/demandeur/nouveau-demande",
-    element: <DemandeNouveau />
+    element: <DemandeNouveau />,
   },
   {
     path: "/demandeur/nouvelle-demande",
     element: <NouvelleDemandePage />,
-  }, {
+  },
+  {
     path: "/demandeur/documents",
     element: <DemandeurDocument />,
   },
   {
     path: "/demandeur/profile",
     element: <DemandeurProfile />,
-  }
-]
+  },
+];
 
 const MairieRoutes = [
   {
@@ -228,13 +257,10 @@ const MairieRoutes = [
     element: <NouvelleDemandePage />,
   },
   {
-    path: '/inscription',
-    element: <InscriptionPage />
-  }
+    path: "/inscription",
+    element: <InscriptionPage />,
+  },
 ];
-
-
-
 
 const adminRoutes = [
   {
@@ -242,127 +268,200 @@ const adminRoutes = [
     element: <AdminDashboard />,
   },
   {
-    path: "/admin/maps",
-    element: <AdminMap />
+    path: "/admin/articles",
+    element: <AdminArticlePage />,
   },
   {
-    'path': '/admin/clients',
+    path: "/admin/maps",
+    element: <AdminMap />,
+  },
+  {
+    path: "/admin/clients",
     element: <AdminClient />,
   },
   {
-    'path': '/admin/clients/:id/details',
+    path: "/admin/clients/:id/details",
     element: <AdminClientDetail />,
   },
   {
-    'path': '/admin/configurations',
+    path: "/admin/configurations",
     element: <AdminConfiguration />,
   },
   {
-    'path': '/admin/profile',
+    path: "/admin/profile",
     element: <AdminProfil />,
   },
-
   {
-    'path': '/admin/comptes',
+    path: "/admin/comptes",
     element: <AdminCompte />,
   },
   {
-    path: '/admin/demandes',
-    element: <AdminDemandeListe />
+    path: "/admin/recherche-electeurs",
+    element: <AdminElecteurRecherche />,
   },
   {
-    path: '/admin/demandes/:id/details',
-    element: <AdminDemandeDetails />
+    path: "/admin/electeurs/creer-demande",
+    element: <AdminCreerDemandeFromElecteur />,
   },
   {
-    path: '/admin/demandes/:id/confirmation',
-    element: <AdminDemandeConfirmation />
-  },
-
-  {
-    path: '/admin/demandeur/:id/details',
-    element: <AdminDemandeurDetails />
+    path: "/admin/titres",
+    element: <AdminTitresList />,
   },
   {
-    path: '/admin/demandeurs',
-    element: <AdminDemandeurListe />
+    path: "/admin/titres/new",
+    element: <AdminTitreForm />,
   },
   {
-    path: '/admin/demandeur/:id/demandes',
-    element: <AdminDemandeurDemandes />
+    path: "/admin/titres/:id/edit",
+    element: <AdminTitreForm />,
   },
   {
-    path: '/admin/lotissements',
-    element: <AdminLotissementListe />
+    path: "/admin/demandeur/:id/details",
+    element: <AdminDemandeurDetails />,
   },
   {
-    path: '/admin/lotissements/nouveau',
-    element: <AdminLotissementAjouter />
+    path: "/admin/demandeurs",
+    element: <AdminDemandeurListe />,
   },
   {
-    path: '/admin/lotissements/:id/modification',
-    element: <AdminLotissementModifier />
+    path: "/admin/demandeur/:id/demandes",
+    element: <AdminDemandeurDemandes />,
   },
   {
-    path: '/admin/lotissements/:id/details',
-    element: <AdminLotissementDetails />
+    path: "/admin/demandeur/:userId/parcelles",
+    element: <DemandeurParcelles />,
   },
   {
-    path: '/admin/lotissements/:id/plans',
-    element: <AdminLotissementPlan />
+    path: "/admin/lotissements",
+    element: <AdminLotissementListe />,
   },
   {
-    path: '/admin/lots',
-    element: <AdminLot />
+    path: "/admin/lotissements/nouveau",
+    element: <AdminLotissementAjouter />,
   },
   {
-    path: '/admin/plans',
-    element: <AdminPlan />
+    path: "/admin/lotissements/:id/modification",
+    element: <AdminLotissementModifier />,
   },
   {
-    path: '/admin/parcelles',
-    element: <AdminParcelle />
+    path: "/admin/lotissements/:id/details",
+    element: <AdminLotissementDetails />,
   },
   {
-    path: '/admin/lotissements/:id/lots',
-    element: <AdminLotissementLot />
+    path: "/admin/lotissements/:id/plans",
+    element: <AdminLotissementPlan />,
   },
   {
-    path: '/admin/localites',
-    element: <AdminLocaliteListe />
+    path: "/admin/lots",
+    element: <AdminLot />,
   },
   {
-    path: '/admin/localites/:id/details',
-    element: <AdminLocaliteDetails />
+    path: "/admin/plans",
+    element: <AdminPlan />,
   },
   {
-    path: '/admin/localites/:id/lotissements',
-    element: <AdminLocaliteLotissement />
+    path: "/admin/parcelles",
+    element: <AdminParcelle />,
   },
   {
-    path: '/admin/localites/:id/lotissements/nouveau',
-    element: <AdminLocaliteLotissementAjouter />
+    path: "/admin/lotissements/:id/lots",
+    element: <AdminLotissementLot />,
   },
   {
-    path: '/admin/localites/nouvelle',
-    element: <AdminLocaliteAjouter />
+    path: "/admin/quartiers",
+    element: <AdminLocaliteListe />,
   },
   {
-    path: '/admin/localites/:id/modification',
-    element: <AdminLocaliteModifier />
+    path: "/admin/quartiers/:id/details",
+    element: <AdminLocaliteDetails />,
   },
   {
-    path: '/admin/documents',
-    element: <AdminDocument />
+    path: "/admin/quartiers/:id/lotissements",
+    element: <AdminLocaliteLotissement />,
   },
   {
-    path: '/admin/mailer',
-    element: <AdminMailer />
+    path: "/admin/quartiers/:id/lotissements/nouveau",
+    element: <AdminLocaliteLotissementAjouter />,
+  },
+  {
+    path: "/admin/quartiers/nouvelle",
+    element: <AdminLocaliteAjouter />,
+  },
+  {
+    path: "/admin/quartiers/:id/modification",
+    element: <AdminLocaliteModifier />,
+  },
+  {
+    path: "/admin/documents",
+    element: <AdminDocument />,
+  },
+  {
+    path: "/admin/mailer",
+    element: <AdminMailer />,
   },
   {
     path: "/admin/document-models",
     element: <AdminDocumentModel />,
-    requiredRole: "ROLE_SUPER_ADMIN"
+    requiredRole: "ROLE_SUPER_ADMIN",
+  },
+  {
+    path: "/admin/audits",
+    element: <AdminAuditLogs />,
+    requiredRole: "ROLE_SUPER_ADMIN",
+  },
+  {
+    path: "/admin/utilisateurs",
+    element: <AdminAccountManagement />,
+    requiredRole: "ROLE_SUPER_ADMIN",
+  },
+  //  {
+  //   path: "/admin/demandes",
+  //   element: <AdminDemandesPaginated />,
+  // },
+  // {
+  //   path: "/admin/demandes/:id/details",
+  //   element: <AdminDemandeDetails />,
+  // },
+  // {
+  //   path: "/admin/demandes/:id/confirmation",
+  //   element: <AdminDemandeConfirmation />,
+  // },
+  // {
+  //   path: "/admin/demande/nouvelle",
+  //   element: <DemandeCreatePaginatedForMe />,
+  // },
+  {
+    path: "/admin/historiques-validations",
+    element: <AdminHistoriqueValidation />
+  },
+  {
+    path: "/admin/niveaux-validations",
+    element: <NiveauxValidation />,
+  },
+
+
+  { path: "/admin/demandes", element: <RequestList /> },
+  { path: "/admin/demandes/nouveau", element: <RequestCreate /> },
+  { path: "/admin/demandes/:id/edit", element: <RequestEdit /> },
+  {
+    path: "/admin/demandes/:id/details",
+    element: <RequestDetails />,
+  },
+  {
+    path: "/admin/electeurs",
+    element: <RequestListElector />
+  },
+  {
+    path: "/admin/electeurs/:id/nouveau-demande",
+    element: <RequestCreateElector />,
+  },
+  {
+    path: "/admin/demandes/:id/validation", 
+    element: <ValidateRequest />
+  },
+  {
+    path : "/admin/electeurs/:electeurId/demandes",
+    element: <ElectorRequests />
   }
 ];
 
@@ -400,15 +499,19 @@ const authRoutes = [
     element: <Logout />,
   },
   {
+    path: "/unauthorized",
+    element: <Unauthorized />,
+  },
+  {
     path: "/activate",
-    element: <ActivatedAccount />
+    element: <ActivatedAccount />,
   },
   {
     path: "/invitation-institut",
-    element: <InvitationInstitut />
-  }
+    element: <InvitationInstitut />,
+  },
 
-  // 
+  //
 ];
 
 export { adminRoutes, demandeurRoutes, agentRoutes, authRoutes, MairieRoutes };

@@ -95,13 +95,13 @@ export default function AdminLocaliteDetails() {
 
     return (
         <>
-            <AdminBreadcrumb title="Détails de la Localité" />
+            <AdminBreadcrumb title="Détail du Quartié" />
             <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
                         <div className="grid grid-cols-1">
                             <Card>
-                                <Title level={4}>Détail de la Localité</Title>
+                                <Title level={4}>Détail du Quartié</Title>
 
                                 <Descriptions
                                     bordered
@@ -147,6 +147,7 @@ export default function AdminLocaliteDetails() {
                                     <div className="mt-6">
                                         <Title level={5}>Lotissements</Title>
                                         <Table
+                                            scroll={{ x: 'max-content' }}
                                             columns={lotissementColumns}
                                             dataSource={localite.lotissements}
                                             rowKey="id"

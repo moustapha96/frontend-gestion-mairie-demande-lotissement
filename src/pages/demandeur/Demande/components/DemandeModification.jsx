@@ -378,7 +378,7 @@ export default function DemandeurDemandeModification() {
                                         (rectoFile || versoFile) && (
                                             <div className="mt-8">
                                                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
-                                                <div className="grid gap-6 md:grid-cols-2">
+                                                <div className="grid gap-6 md:grid-cols-1">
                                                     {rectoFile && <FilePreview file={rectoFile} title="Recto du document" />}
                                                     {versoFile && <FilePreview file={versoFile} title="Verso du document" />}
                                                 </div>

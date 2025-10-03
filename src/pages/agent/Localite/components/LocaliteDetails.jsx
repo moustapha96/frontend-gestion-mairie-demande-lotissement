@@ -46,7 +46,7 @@
 
 //     return (
 //         <>
-//             <AgentBreadcrumb title="Détails de la Localité" />
+//             <AgentBreadcrumb title="Détail du Quartié" />
 //             <section>
 //                 <div className="container">
 //                     <div className="my-6 space-y-6">
@@ -54,7 +54,7 @@
 
 
 //                             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-//                                 <h1 className="text-2xl font-bold mb-4">Détail de la Localité</h1>
+//                                 <h1 className="text-2xl font-bold mb-4">Détail du Quartié</h1>
 
 //                             </div>
 //                             <LocaliteInfoCard localite={localite} />
@@ -293,13 +293,13 @@ export default function AgentLocaliteDetails() {
 
     return (
         <>
-            <AgentBreadcrumb title="Détails de la Localité" />
+            <AgentBreadcrumb title="Détail du Quartié" />
             <section>
                 <div className="container">
                     <div className="my-6 space-y-6">
                         <div className="grid grid-cols-1">
                             <Card>
-                                <Title level={4}>Détail de la Localité</Title>
+                                <Title level={4}>Détail du Quartié</Title>
 
                                 <Descriptions
                                     bordered
@@ -345,6 +345,7 @@ export default function AgentLocaliteDetails() {
                                     <div className="mt-6">
                                         <Title level={5}>Lotissements</Title>
                                         <Table
+                                            scroll={{ x: 'max-content' }}
                                             columns={lotissementColumns}
                                             dataSource={localite.lotissements}
                                             rowKey="id"

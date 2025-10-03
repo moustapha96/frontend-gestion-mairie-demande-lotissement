@@ -75,7 +75,7 @@ const AdminLotissementAjouter = () => {
                             </> : <>
                                 <div>
                                     <label htmlFor="localite" className="block text-sm font-medium text-gray-700  dark:text-white ">
-                                        Localité
+                                        Localité  <span className="text-red-500" >*</span> 
                                     </label>
                                     <select id="localite" value={localiteId} onChange={(e) => setLocaliteId(e.target.value)} required
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
@@ -93,7 +93,7 @@ const AdminLotissementAjouter = () => {
 
                             <div>
                                 <label htmlFor="nom" className="block text-sm font-medium text-gray-700 dark:text-white">
-                                    Nom
+                                    Nom <span className="text-red-500" >*</span> 
                                 </label>
                                 <input
                                     type="text"
@@ -113,7 +113,6 @@ const AdminLotissementAjouter = () => {
                                     id="localisation"
                                     value={localisation}
                                     onChange={(e) => setLocalisation(e.target.value)}
-                                    required
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                                 />
                             </div>
@@ -126,7 +125,6 @@ const AdminLotissementAjouter = () => {
                                     id="longitude"
                                     value={longitude}
                                     onChange={(e) => setLongitude(e.target.value)}
-                                    required
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                                 />
                             </div>
@@ -138,8 +136,7 @@ const AdminLotissementAjouter = () => {
                                     type="text"
                                     id="latitude"
                                     value={latitude}
-                                    onChange={(e) => setLatitude(e.target.value)}
-                                    required
+                                    onChange={(e) => setLatitude(e.target.value)} 
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                                 />
                             </div>
@@ -151,7 +148,6 @@ const AdminLotissementAjouter = () => {
                                     id="description"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    required
                                     rows={4}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                                 ></textarea>

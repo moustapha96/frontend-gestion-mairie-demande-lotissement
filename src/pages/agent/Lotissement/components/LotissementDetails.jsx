@@ -444,8 +444,10 @@ export default function AgentLotissementDetails() {
                                     <Space>
                                         {formatCoordinates(lotissement.latitude, lotissement.longitude)}
                                         <Tooltip title="Voir sur la carte">
+
                                             <Button
                                                 type="text"
+                                                className="bg-primary text-white"
                                                 icon={<EnvironmentOutlined />}
                                                 onClick={() => setShowMap(!showMap)}
                                             />
@@ -464,6 +466,7 @@ export default function AgentLotissementDetails() {
                                 <div className="mt-6">
                                     <Title level={5}>Informations des Lots</Title>
                                     <Table
+                                        scroll={{ x: 'max-content' }}
                                         columns={lotColumns}
                                         dataSource={lotissement.lots}
                                         rowKey="id"

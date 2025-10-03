@@ -1,375 +1,254 @@
-
-import React, { useState, useEffect } from "react";
-import { Table, Input, Card, Space, Button, Typography, Upload, Modal, Select, message } from "antd";
-import { SearchOutlined, FileExcelOutlined, FilePdfOutlined, DownloadOutlined, ImportOutlined, EyeOutlined, DeleteOutlined, FileTextFilled } from "@ant-design/icons";
+// src/pages/admin/AdminDemandesPaginated.jsx
+import { useEffect, useMemo, useState } from "react";
+import { Table, Input, Select, Tag, Typography, Space, Button } from "antd";
+import { SearchOutlined, ReloadOutlined, EyeOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { getDemandesPaginated } from "@/services/demandeService";
 import { AdminBreadcrumb } from "@/components";
-import { getDemandes, updateDemandeStatut, getFileDocument, importDemandes, deleteDemande, updateDemandeRefus } from "@/services/demandeService";
-import { useAuthContext } from "@/context";
-import { exportDemandesToCSV, exportDemandesToPDF } from "@/utils/export_demande";
-import { templateDemande } from "../../../utils/export_demandeur";
-import { cn } from "@/utils";
-import { sendSimpleMailRefus } from "@/services/mailerService";
-
 
 const { Title } = Typography;
 const { Option } = Select;
 
-const AdminDemandeListe = () => {
-  const { user } = useAuthContext();
-  const [demandes, setDemandes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchText, setSearchText] = useState("");
-  const [fileLoading, setFileLoading] = useState(false);
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [activeDocument, setActiveDocument] = useState(null);
-  const [importLoading, setImportLoading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [loadingDemande, setLoadingDemande] = useState(null);
+const statutColor = (s) => {
+  switch (s) {
+    case "En attente": return "orange";
+    case "En cours de traitement": return "gold";
+    case "Approuvée": return "green";
+    case "Rejetée": return "red";
+    default: return "default";
+  }
+};
 
-  // États pour le popup d'envoi d'email
-  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
-  const [selectedDemande, setSelectedDemande] = useState(null);
-  const [emailSubject, setEmailSubject] = useState("");
-  const [emailBody, setEmailBody] = useState("");
+export default function AdminDemandesPaginated() {
+  const [rows, setRows] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, size: 10, total: 0, pages: 0, sort: "id,DESC" });
+  const [loading, setLoading] = useState(false);
 
-  const fetchDemandes = async () => {
+  // Filtres/état UI
+  const [search, setSearch] = useState("");
+  const [statut, setStatut] = useState();
+  const [typeDemande, setTypeDemande] = useState();
+  const [typeDocument, setTypeDocument] = useState();
+
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
+  const [sorter, setSorter] = useState({ field: "id", order: "descend" });
+
+  const sortParam = useMemo(() => {
+    const fieldMap = {
+      id: "id",
+      dateCreation: "dateCreation",
+      dateModification: "dateModification",
+      typeDemande: "typeDemande",
+      statut: "statut",
+      superficie: "superficie",
+      demandeur: "demandeur",
+      localite: "localite",
+    };
+    const field = fieldMap[sorter.field] ?? "id";
+    const dir = sorter.order === "ascend" ? "ASC" : "DESC";
+    return `${field},${dir}`;
+  }, [sorter]);
+
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const data = await getDemandes();
-      setDemandes(data);
-    } catch (err) {
-      message.error(err.message);
-      setError(err.message);
+      const res = await getDemandesPaginated({
+        page, size,
+        sort: sortParam,
+        search: search || undefined,
+        statut: statut || undefined,
+        typeDemande: typeDemande || undefined,
+        typeDocument: typeDocument || undefined,
+        includeActor: true,
+      });
+      console.log(res);
+      setRows(res.data || []);
+      setMeta(res.meta || {});
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDemandes();
-  }, []);
-
-  // Modification de la fonction pour récupérer l'objet complet de la demande
-  const handleUpdateStatut = async (demande, nouveauStatut) => {
-    Modal.confirm({
-      title: "Confirmation",
-      okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } },
-      content: "Voulez-vous vraiment changer le statut de cette demande ?",
-      onOk: async () => {
-        try {
-          await updateDemandeStatut(demande.id, nouveauStatut);
-          const updatedDemandes = demandes.map((d) => {
-            if (d.id === demande.id) {
-              return { ...d, statut: nouveauStatut };
-            }
-            return d;
-          });
-          setDemandes(updatedDemandes);
-          message.success("Statut mis à jour avec succès");
-          // Si le nouveau statut est REJETE, on ouvre le popup pour envoyer un email
-          if (nouveauStatut === "REJETE") {
-            setSelectedDemande(demande);
-            setIsEmailModalVisible(true);
-          }
-        } catch (error) {
-          message.error("Erreur lors de la mise à jour du statut");
-        }
-      },
-    });
-  };
-
-  const handleImportFile = async (file) => {
-    try {
-      setImportLoading(true);
-      await importDemandes(file);
-      message.success("Demandes importées avec succès");
-      fetchDemandes();
-    } catch (error) {
-      message.error("Erreur lors de l'importation des demandes");
-    } finally {
-      setImportLoading(false);
-    }
-  };
-
-  const handleDelete = async (demandeId) => {
-    setDeleting(true);
-    setLoadingDemande(demandeId);
-    Modal.confirm({
-      title: "Confirmation",
-      okButtonProps: { style: { backgroundColor: "#28a745", borderColor: "#28a745" } },
-      cancelButtonProps: { style: { backgroundColor: "#dc3545", borderColor: "#dc3545", color: "#FFFFFF" } },
-      content: "Voulez-vous vraiment supprimer cette demande ?",
-      onOk: async () => {
-        try {
-          await deleteDemande(demandeId);
-          const updatedDemandes = demandes.filter((d) => d.id !== demandeId);
-          setDemandes(updatedDemandes);
-          message.success("Demande supprimée avec succès");
-        } catch (error) {
-          message.error("Erreur lors de la suppression de la demande");
-        } finally {
-          setDeleting(false);
-        }
-      },
-      onCancel: () => {
-        setDeleting(false);
-        setLoadingDemande(null);
-      },
-    });
-  };
-
-  // Fonction pour envoyer l'email
-  const handleSendEmail = async () => {
-    // Remplacez ici par votre logique d'envoi d'email (API, etc.)
-    try {
-      // Simuler l'envoi d'email
-      console.log("Email envoyé pour la demande :", selectedDemande);
-      console.log("Sujet :", emailSubject);
-      console.log("Message :", emailBody);
-      message.success("Email envoyé avec succès");
-      const resultat = await updateDemandeRefus(selectedDemande.id, emailBody);
-      console.log("Résultat de la mise à jour :", resultat);
-      const body = { sujet: emailSubject, email: selectedDemande.demandeur.email, message: emailBody };
-      console.log("Body :", body);
-      const response = await sendSimpleMailRefus(body);
-      console.log("Response :", response);
-      setEmailSubject("");
-      setEmailBody("");
-      setIsEmailModalVisible(false);
-    } catch (error) {
-      message.error("Erreur lors de l'envoi de l'email");
-    }
-  };
+  useEffect(() => { fetchData(); }, [page, size, sortParam]); // charge à chaque pagination/tri
+  // Bouton "Rechercher" déclenchera un refetch manuel
 
   const columns = [
     {
-      title: "Localité",
-      dataIndex: "localite",
-      key: "localite",
-      render: (_, record) =>
-        record.localite ? (
-          <Link to={`/admin/localites/${record.localite.id}/details`} className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1">
-            {record.localite.nom}
-          </Link>
-        ) : (
-          "N/A"
-        ),
-      sorter: (a, b) => a.localite?.nom.localeCompare(b.localite?.nom),
+      title: "Habitant",
+      dataIndex: "id",
+      key: "id",
+      sorter: true,
+      width: 90,
     },
     {
-      title: "Type de Demande",
+      title: "Type de demande",
       dataIndex: "typeDemande",
       key: "typeDemande",
+      sorter: true,
       filters: [
-        { text: "Permis d'occupation", value: "PERMIS_OCCUPATION" },
-        { text: "Proposition de bail", value: "PROPOSITION_BAIL" },
-        { text: "Bail communal", value: "BAIL_COMMUNAL" },
+        { text: "Attribution", value: "Attribution" },
+        { text: "Régularisation", value: "Régularisation" },
+        { text: "Authentification", value: "Authentification" },
       ],
-      onFilter: (value, record) => record.typeDemande === value,
+      onFilter: (val, record) => record.typeDemande === val,
     },
     {
-      title: "Demandeur",
-      key: "demandeur",
-      render: (_, record) =>
-        record.demandeur ? (
-          <Link to={`/admin/demandeur/${record.demandeur.id}/details`} className="text-primary hover:text-primary-light transition-colors duration-200 flex items-center gap-1">
-            {record.demandeur.nom} {record.demandeur.prenom}
-          </Link>
-        ) : (
-          "N/A"
-        ),
-      sorter: (a, b) => {
-        if (!a.demandeur || !b.demandeur) return 0;
-        return (a.demandeur.nom + a.demandeur.prenom).localeCompare(b.demandeur.nom + b.demandeur.prenom);
-      },
+      title: "Type document",
+      dataIndex: "typeDocument",
+      key: "typeDocument",
     },
     {
-      title: "Date demande",
-      key: "date_demande",
-      render: (_, record) => new Date(record.dateCreation).toLocaleDateString(),
+      title: "Superficie",
+      dataIndex: "superficie",
+      key: "superficie",
+      sorter: true,
+      width: 120,
+      render: (v) => v != null ? `${v} m²` : "-",
     },
     {
       title: "Statut",
       dataIndex: "statut",
       key: "statut",
-      render: (statut, record) => (
-        <Select
-          value={statut}
-          onChange={(value) => handleUpdateStatut(record, value)}
-          style={{ width: 120 }}
-          className={cn(
-            "text-sm border rounded-md py-1 px-2 focus:ring-2 focus:ring-opacity-50 focus:outline-none",
-            {
-              "bg-yellow-200 border border-yellow-200": statut === "EN_COURS",
-              "bg-yellow-100 text-yellow-800 border border-yellow-500": statut === "EN_TRAITEMENT",
-              "bg-green-100 text-green-800 border border-green-500": statut === "VALIDE",
-              "bg-red-100 text-red-800 border border-red-500": statut === "REJETE",
-            }
-          )}
-        >
-          <option value="EN_COURS">Soumission</option>
-          <option value="EN_TRAITEMENT">En traitement</option>
-          <option value="VALIDE">Validé</option>
-          <option value="REJETE">Rejeté</option>
-        </Select>
-      ),
-      filters: [
-        { text: "Soumission", value: "EN_COURS" },
-        { text: "En traitement", value: "EN_TRAITEMENT" },
-        { text: "Validée", value: "VALIDE" },
-        { text: "Rejetée", value: "REJETE" },
-      ],
-      onFilter: (value, record) => record.statut === value,
+      sorter: true,
+      render: (s) => <Tag color={statutColor(s)}>{s}</Tag>,
+      width: 180,
+    },
+    {
+      title: "Demandeur",
+      key: "demandeur",
+      sorter: true,
+      render: (_, r) =>
+        r.demandeur ? (
+          <Link to={`/admin/demandeur/${r.demandeur.id}/details`} className="text-primary">
+            {r.demandeur.nom} {r.demandeur.prenom} — {r.demandeur.email}
+          </Link>
+        ) : "—",
+    },
+    {
+      title: "Quartié",
+      key: "localite",
+      sorter: true,
+      render: (_, r) => r.localite?.nom || "—",
+      width: 180,
+    },
+    {
+      title: "Créé le",
+      dataIndex: "dateCreation",
+      key: "dateCreation",
+      sorter: true,
+      width: 160,
+      render: (d) => (d ? new Date(d).toLocaleString() : "—"),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_, record) => (
+      fixed: "right",
+      width: 110,
+      render: (_, r) => (
         <Space>
-          {record.statut === "VALIDE" && (
-            <Link to={`/admin/demandes/${record.id}/confirmation`} className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors duration-200">
-              <FileTextFilled className="w-4 h-4 mr-1" />
-              Générer document
-            </Link>
-          )}
-          <Link to={`/admin/demandes/${record.id}/details`}>
-            <Button className="bg-primary text-white" icon={<EyeOutlined />} title="Voir les détails">
-              Détails
-            </Button>
+          <Link to={`/admin/demandes/${r.id}/details`}>
+            <Button icon={<EyeOutlined />} />
           </Link>
-          {user.roles.includes("ROLE_SUPER_ADMIN") && (
-            <Button
-              className="text-red-500"
-              disabled={loadingDemande === record.id}
-              onClick={() => handleDelete(record.id)}
-              loading={loadingDemande === record.id}
-              color="red"
-              variant="filled"
-            >
-              <DeleteOutlined />
-            </Button>
-          )}
         </Space>
       ),
     },
   ];
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen text-red-500">
-        Erreur: {error}
+  return <>
+   <AdminBreadcrumb title="Liste des demandes" />
+           
+    <section className="container mx-auto px-4 py-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Title level={4} className="m-0">Demandes</Title>
+        <Space wrap>
+          <Input
+            allowClear
+            placeholder="Rechercher (type, usage, demandeur, localité...)"
+            prefix={<SearchOutlined />}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: 320 }}
+          />
+          <Select
+            allowClear
+            placeholder="Statut"
+            style={{ width: 180 }}
+            value={statut}
+            onChange={setStatut}
+          >
+            <Option value="En attente">En attente</Option>
+            <Option value="En cours de traitement">En cours de traitement</Option>
+            <Option value="Approuvée">Approuvée</Option>
+            <Option value="Rejetée">Rejetée</Option>
+          </Select>
+          <Select
+            allowClear
+            placeholder="Type de demande"
+            style={{ width: 200 }}
+            value={typeDemande}
+            onChange={setTypeDemande}
+          >
+            <Option value="Attribution">Attribution</Option>
+            <Option value="Régularisation">Régularisation</Option>
+            <Option value="Authentification">Authentification</Option>
+          </Select>
+          <Select
+            allowClear
+            placeholder="Type document"
+            style={{ width: 200 }}
+            value={typeDocument}
+            onChange={setTypeDocument}
+          >
+            <Option value="CNI">CNI</Option>
+            <Option value="Passeport">Passeport</Option>
+            <Option value="Autre">Autre</Option>
+          </Select>
+          <Button type="primary" onClick={() => { setPage(1); fetchData(); }}>
+            Rechercher
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={() => {
+            setSearch(""); setStatut(undefined); setTypeDemande(undefined); setTypeDocument(undefined);
+            setPage(1); setSize(10); setSorter({ field: "id", order: "descend" });
+            fetchData();
+          }}>
+            Réinitialiser
+          </Button>
+        </Space>
       </div>
-    );
-  }
 
-  return (
-    <>
-      <AdminBreadcrumb title="Liste des demandes" />
-      <section>
-        <div className="container">
-          <div className="my-6 space-y-6">
-            <div className="grid grid-cols-1">
-              <Card className="shadow-lg rounded-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <Title level={4}>Liste des Demandes</Title>
-                  <Space>
-                    <Upload
-                      accept=".xlsx"
-                      showUploadList={false}
-                      beforeUpload={(file) => {
-                        handleImportFile(file);
-                        return false;
-                      }}
-                    >
-                      <Button icon={<ImportOutlined />} loading={importLoading}>
-                        Importer EXCEL
-                      </Button>
-                    </Upload>
-                    <Button icon={<DownloadOutlined />} onClick={templateDemande}>
-                      Télécharger Template
-                    </Button>
-                    <Button icon={<FileExcelOutlined />} onClick={() => exportDemandesToCSV(demandes)}>
-                      Exporter CSV
-                    </Button>
-                    <Button icon={<FilePdfOutlined />} onClick={() => exportDemandesToPDF(demandes)}>
-                      Exporter PDF
-                    </Button>
-                  </Space>
-                </div>
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={rows}
+        scroll={{ x: 1100 }}
+        onChange={(pagination, filters, sorterArg) => {
+          // pagination
+          setPage(pagination.current || 1);
+          setSize(pagination.pageSize || 10);
 
-                <Input
-                  placeholder="Rechercher par type de demande ou demandeur..."
-                  prefix={<SearchOutlined />}
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  style={{ width: 300, marginBottom: 16 }}
-                />
-
-                <Table
-                  columns={columns}
-                  dataSource={demandes.filter(
-                    (item) =>
-                      item.typeDemande.toLowerCase().includes(searchText.toLowerCase()) ||
-                      item.demandeur?.nom.toLowerCase().includes(searchText.toLowerCase()) ||
-                      item.demandeur?.prenom.toLowerCase().includes(searchText.toLowerCase())
-                  )}
-                  rowKey="id"
-                  loading={loading}
-                  pagination={{
-                    defaultPageSize: 5,
-                    showSizeChanger: true,
-                    showTotal: (total) => `Total ${total} demandes`,
-                  }}
-                />
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Modal
-        title={`Document ${isViewerOpen ? "Recto/Verso" : ""}`}
-        visible={isViewerOpen}
-        onCancel={() => setIsViewerOpen(false)}
-        footer={null}
-        width={800}
-      >
-        {fileLoading ? (
-          <div className="flex justify-center items-center p-8">Chargement du document...</div>
-        ) : (
-          activeDocument && (
-            <div className="w-full">
-              <img src={activeDocument} alt="Document" className="w-full" />
-            </div>
-          )
-        )}
-      </Modal>
-
-      {/* Modal d'envoi d'email après refus */}
-      <Modal
-        title="Envoyer un email"
-        visible={isEmailModalVisible}
-        onCancel={() => setIsEmailModalVisible(false)}
-        onOk={handleSendEmail}
-        okButtonProps={{ style: { backgroundColor: "#28a745", borderColor: "#28a745" } }}
-        okText="Envoyer"
-      >
-        <Input
-          placeholder="Sujet"
-          value={emailSubject}
-          onChange={(e) => setEmailSubject(e.target.value)}
-          style={{ marginBottom: 16 }}
-        />
-        <Input.TextArea
-          placeholder="Message"
-          value={emailBody}
-          onChange={(e) => setEmailBody(e.target.value)}
-          rows={4}
-        />
-      </Modal>
-    </>
-  );
-};
-
-export default AdminDemandeListe;
+          // tri
+          let field = sorterArg.field;
+          let order = sorterArg.order;
+          if (!order) {
+            field = "id"; order = "descend";
+          }
+          setSorter({ field, order });
+        }}
+        pagination={{
+          current: meta.page || page,
+          pageSize: meta.size || size,
+          total: meta.total || 0,
+          showSizeChanger: true,
+          pageSizeOptions: ['5','10','20','50','100'],
+          showTotal: (t) => `Total ${t} demandes`,
+        }}
+      />
+    </section>
+  </>
+  
+}

@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { Link, useNavigate } from 'react-router-dom'
 
 import { AppContext } from "../../../AppContext";
+import { menuItems } from '@/assets/data'
 
 
 const inscriptionSchema = yup.object({
@@ -73,30 +74,30 @@ export default function InscriptionPage() {
             const response = await fetch(urlApi + "user/inscription", {
                 method: "POST",
                 headers: {
-                  "Content-Type": "application/json",
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data)
-              });
-              console.log(response)
-              if( response.status === 201 ){
+            });
+            console.log(response)
+            if (response.status === 201) {
                 toast.success("Inscription réussie")
                 reset()
                 navigate("/auth/sign-in")
-              }
-              if( response.status == 200 ){
+            }
+            if (response.status == 200) {
                 const data = await response.json()
                 toast.success(data.message)
                 // reset()
                 // navigate("/auth/sign-in")
-              }
-              if( response.status == 409 ){
+            }
+            if (response.status == 409) {
                 toast.error("Email déjà utilisé")
-              }
+            }
 
-              if( response.status === 400 ){
+            if (response.status === 400) {
                 console.log(response)
                 toast.error("Erreur lors de l'inscription")
-              }
+            }
 
             setLoading(false);
         } catch (error) {
@@ -110,8 +111,12 @@ export default function InscriptionPage() {
     return (
         <>
             <PageMetaData title="Inscription" />
-            <TopNavBar menuItems={["accueil", "services", "ressources"]} position="fixed" />
 
+            <TopNavBar
+                menuItems={menuItems}
+                hasDownloadButton
+                position="fixed"
+            />
             <section className="md:py-20 flex items-center justify-center relative overflow-hidden bg-cover bg-gradient-to-l from-primary/20 to-primary/20 via-primary/0">
                 <div className="container">
                     <ResponsiveAuthLayout title="Créer votre compte">

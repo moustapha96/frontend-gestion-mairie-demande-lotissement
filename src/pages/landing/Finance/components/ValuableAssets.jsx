@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"
 
 const ValuableAssets = () => {
   return (
-    <section id="ressources" className="py-10 lg:py-20">
+    <section id="resources" className="py-10 lg:py-20">
       <div className="container">
         <div className="flex items-end justify-center mb-10">
           <div className="max-w-2xl mx-auto text-center">

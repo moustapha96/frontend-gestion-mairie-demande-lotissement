@@ -49,7 +49,7 @@ const AgentLocaliteLotissementAjouter = () => {
             const res = await createLotissement(body);
             console.log(res)
             toast.success("Lotissement ajouté avec succès!");
-            navigate(`/admin/localites/${id}/details`)
+            navigate(`/admin/quartiers/${id}/details`)
         } catch (error) {
             console.error(error);
             toast.error("Erreur lors de l'ajout du lotissement");
@@ -71,7 +71,7 @@ const AgentLocaliteLotissementAjouter = () => {
                                 Localite :
                             </span>
                             <span className=" text-primary text-center ml-3 ">
-                                <Link to={`/admin/localites/${localite.id}/details`} >
+                                <Link to={`/admin/quartiers/${localite.id}/details`} >
                                     {localite.nom}
                                 </Link>
                             </span>

@@ -107,7 +107,7 @@ const DocumentListe = () => {
     <Card className="shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <Title level={4}>Liste des Documents</Title>
-        <Space>
+        <div className="flex flex-wrap gap-2">
           <Button
             icon={<FileExcelOutlined />}
             onClick={() => exportToCSV(documents)}
@@ -121,7 +121,7 @@ const DocumentListe = () => {
           >
             Exporter PDF
           </Button>
-        </Space>
+        </div>
       </div>
 
       <Input
@@ -148,6 +148,7 @@ const DocumentListe = () => {
           showSizeChanger: true,
           showTotal: (total) => `Total ${total} documents`,
         }}
+        scroll={{ x: 'max-content' }}
       />
 
       <Modal

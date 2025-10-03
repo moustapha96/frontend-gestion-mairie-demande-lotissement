@@ -390,6 +390,7 @@ const AgentDemandeurDetails = () => {
                     {demandeur.demandes && demandeur.demandes.length > 0 && (
                         <Card title="Demandes Associées" className="mt-8">
                             <Table
+                                scroll={{ x: 'max-content' }}
                                 columns={demandesColumns}
                                 dataSource={demandeur.demandes}
                                 rowKey="id"

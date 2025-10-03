@@ -226,6 +226,7 @@ const AgentDemandeurListe = () => {
                 />
 
                 <Table
+                  scroll={{ x: 'max-content' }}
                   columns={columns}
                   dataSource={demandeurs.filter(
                     (item) =>

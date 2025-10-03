@@ -123,7 +123,7 @@
 
 //     return (
 //         <>
-//             <AgentBreadcrumb title="Liste des Lots" />
+//             <AgentBreadcrumb title="Liste des iLots" />
 //             <section>
 //                 <div className="container">
 //                     <div className="my-6 space-y-6">
@@ -131,7 +131,7 @@
 
 
 //                             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-//                                 <h4 className="text-xl font-semibold text-gray-800 dark:text-white uppercase">Liste des Lots</h4>
+//                                 <h4 className="text-xl font-semibold text-gray-800 dark:text-white uppercase">Liste des iLots</h4>
 //                             </div>
 
 //                             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
@@ -165,7 +165,7 @@
 
 //                             <div className="flex items-center justify-end border-b gap-4 border-gray-200 px-6 py-4">
 //                                 <button onClick={() => handleOpenModal()} className="text-primary flex items-center gap-2">
-//                                     <LuPlusCircle /> Ajouter un Lot
+//                                     <LuPlusCircle /> Ajouter un iLot
 //                                 </button>
 //                             </div>
 
@@ -251,7 +251,7 @@
 //                     <div className="bg-white rounded-lg p-8 max-w-md w-full">
 //                         <div className="flex justify-between items-center mb-6">
 //                             <h3 className="text-lg font-semibold text-gray-900">
-//                                 {editingLot ? "Modifier le Lot" : "Ajouter un Lot"}
+//                                 {editingLot ? "Modifier le Lot" : "Ajouter un iLot"}
 //                             </h3>
 //                             <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-500">
 //                                 <LuX className="h-6 w-6" />
@@ -263,7 +263,7 @@
 //                         <form onSubmit={handleSubmit} className="space-y-4">
 //                             <div>
 //                                 <label htmlFor="numeroLot" className="block text-sm font-medium text-gray-700">
-//                                     Numéro du Lot
+//                                     Numéro du iLot
 //                                 </label>
 //                                 <input
 //                                     type="text"
@@ -520,7 +520,7 @@ const AgentLot = () => {
       key: "actions",
       render: (_, record) => (
         <Button
-         className="text-primary"
+          className="text-primary"
           icon={<EditOutlined />}
           onClick={() => showModal(record)}
         >
@@ -540,20 +540,20 @@ const AgentLot = () => {
 
   return (
     <>
-      <AgentBreadcrumb title="Liste des Lots" />
+      <AgentBreadcrumb title="Liste des iLots" />
       <section>
         <div className="container">
           <div className="my-6 space-y-6">
             <div className="grid grid-cols-1">
               <Card className="shadow-lg rounded-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <Title level={4}>Liste des Lots</Title>
+                  <Title level={4}>Liste des iLots</Title>
                   <Button
                     className="text-primary"
                     icon={<PlusOutlined />}
                     onClick={() => showModal()}
                   >
-                    Ajouter un Lot
+                    Ajouter un iLot
                   </Button>
                 </div>
 
@@ -580,6 +580,7 @@ const AgentLot = () => {
                 </div>
 
                 <Table
+                  scroll={{ x: 'max-content' }}
                   columns={columns}
                   dataSource={lots.filter((lot) =>
                     lot.numeroLot.toLowerCase().includes(searchText.toLowerCase())
@@ -599,7 +600,7 @@ const AgentLot = () => {
       </section>
 
       <Modal
-        title={editingLot ? "Modifier le lot" : "Ajouter un lot"}
+        title={editingLot ? "Modifier le lot" : "Ajouter un iLot"}
         open={isModalVisible}
         onCancel={handleCancel}
         footer={null}
@@ -619,10 +620,10 @@ const AgentLot = () => {
 
           <Form.Item
             name="numeroLot"
-            label="Numéro du lot"
-            rules={[{ required: true, message: "Le numéro du lot est requis" }]}
+            label="Numéro du iLot"
+            rules={[{ required: true, message: "Le Numéro du iLot est requis" }]}
           >
-            <Input placeholder="Entrez le numéro du lot" />
+            <Input placeholder="Entrez le Numéro du iLot" />
           </Form.Item>
 
           <Form.Item

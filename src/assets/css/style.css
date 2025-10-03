@@ -6,47 +6,294 @@ Email: support@coderthemes.com
 File: style.scss
 */
 
+
 /* Plugin Base css */
+
 @import "swiper/swiper-bundle.css";
+
 /* @import "glightbox/dist/css/glightbox.min.css"; */
 
+
 /* Custom css */
+
 @import "custom/_reboot.css";
 @import "custom/_swiper.css";
 @import "custom/_gallery.css";
 @import "custom/_apexcharts.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
-
 .custom-quill-editor .ql-editor {
     min-height: 200px;
     max-height: 300px;
-    overflow-y: auto;  
-}
-/* .marker-lotissement,
-.marker-lot {
-  cursor: pointer;
-  transition: transform 0.2s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    overflow-y: auto;
 }
 
-.marker-lotissement:hover,
-.marker-lot:hover {
-  transform: scale(1.2);
+
+/* styles.css */
+
+:root {
+    --ant-primary-color: #e28743 --ant-orange-color: #e28743;
+    --ant-primary-color-hover: #e28743;
+    --ant-blue-color: #2D7DBA;
+    --color-blue: #2D7DBA;
+    --color-orange: #e28743;
 }
 
-.marker-lotissement img {
-  border: 2px solid #4a90e2;
-  border-radius: 50%;
+h1,
+h2,
+h3 {
+    margin-bottom: 1em;
+    color: var(--ant-blue-color);
 }
 
-.marker-lot img {
-  border: 2px solid #e24a4a;
-  border-radius: 50%;
-} */
+
+/* Override Ant Design styles to match the design */
+
+.ant-btn-primary {
+    background-color: var(--ant-primary-color) !important;
+    color: white !important
+}
+
+.ant-btn-primary:hover {
+    background-color: var(--ant-blue-color) !important;
+}
+
+.ant-menu-horizontal {
+    border-bottom: none !important;
+}
+
+.ant-menu-item:hover {
+    color: var(--ant-primary-color) !important;
+}
+
+.ant-menu-item-selected {
+    color: var(--ant-primary-color) !important;
+}
+
+.ant-menu-item-active {
+    color: var(--ant-primary-color) !important;
+}
+
+
+/* Animation for cards */
+
+.ant-card {
+    transition: transform 0.3s ease;
+}
+
+.ant-card:hover {
+    transform: translateY(-5px);
+}
+
+.bg-blueLogo:hover {
+    background-color: var(--ant-blue-color) !important;
+}
+
+.ant-text-primary {
+    color: var(--ant-primary-color) !important;
+}
+
+.ant-text-bleu {
+    color: var(--ant-blue-color) !important;
+}
+
+.ant-text-bleu:hover {
+    color: var(--ant-primary-color) !important;
+}
+
+.ant-text-orange {
+    color: var(--ant-primary-color) !important;
+}
+
+.ant-text-orange {
+    color: var(--ant-blue-color) !important;
+}
+
+.ant-blue {
+    color: var(--ant-blue-color) !important;
+}
+
+.ant-orange {
+    color: var(--ant-primary-color) !important;
+}
+
+.ant-btn-primary {
+    background-color: var(--ant-primary-color-hover) !important;
+}
+
+.ant-btn-primary:hover {
+    background-color: var(--ant-blue-color) !important;
+    color: white !important;
+}
+
+.ant-btn-simple {
+    color: black !important;
+    background-color: white !important;
+}
+
+.ant-btn-simple:hover {
+    background-color: #f0f0f0 !important;
+    color: black !important;
+}
+
+
+/* dans ton fichier CSS global ou module */
+
+.container-form {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.layout-specing::-webkit-scrollbar {
+    width: 8px;
+}
+
+.layout-specing::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.layout-specing::-webkit-scrollbar-thumb {
+    background: #e28743;
+    border-radius: 4px;
+}
+
+.layout-specing::-webkit-scrollbar-thumb:hover {
+    background: #c67139;
+}
+
+
+/* Pour Firefox */
+
+.layout-specing {
+    scrollbar-width: thin;
+    scrollbar-color: #e28743 #f1f1f1;
+}
+
+
+/* Dans votre fichier CSS global */
+
+.custom-switch-activated .ant-switch-handle {
+    background-color: #52c41a !important;
+}
+
+.custom-switch-activated.ant-switch-checked {
+    background-color: #52c41a !important;
+}
+
+.custom-switch-deactivated .ant-switch-handle {
+    background-color: #ff4d4f !important;
+}
+
+.custom-switch-deactivated:not(.ant-switch-checked) {
+    background-color: #ff4d4f !important;
+}
+
+.custom-scrollbar {
+    scrollbar-gutter: stable both-edges;
+    -webkit-overflow-scrolling: touch;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+@supports (scrollbar-color: auto) {
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.05);
+    }
+}
+
+
+/* src/pages/admin/admin-switches.css */
+
+
+/* ===== Switch ACTIVATED: vert quand checked, rouge sinon ===== */
+
+.status-switch.ant-switch {
+    background-color: #ef4444;
+    /* rouge (unchecked) */
+    box-shadow: none;
+}
+
+.status-switch.ant-switch:hover {
+    background-color: #dc2626;
+    /* rouge hover */
+}
+
+.status-switch.ant-switch-checked {
+    background-color: #10b981 !important;
+    /* vert (checked) */
+}
+
+.status-switch.ant-switch-checked:hover {
+    background-color: #059669 !important;
+    /* vert hover */
+}
+
+
+/* focus ring plus discret */
+
+.status-switch.ant-switch:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+}
+
+.status-switch.ant-switch-checked:focus-visible {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+}
+
+
+/* désactivé */
+
+.status-switch.ant-switch-disabled {
+    opacity: .6;
+}
+
+
+/* ===== Switch ENABLED: orange quand checked, gris sinon ===== */
+
+.enabled-switch.ant-switch {
+    background-color: #9ca3af;
+    /* gris (unchecked) */
+}
+
+.enabled-switch.ant-switch:hover {
+    background-color: #6b7280;
+}
+
+.enabled-switch.ant-switch-checked {
+    background-color: #f59e0b !important;
+    /* orange (checked) */
+}
+
+.enabled-switch.ant-switch-checked:hover {
+    background-color: #d97706 !important;
+}
+
+.enabled-switch.ant-switch:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
+}
+
+.enabled-switch.ant-switch-disabled {
+    opacity: .6;
+}

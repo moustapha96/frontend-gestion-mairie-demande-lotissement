@@ -178,6 +178,7 @@ const AdminDocumentModel = () => {
               <Card className="shadow-lg rounded-lg">
                 <Table
                   columns={columns}
+                  scroll={{ x: 'max-content' }}
                   dataSource={models}
                   loading={loading}
                   rowKey="id"

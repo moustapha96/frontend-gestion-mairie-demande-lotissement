@@ -473,12 +473,18 @@ const AgentParcelle = () => {
             title: "Coordonnées",
             key: "coordinates",
             render: (_, record) => (
+                // <Button
+                //     icon={<EnvironmentOutlined />}
+                //     onClick={() => showMapModal(record)}
+                // >
+                //     Voir sur la carte
+                // </Button>
                 <Button
+                    type="text"
+                    className="bg-primary text-white"
                     icon={<EnvironmentOutlined />}
                     onClick={() => showMapModal(record)}
-                >
-                    Voir sur la carte
-                </Button>
+                />
             )
         },
         {
@@ -575,6 +581,7 @@ const AgentParcelle = () => {
                     </div>
 
                     <Table
+                        scroll={{ x: 'max-content' }}
                         columns={columns}
                         dataSource={filteredParcelles}
                         rowKey="id"

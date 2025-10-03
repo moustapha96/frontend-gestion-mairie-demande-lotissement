@@ -1,103 +1,367 @@
 
 
-"use client"
+// "use client"
 
-import { useState, useEffect } from "react"
-import { Table, Input, Card, Space, Button, Typography, Upload, Modal, Select, message, Popover } from "antd";
-import { SearchOutlined, EyeOutlined, InfoCircleOutlined, FileExcelOutlined, FilePdfFilled } from "@ant-design/icons"
-import { Link } from "react-router-dom"
-import { AdminBreadcrumb } from "@/components"
-import { getDemandeurListe, getDetaitHabitant } from "@/services/userService"
-import { formatPhoneNumber } from "@/utils/formatters"
-import { exportDemandeurHabitantToCSV, exportDemandeurNonHabitantToCSV, exportDemandeurToPDF } from "@/utils/export_demandeur";
+// import { useState, useEffect } from "react"
+// import { Table, Input, Card, Space, Button, Typography, Upload, Modal, Select, message, Popover } from "antd";
+// import { SearchOutlined, EyeOutlined, InfoCircleOutlined, FileExcelOutlined, FilePdfFilled } from "@ant-design/icons"
+// import { Link } from "react-router-dom"
+// import { AdminBreadcrumb } from "@/components"
+// import { getDemandeurListe, getDemandeurs, getDetaitHabitant } from "@/services/userService"
+// import { formatPhoneNumber } from "@/utils/formatters"
+// import { exportDemandeurHabitantToCSV, exportDemandeurNonHabitantToCSV, exportDemandeurToPDF } from "@/utils/export_demandeur";
 
-const { Title } = Typography
+// const { Title } = Typography
+
+// const AdminDemandeurListe = () => {
+//   const [demandeurs, setDemandeurs] = useState([])
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState(null)
+//   const [searchText, setSearchText] = useState("")
+//   const [habitantData, setHabitantData] = useState({})
+//   const [loadingHabitant, setLoadingHabitant] = useState({})
+
+//   useEffect(() => {
+//     const fetchDemandeurs = async () => {
+//       try {
+//         const data = await getDemandeurs()
+//         console.log("demandeur", data)
+//         const filteredDemandeurs = data.filter((demandeur) => demandeur.demandes > 0);
+//         setDemandeurs(filteredDemandeurs)
+//       } catch (err) {
+//         setError(err.message)
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+//     fetchDemandeurs()
+//   }, [])
+
+//   const fetchHabitantInfo = async (userId) => {
+//     if (habitantData[userId]) return // Already fetched
+
+//     setLoadingHabitant((prev) => ({ ...prev, [userId]: true }))
+
+//     try {
+//       const habitantInfo = await getDetaitHabitant(userId)
+//       console.log("habitante", habitantInfo)
+//       setHabitantData((prev) => ({ ...prev, [userId]: habitantInfo }))
+//     } catch (error) {
+//       console.error("Erreur lors de la récupération des informations du habitant:", error)
+//     } finally {
+//       setLoadingHabitant((prev) => ({ ...prev, [userId]: false }))
+//     }
+//   }
+
+//   const renderHabitantContent = (userId) => {
+//     const data = habitantData[userId]
+
+//     if (!data) {
+//       return <div>Chargement des informations...</div>
+//     }
+
+//     return (
+//       <div className="max-w-3xl">
+//         <div className="grid grid-cols-3 gap-2">
+//           {Object.entries(data).map(([key, value]) => (
+//             <div key={key} className="border-b pb-1">
+//               <strong>{key}:</strong> {value || "-"}
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   const columns = [
+//     {
+//       title: "Prénom",
+//       dataIndex: "prenom",
+//       key: "prenom",
+//       sorter: (a, b) => a.prenom.localeCompare(b.prenom),
+//     },
+//     {
+//       title: "Nom",
+//       dataIndex: "nom",
+//       key: "nom",
+//       sorter: (a, b) => a.nom.localeCompare(b.nom),
+//     },
+//     {
+//       title: "Email",
+//       dataIndex: "email",
+//       key: "email",
+//       sorter: (a, b) => a.email.localeCompare(b.email),
+//     },
+//     {
+//       title: "Téléphone",
+//       dataIndex: "telephone",
+//       key: "telephone",
+//       render: (telephone) => formatPhoneNumber(telephone),
+//     },
+//     {
+//       title: "Habitant",
+//       dataIndex: "isHabitant",
+//       key: "isHabitant",
+//       render: (isHabitant, record) => {
+//         if (!isHabitant) return "Non"
+
+//         return (
+
+//           <div className="flex flex-wrap gap-2">
+//             <span>Oui</span>
+//             <Popover
+//               content={renderHabitantContent(record.id)}
+//               title="Informations détaillées"
+//               trigger="click"
+//               placement="right"
+//               overlayStyle={{ maxWidth: "800px" }}
+//               onVisibleChange={(visible) => {
+//                 if (visible) {
+//                   fetchHabitantInfo(record.id)
+//                 }
+//               }}
+//             >
+//               <Button
+//                 type="text"
+//                 icon={<InfoCircleOutlined />}
+//                 className="text-primary"
+//                 loading={loadingHabitant[record.id]}
+//               />
+//             </Popover>
+//           </div>
+
+//         )
+//       },
+//       filters: [
+//         { text: "Oui", value: true },
+//         { text: "Non", value: false },
+//       ],
+//       onFilter: (value, record) => record.isHabitant === value,
+//     },
+//     {
+//       title: "Demandes",
+//       dataIndex: "demandes",
+//       key: "demandes",
+//       render: (_, record) => {
+//         return (
+//           <Link to={`/admin/demandeur/${record.id}/demandes`}>
+//             <Button className="text-primary" icon={<EyeOutlined />}>
+//               {record.demandes}
+//             </Button>
+//           </Link>
+//         )
+//       },
+//     },
+//      {
+//       title: "Parcelles",
+//       dataIndex: "parcelles",
+//       key: "parcelles",
+//       render: (_, record) => {
+//         return (
+//           <Link to={`/admin/demandeur/${record.id}/parcelles`}>
+//             <Button className="text-primary" icon={<EyeOutlined />}>
+//               {record.parcelles || 0}
+//             </Button>
+//           </Link>
+//         )
+//       },
+//     },
+//     {
+//       title: "Actions",
+//       key: "actions",
+//       render: (_, record) => (
+//         <>
+//           <Link to={`/admin/demandeur/${record.id}/details`}>
+//             <Button className="text-primary" icon={<EyeOutlined />}>
+//               Détails
+//             </Button>
+//           </Link>
+//         </>
+//       ),
+//     },
+//   ]
+
+//   if (error) {
+//     return <div className="flex justify-center items-center h-screen text-red-500">Erreur: {error}</div>
+//   }
+
+//   return (
+//     <>
+//       <AdminBreadcrumb title="Liste des demandeurs" />
+//       <section>
+//         <div className="container">
+//           <div className="my-6 space-y-6">
+//             <div className="grid grid-cols-1">
+//               <Card className="shadow-lg rounded-lg">
+//                 <div className="flex justify-between items-center mb-4">
+//                   <Title level={4}>Liste des Demandeurs</Title>
+
+
+//                   <div className="flex flex-wrap gap-2">
+
+
+//                     <Button
+//                       icon={<FileExcelOutlined />}
+//                       onClick={() => exportDemandeurNonHabitantToCSV(demandeurs)}
+//                     >
+//                       Exporter Non Habitants
+//                     </Button>
+
+
+//                     <Button
+//                       icon={<FileExcelOutlined />}
+//                       onClick={() => exportDemandeurHabitantToCSV(demandeurs)}
+//                     >
+//                       Exporter Habitants
+//                     </Button>
+
+
+//                     <Button
+//                       icon={<FilePdfFilled />}
+//                       onClick={() => exportDemandeurToPDF(demandeurs)}
+//                     >
+//                       Exporter Habitants
+//                     </Button>
+
+//                   </div>
+//                 </div>
+
+//                 <Input
+//                   placeholder="Rechercher par nom, prénom ou email..."
+//                   prefix={<SearchOutlined />}
+//                   value={searchText}
+//                   onChange={(e) => setSearchText(e.target.value)}
+//                   style={{ width: 300, marginBottom: 16 }}
+//                 />
+
+//                 <Table
+//                   columns={columns}
+//                   dataSource={demandeurs.filter(
+//                     (item) =>
+//                       item.nom.toLowerCase().includes(searchText.toLowerCase()) ||
+//                       item.prenom.toLowerCase().includes(searchText.toLowerCase()) ||
+//                       item.email.toLowerCase().includes(searchText.toLowerCase()),
+//                   )}
+//                   rowKey="id"
+//                   loading={loading}
+//                   scroll={{ x: 'max-content' }}
+//                   pagination={{
+//                     defaultPageSize: 5,
+//                     showSizeChanger: true,
+//                     showTotal: (total) => `Total ${total} demandeurs`,
+//                   }}
+//                 />
+//               </Card>
+//             </div>
+//           </div>
+//         </div>
+//       </section>
+//     </>
+//   )
+// }
+
+// export default AdminDemandeurListe
+
+
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Table,
+  Input,
+  Card,
+  Button,
+  Typography,
+  Popover,
+  message,
+} from "antd";
+import {
+  SearchOutlined,
+  EyeOutlined,
+  InfoCircleOutlined,
+  FileExcelOutlined,
+  FilePdfFilled,
+} from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import { AdminBreadcrumb } from "@/components";
+import { getDemandeurs, getDetaitHabitant } from "@/services/userService";
+import { formatPhoneNumber } from "@/utils/formatters";
+import {
+  exportDemandeurHabitantToCSV,
+  exportDemandeurNonHabitantToCSV,
+  exportDemandeurToPDF,
+} from "@/utils/export_demandeur";
+
+const { Title } = Typography;
 
 const AdminDemandeurListe = () => {
-  const [demandeurs, setDemandeurs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [searchText, setSearchText] = useState("")
-  const [habitantData, setHabitantData] = useState({})
-  const [loadingHabitant, setLoadingHabitant] = useState({})
+  const [demandeurs, setDemandeurs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [habitantData, setHabitantData] = useState({});
+  const [loadingHabitant, setLoadingHabitant] = useState({});
 
   useEffect(() => {
-    const fetchDemandeurs = async () => {
+    (async () => {
       try {
-        const data = await getDemandeurListe()
-        console.log("demandeur", data)
-        const filteredDemandeurs = data.filter((demandeur) => demandeur.roles.includes("ROLE_DEMANDEUR"));
-        setDemandeurs(filteredDemandeurs)
+        const data = await getDemandeurs({ minDemandes: 1 });
+        console.log(data)
+        setDemandeurs(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message)
+        message.error(err?.message || "Erreur lors du chargement des demandeurs.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchDemandeurs()
-  }, [])
+    })();
+  }, []);
 
   const fetchHabitantInfo = async (userId) => {
-    if (habitantData[userId]) return // Already fetched
-
-    setLoadingHabitant((prev) => ({ ...prev, [userId]: true }))
-
+    if (habitantData[userId]) return; // déjà en cache
+    setLoadingHabitant((prev) => ({ ...prev, [userId]: true }));
     try {
-      const habitantInfo = await getDetaitHabitant(userId)
-      console.log("habitante", habitantInfo)
-      setHabitantData((prev) => ({ ...prev, [userId]: habitantInfo }))
-    } catch (error) {
-      console.error("Erreur lors de la récupération des informations du habitant:", error)
+      const details = await getDetaitHabitant(userId);
+      setHabitantData((prev) => ({ ...prev, [userId]: details }));
+    } catch (e) {
+      message.error("Impossible de récupérer les infos habitant.");
     } finally {
-      setLoadingHabitant((prev) => ({ ...prev, [userId]: false }))
+      setLoadingHabitant((prev) => ({ ...prev, [userId]: false }));
     }
-  }
+  };
 
   const renderHabitantContent = (userId) => {
-    const data = habitantData[userId]
-
-    if (!data) {
-      return <div>Chargement des informations...</div>
-    }
-
+    const data = habitantData[userId];
+    if (!data) return <div>Chargement des informations...</div>;
     return (
       <div className="max-w-3xl">
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(data).map(([key, value]) => (
             <div key={key} className="border-b pb-1">
-              <strong>{key}:</strong> {value || "-"}
+              <strong>{key}:</strong> {String(value ?? "-")}
             </div>
           ))}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const columns = [
     {
-      title: "#",
-      dataIndex: "id",
-      key: "id",
-      width: 80,
-      render: (id) => `#${id}`,
+      title: "Prénom",
+      dataIndex: "prenom",
+      key: "prenom",
+      sorter: (a, b) => String(a.prenom || "").localeCompare(String(b.prenom || "")),
     },
     {
       title: "Nom",
       dataIndex: "nom",
       key: "nom",
-      sorter: (a, b) => a.nom.localeCompare(b.nom),
-    },
-    {
-      title: "Prénom",
-      dataIndex: "prenom",
-      key: "prenom",
-      sorter: (a, b) => a.prenom.localeCompare(b.prenom),
+      sorter: (a, b) => String(a.nom || "").localeCompare(String(b.nom || "")),
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
-      sorter: (a, b) => a.email.localeCompare(b.email),
+      sorter: (a, b) => String(a.email || "").localeCompare(String(b.email || "")),
     },
     {
       title: "Téléphone",
@@ -110,32 +374,29 @@ const AdminDemandeurListe = () => {
       dataIndex: "isHabitant",
       key: "isHabitant",
       render: (isHabitant, record) => {
-        if (!isHabitant) return "Non"
-
+        if (!isHabitant) return "Non";
         return (
-          <Space>
+          <div className="flex flex-wrap gap-2">
             <span>Oui</span>
             <Popover
               content={renderHabitantContent(record.id)}
               title="Informations détaillées"
               trigger="click"
               placement="right"
-              overlayStyle={{ maxWidth: "800px" }}
-              onVisibleChange={(visible) => {
-                if (visible) {
-                  fetchHabitantInfo(record.id)
-                }
+              overlayStyle={{ maxWidth: 800 }}
+              onOpenChange={(open) => {
+                if (open) fetchHabitantInfo(record.id);
               }}
             >
               <Button
                 type="text"
                 icon={<InfoCircleOutlined />}
                 className="text-primary"
-                loading={loadingHabitant[record.id]}
+                loading={!!loadingHabitant[record.id]}
               />
             </Popover>
-          </Space>
-        )
+          </div>
+        );
       },
       filters: [
         { text: "Oui", value: true },
@@ -147,34 +408,48 @@ const AdminDemandeurListe = () => {
       title: "Demandes",
       dataIndex: "demandes",
       key: "demandes",
-      render: (_, record) => {
-        return (
-          <Link to={`/admin/demandeur/${record.id}/demandes`}>
-            <Button className="text-primary" icon={<EyeOutlined />}>
-              {record.demandes}
-            </Button>
-          </Link>
-        )
-      },
+      render: (_, record) => (
+        <Link to={`/admin/demandeur/${record.id}/demandes`}>
+          <Button className="text-primary" icon={<EyeOutlined />}>
+            {record.demandes ?? 0}
+          </Button>
+        </Link>
+      ),
+    },
+    {
+      title: "Parcelles",
+      dataIndex: "parcelles",
+      key: "parcelles",
+      render: (_, record) => (
+        <Link to={`/admin/demandeur/${record.id}/parcelles`}>
+          <Button className="text-primary" icon={<EyeOutlined />}>
+            {record.parcelles ?? 0}
+          </Button>
+        </Link>
+      ),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <>
-          <Link to={`/admin/demandeur/${record.id}/details`}>
-            <Button className="text-primary" icon={<EyeOutlined />}>
-              Détails
-            </Button>
-          </Link>
-        </>
+        <Link to={`/admin/demandeur/${record.id}/details`}>
+          <Button className="text-primary" icon={<EyeOutlined />}>
+            Détails
+          </Button>
+        </Link>
       ),
     },
-  ]
+  ];
 
-  if (error) {
-    return <div className="flex justify-center items-center h-screen text-red-500">Erreur: {error}</div>
-  }
+  const filtered = demandeurs.filter((u) => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      String(u.nom || "").toLowerCase().includes(q) ||
+      String(u.prenom || "").toLowerCase().includes(q) ||
+      String(u.email || "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <>
@@ -186,35 +461,26 @@ const AdminDemandeurListe = () => {
               <Card className="shadow-lg rounded-lg">
                 <div className="flex justify-between items-center mb-4">
                   <Title level={4}>Liste des Demandeurs</Title>
-
-
-                  <Space>
-
-
-                    <Button
+                  <div className="flex flex-wrap gap-2">
+                    {/* <Button
                       icon={<FileExcelOutlined />}
                       onClick={() => exportDemandeurNonHabitantToCSV(demandeurs)}
                     >
                       Exporter Non Habitants
-                    </Button>
-
-
-                    <Button
+                    </Button> */}
+                    {/* <Button
                       icon={<FileExcelOutlined />}
                       onClick={() => exportDemandeurHabitantToCSV(demandeurs)}
                     >
                       Exporter Habitants
-                    </Button>
-
-
-                    <Button
+                    </Button> */}
+                    {/* <Button
                       icon={<FilePdfFilled />}
                       onClick={() => exportDemandeurToPDF(demandeurs)}
                     >
-                      Exporter Habitants
-                    </Button>
-
-                  </Space>
+                      Exporter PDF
+                    </Button> */}
+                  </div>
                 </div>
 
                 <Input
@@ -222,23 +488,20 @@ const AdminDemandeurListe = () => {
                   prefix={<SearchOutlined />}
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                  style={{ width: 300, marginBottom: 16 }}
+                  style={{ width: 320, marginBottom: 16 }}
+                  allowClear
                 />
 
                 <Table
                   columns={columns}
-                  dataSource={demandeurs.filter(
-                    (item) =>
-                      item.nom.toLowerCase().includes(searchText.toLowerCase()) ||
-                      item.prenom.toLowerCase().includes(searchText.toLowerCase()) ||
-                      item.email.toLowerCase().includes(searchText.toLowerCase()),
-                  )}
+                  dataSource={filtered}
                   rowKey="id"
                   loading={loading}
+                  scroll={{ x: "max-content" }}
                   pagination={{
-                    defaultPageSize: 5,
+                    defaultPageSize: 10,
                     showSizeChanger: true,
-                    showTotal: (total) => `Total ${total} demandeurs`,
+                    showTotal: (t) => `Total ${t} demandeurs`,
                   }}
                 />
               </Card>
@@ -247,8 +510,7 @@ const AdminDemandeurListe = () => {
         </div>
       </section>
     </>
-  )
-}
+  );
+};
 
-export default AdminDemandeurListe
-
+export default AdminDemandeurListe;

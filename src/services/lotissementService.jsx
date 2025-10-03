@@ -18,7 +18,7 @@ export async function getLotissementDetails(id) {
         const response = await HttpClient.get(`${urlApi}lotissement/${id}/details`);
         return response.data;
     } catch (error) {
-        console.error('Erreur lors de la récupération des détails de la localité:', error);
+        console.error('Erreur lors de la récupération des Détail du Quartié:', error);
         throw error;
     }
 }
@@ -76,3 +76,13 @@ export async function updateLotissementStatut(id, statut) {
     }
 }
 
+
+export async function deleteLotissement(id) {
+    try {
+        const response = await HttpClient.delete(`${urlApi}lotissement/${id}/delete`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la localité:', error);
+        throw error;
+    }
+}   
