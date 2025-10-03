@@ -47,6 +47,12 @@ const SITUATION_OPTIONS = [
   { value: "Divorcé(e)", label: "Divorcé(e)" },
 ]
 
+const SITUATION_DEMANDEUR_OPTIONS = [
+  { value: "Propriétaire", label: "Propriétaire" },
+  { value: "Locataire", label: "Locataire" },
+  { value: "Hébergé(e)", label: "Hébergé(e)" },
+]
+
 const AdminConfiguration = () => {
   const { user } = useAuthContext()
   const screens = useBreakpoint() // { xs, sm, md, lg, xl, xxl }
@@ -158,6 +164,9 @@ const AdminConfiguration = () => {
         situationMatrimoniale: values.situationMatrimoniale || null,
         nombreEnfant: typeof values.nombreEnfant === "number" ? values.nombreEnfant : null,
         isHabitant: !!values.isHabitant,
+        profession : values.profession || null,
+        roles: values.role || "ROLE_ADMIN",
+        situationDemandeur: values.situationDemandeur || null
       }
       await createAdminUser(formattedValues)
       toast.success("Administrateur créé avec succès")
@@ -272,11 +281,9 @@ const AdminConfiguration = () => {
                       </Form>
                     </TabPane>
 
-                   
-
                     {/* Nouvel Admin: SUPER_ADMIN uniquement */}
                     {user.roles.includes("ROLE_SUPER_ADMIN") && (
-                      <TabPane tab="Nouvel Admin" key="new-admin">
+                      <TabPane tab="Nouveau compte" key="new-admin">
                         <Form form={adminForm} layout="vertical" onFinish={handleAdminSubmit}>
                           <div
                             style={{
@@ -285,13 +292,16 @@ const AdminConfiguration = () => {
                               gap: 16,
                             }}
                           >
-                            <Form.Item name="nom" label="Nom" rules={[{ required: true, message: "Veuillez saisir le nom" }]}>
-                              <Input prefix={<UserOutlined />} placeholder="Nom" />
-                            </Form.Item>
 
                             <Form.Item name="prenom" label="Prénom" rules={[{ required: true, message: "Veuillez saisir le prénom" }]}>
                               <Input prefix={<UserOutlined />} placeholder="Prénom" />
                             </Form.Item>
+
+                            <Form.Item name="nom" label="Nom" rules={[{ required: true, message: "Veuillez saisir le nom" }]}>
+                              <Input prefix={<UserOutlined />} placeholder="Nom" />
+                            </Form.Item>
+
+
 
                             <Form.Item
                               name="email"
@@ -355,6 +365,20 @@ const AdminConfiguration = () => {
                               </Select>
                             </Form.Item>
 
+
+                            <Form.Item
+                              name="situationDemandeur"
+                              label="Statut logement"
+                              rules={[{ required: true, message: "Veuillez sélectionner la situation du demandeur" }]}
+                            >
+                              <Select placeholder="Sélectionner">
+                                {SITUATION_DEMANDEUR_OPTIONS.map(opt => (
+                                  <Option key={opt.value} value={opt.value}>{opt.label}</Option>
+                                ))}
+                              </Select>
+                            </Form.Item>
+
+
                             <Form.Item
                               name="nombreEnfant"
                               label="Nombre d'enfants"
@@ -362,18 +386,37 @@ const AdminConfiguration = () => {
                             >
                               <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
                             </Form.Item>
+
+
+                            <Form.Item name="role" label="Rôle requis" rules={[{ required: true, message: "Rôle requis" }]}>
+                              <Select
+                                placeholder="Choisir un rôle"
+                                options={[
+                                  { value: "ROLE_AGENT", label: "Agent" },
+                                  { value: "ROLE_DEMANDEUR", label: "Demandeur" },
+                                  { value: "ROLE_ADMIN", label: "Admin" },
+                                  { value: "ROLE_MAIRE", label: "Maire" },
+                                  { value: "ROLE_CHEF_SERVICE", label: "Chef de service" },
+                                  { value: "ROLE_PRESIDENT_COMMISSION", label: "Président commission" },
+                                  { value: "ROLE_PERCEPTEUR", label: "Percepteur" },
+                                ]}
+                                showSearch
+                                optionFilterProp="label"
+                              />
+                            </Form.Item>
+
                           </div>
 
                           <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
                             <Button className="text-primary" htmlType="submit" loading={isSubmitting} icon={<SaveOutlined />} size="large">
-                              Créer l'administrateur
+                              Créer le compte
                             </Button>
                           </Form.Item>
                         </Form>
                       </TabPane>
                     )}
 
-                  
+
 
                   </Tabs>
                 </Card>
@@ -383,7 +426,7 @@ const AdminConfiguration = () => {
         </div>
       </section>
 
-    
+
     </>
   )
 }

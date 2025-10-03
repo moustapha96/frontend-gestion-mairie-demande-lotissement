@@ -371,6 +371,7 @@ const AgentLocaliteListe = () => {
     };
 
     const handleSubmit = async (values) => {
+        console.log(values)
         setLoadingModal(true);
         try {
             if (editingLocalite) {
@@ -434,12 +435,12 @@ const AgentLocaliteListe = () => {
                                 pagination={{
                                     defaultPageSize: 5,
                                     showSizeChanger: true,
-                                    showTotal: (total) => `Total ${total} localités`,
+                                    showTotal: (total) => `Total ${total} quartiers`,
                                 }}
                             />
 
                             <Modal
-                                title={editingLocalite ? "Modifier la localité" : "Ajouter un quartier"}
+                                title={editingLocalite ? "Modifier le quartier" : "Ajouter un quartier"}
                                 open={isModalVisible}
                                 onCancel={handleCancel}
                                 footer={null}
@@ -453,7 +454,7 @@ const AgentLocaliteListe = () => {
                                 >
                                     <Form.Item
                                         name="nom"
-                                        label="Nom"
+                                        label="Nom du quartier"
                                         rules={[{ required: true, message: "Le nom est requis" }]}
                                     >
                                         <Input />

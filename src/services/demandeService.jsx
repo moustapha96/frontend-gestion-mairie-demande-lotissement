@@ -290,7 +290,7 @@ export async function createDemandeFromElecteur(formData) {
 }
 
 
-export const updateRapportDemande1 = async (id, body) => {
+export const updateRapportDemande = async (id, body) => {
     try {
         const response = await HttpClient.put(`${urlApi}demande/${id}/update-rapport`, body );
         return response.data;
@@ -300,21 +300,17 @@ export const updateRapportDemande1 = async (id, body) => {
     }
 }
 
-export async function updateRapportDemande(id, body) {
-  // body = { rapport: string }
-  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/rapport`, body);
-  return data;
-}
+
 
 export async function updateRecommandation(id, body) {
   // body = { recommandation: string }
-  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/recommandation`, body);
+  const { data } = await HttpClient.put(`${urlApi}demande/${id}/update-recommandation`, body);
   return data;
 }
 
 export async function updateDecisionCommission(id, body) {
   // body = { decision: string }
-  const { data } = await HttpClient.post(`${urlApi}demandes/${id}/decision`, body);
+  const { data } = await HttpClient.put(`${urlApi}demande/${id}/update-decision-commission `, body);
   return data;
 }
 
@@ -325,5 +321,13 @@ export async function validerEtape(id) {
 
 export async function rejeterDemande(id, motif) {
   const { data } = await HttpClient.post(`${urlApi}demandes/${id}/rejeter`, { motif });
+  return data;
+}
+
+
+export async function setDemandeNiveau(demandeId, niveauId) {
+  const { data } = await HttpClient.patch(`${urlApi}demandes/${demandeId}/niveau`, {
+    niveauId, 
+  });
   return data;
 }

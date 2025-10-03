@@ -2,9 +2,9 @@
 
 import { Link } from "react-router-dom";
 import { LuCircle, LuMoveRight } from 'react-icons/lu'
-import finance9 from '@/assets/images/landing/finance/img-9.png'
-import finance8 from '@/assets/images/landing/finance/img-8.png'
-import finance10 from '@/assets/images/landing/finance/img-10.jpg';
+import finance9 from '@/assets/images.jpg'
+import finance8 from '@/assets/message_maire.jpg'
+import finance10 from '@/assets/logo.png';
 
 
 const Feature1 = () => {

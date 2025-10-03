@@ -1,21 +1,25 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Table, Card, Space, Button, Typography, Select, Input, Modal, Form, message, Result, Drawer, Grid
+  Table, Card, Space, Button, Typography, Select, Input, Modal, Form, message, Result, Drawer, Grid,
+  Popconfirm
 } from "antd";
 import {
-  SearchOutlined, PlusOutlined, EditOutlined, EnvironmentOutlined, FilterOutlined, ReloadOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, EnvironmentOutlined, FilterOutlined, ReloadOutlined,
+  DeleteOutlined
 } from "@ant-design/icons";
 import { AdminBreadcrumb } from "@/components";
 import { getLotissements } from "@/services/lotissementService";
-import { createParcelle, getParcelles, updateParcelle, updateParcellestatut } from "@/services/parcelleService";
+import { createParcelle, deleteParcelle, getParcelles, updateParcelle, updateParcellestatut } from "@/services/parcelleService";
 import MapCar from "../../admin/Map/MapCar";
+import { useAuthContext } from "@/context";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { useBreakpoint } = Grid;
 
 const AdminParcelle = () => {
+  const { user } = useAuthContext();
   const screens = useBreakpoint();
   const isMdUp = screens.md;
 
@@ -99,6 +103,19 @@ const AdminParcelle = () => {
     fetchData();
   };
 
+  const handleDelete = async (parcelleId) => {
+
+    try {
+      await deleteParcelle(parcelleId);
+      const resul = rows.filter(parcelle => parcelle.id !== parcelleId);
+      setRows(resul);
+      message.success("Parcelle supprimé avec succès");
+    } catch (error) {
+      console.log(error);
+      message.error(error?.response?.data || "Erreur lors de la suppression du lotissement");
+    }
+  }
+
   const showMapModal = (parcelle = null) => {
     setSelectedParcelle(parcelle);
     setIsMapModalVisible(true);
@@ -135,18 +152,18 @@ const AdminParcelle = () => {
 
   const handleSubmit = async (values) => {
     setLoading(true);
-     const payload = {
-        numero: values.numero,
-        surface: values.surface ?? values.superface,
-        longitude: values.longitude,
-        latitude: values.latitude,
-        lotissementId: values.lotissementId,
-        statut: values.statut,
-      };
-      console.log(payload)
+    const payload = {
+      numero: values.numero,
+      surface: parseFloat(values.surface) || 0,
+      longitude: parseFloat(values.longitude),
+      latitude: parseFloat(values.latitude),
+      lotissementId: values.lotissementId,
+      statut: values.statut,
+    };
+    console.log(payload)
     try {
       // Harmonisation : envoie "surface" (ou adapte si backend attend "superface")
-     
+
 
       if (editingParcelle) {
         await updateParcelle(editingParcelle.id, payload);
@@ -260,6 +277,21 @@ const AdminParcelle = () => {
           >
             Modifier
           </Button>
+
+          {user && (user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN") ||
+            user.roles.includes("ROLE_MAIRE")
+          ) && (
+
+              <Popconfirm
+                title="Êtes-vous sûr de vouloir supprimer ?"
+                onConfirm={() => handleDelete(record.id)}
+                okText="Oui"
+                cancelText="Non"
+              >
+                <Button type="link" danger icon={<DeleteOutlined />} title="Supprimer" />
+              </Popconfirm>
+            )}
+
         </Space>
       )
     }
@@ -444,29 +476,28 @@ const AdminParcelle = () => {
                 <Input />
               </Form.Item>
 
-              {/* Utilise l’un des deux : surface OU superface selon ton backend */}
+
               <Form.Item
                 name="surface"
                 label="Superficie (m²)"
-                rules={[{ required: true, message: "La superficie est requise" }]}
               >
-                <Input type="number" />
+                <Input type="number" step="any" min="0" />
               </Form.Item>
+
 
               <Form.Item
                 name="longitude"
                 label="Longitude"
-                rules={[{ required: true, message: "La longitude est requise" }]}
               >
                 <Input type="number" step="0.000001" />
               </Form.Item>
               <Form.Item
                 name="latitude"
                 label="Latitude"
-                rules={[{ required: true, message: "La latitude est requise" }]}
               >
                 <Input type="number" step="0.000001" />
               </Form.Item>
+
 
               <Form.Item
                 name="lotissementId"

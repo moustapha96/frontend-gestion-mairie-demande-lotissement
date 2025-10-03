@@ -59,15 +59,15 @@ const AdminDemandeurDetails = () => {
     }
 
 
-      const statutColor = (s) => {
-  switch (s) {
-    case "En attente": return "orange";
-    case "En cours de traitement": return "gold";
-    case "Approuvée": return "green";
-    case "Rejetée": return "red";
-    default: return "default";
-  }
-};
+    const statutColor = (s) => {
+        switch (s) {
+            case "En attente": return "orange";
+            case "En cours de traitement": return "gold";
+            case "Approuvée": return "green";
+            case "Rejetée": return "red";
+            default: return "default";
+        }
+    };
 
 
     useEffect(() => {
@@ -108,14 +108,14 @@ const AdminDemandeurDetails = () => {
             dataIndex: "usagePrevu",
             key: "usagePrevu",
         },
-         {
-      title: "Statut",
-      dataIndex: "statut",
-      key: "statut",
-      sorter: true,
-      render: (statut) => <Tag color={statutColor(statut)}>{statut}</Tag>,
-      width: 180,
-    },
+        {
+            title: "Statut",
+            dataIndex: "statut",
+            key: "statut",
+            sorter: true,
+            render: (statut) => <Tag color={statutColor(statut)}>{statut}</Tag>,
+            width: 180,
+        },
         {
             title: "Date de Création",
             dataIndex: "dateCreation",
@@ -148,15 +148,24 @@ const AdminDemandeurDetails = () => {
                     <div className="grid gap-8 md:grid-cols-2 mt-6">
                         <Card title="Informations Personnelles" className="bg-gray-50">
                             <Descriptions column={1}>
+
+                                 <Descriptions.Item label={<Space><CalendarOutlined />Nom Complet</Space>}>
+                                    {demandeur.prenom +' '+ demandeur.nom}
+                                </Descriptions.Item>
                                 <Descriptions.Item label={<Space><CalendarOutlined /> Date de Naissance</Space>}>
                                     {new Date(demandeur.dateNaissance).toLocaleDateString()}
                                 </Descriptions.Item>
                                 <Descriptions.Item label={<Space><EnvironmentOutlined /> Lieu de Naissance</Space>}>
-                                    {demandeur.lieuNaissance}
+                                    {demandeur.lieuNaissance ?? "Non renseigné"}
                                 </Descriptions.Item>
                                 <Descriptions.Item label={<Space><IdcardOutlined /> Numéro Électeur</Space>}>
-                                    {demandeur.numeroElecteur}
+                                    {demandeur.numeroElecteur ?? "Non renseigné"}
                                 </Descriptions.Item>
+
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Nombre d'Enfant</Space>}>
+                                    {demandeur.nombreEnfant ?? 0}
+                                </Descriptions.Item>
+
                                 <Descriptions.Item label={<Space><EnvironmentOutlined />Habitant</Space>}>
                                     <Tag color={demandeur?.isHabitant ? 'success' : 'error'} className="px-4 py-1 text-sm font-medium">
                                         {demandeur?.isHabitant ? 'Oui' : 'Non'}
@@ -196,6 +205,16 @@ const AdminDemandeurDetails = () => {
                                 </Descriptions.Item>
                                 <Descriptions.Item label={<Space><EnvironmentOutlined /> Adresse</Space>}>
                                     {demandeur.adresse}
+                                </Descriptions.Item>
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Situation Matrimoniale</Space>}>
+                                    {demandeur.situationMatrimoniale ?? "Non renseigné"}
+                                </Descriptions.Item>
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Statut logement</Space>}>
+                                    {demandeur.situationDemandeur ?? "Non renseigné"}
+                                </Descriptions.Item>
+
+                                <Descriptions.Item label={<Space><IdcardOutlined /> Profession</Space>}>
+                                    {demandeur.profession ?? "Non renseigné"}
                                 </Descriptions.Item>
                             </Descriptions>
                         </Card>

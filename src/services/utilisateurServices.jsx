@@ -10,7 +10,7 @@ export async function getUsersPaginated(params = {}) {
     Object.entries(params).forEach(([k, v]) => {
         if (v !== undefined && v !== null && v !== "") qs.append(k, v);
     });
-    const { data } = await HttpClient.get(`${urlApi}users?${qs.toString()}`);
+    const { data } = await HttpClient.get(`${urlApi}user/liste?${qs.toString()}`);
     return data; // { data: [...], meta: {...} }
 }
 
@@ -21,9 +21,9 @@ export async function getUserDetails(id) {
 }
 
 // ---------- ACTIONS COMPTE ----------
-export async function updateActivatedStatus(id, isActive) {
+export async function updateActivatedStatus(id, body) {
     const { data } = await HttpClient.put(
-        `${urlApi}user/update-activated-status/${id}`, { isActive }
+        `${urlApi}user/update-activated-status/${id}`, body
     );
     return data;
 }

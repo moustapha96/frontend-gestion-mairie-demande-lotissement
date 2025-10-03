@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Card, Tag, Space, Button, Modal, Typography, Select, Form, InputNumber, Upload, message } from "antd";
-import { SearchOutlined, PlusOutlined, FileTextOutlined, UploadOutlined, EyeOutlined, EditOutlined } from "@ant-design/icons";
+import { Table, Input, Card, Tag, Space, Button, Modal, Typography, Select, Form, InputNumber, Upload, message, Popconfirm } from "antd";
+import { SearchOutlined, PlusOutlined, FileTextOutlined, UploadOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { AdminBreadcrumb } from "@/components";
-import { getLotissements, updateLotissementStatut } from "@/services/lotissementService";
+import { deleteLotissement, getLotissements, updateLotissementStatut } from "@/services/lotissementService";
 import { useAuthContext } from "@/context";
 import { createLot } from "@/services/lotsService";
 import { createPlanLotissement } from "@/services/planLotissement";
@@ -43,21 +43,18 @@ const AdminLotissementListe = () => {
         }
     };
 
-    // const handleUpdateStatut = async (lotissementId, nouveauStatut) => {
-    //     try {
-    //         await updateLotissementStatut(lotissementId, nouveauStatut);
-    //         const updatedLotissements = lotissements.map(lotissement => {
-    //             if (lotissement.id === lotissementId) {
-    //                 return { ...lotissement, statut: nouveauStatut };
-    //             }
-    //             return lotissement;
-    //         });
-    //         setLotissements(updatedLotissements);
-    //         message.success("Statut mis à jour avec succès");
-    //     } catch (error) {
-    //         message.error("Erreur lors de la mise à jour du statut");
-    //     }
-    // };
+    const handleDelete = async (lotissementId) => {
+        
+        try {
+            await deleteLotissement(lotissementId);
+            const updatedLotissements = lotissements.filter(lotissement => lotissement.id !== lotissementId);
+            setLotissements(updatedLotissements);
+            message.success("Lotissement supprimé avec succès");
+        } catch (error) {
+            console.log(error);
+            message.error( error?.response?.data || "Erreur lors de la suppression du lotissement");
+        }
+    }
     const handleUpdateStatut = (lotissementId, nouveauStatut) => {
         Modal.confirm({
             title: "Confirmation de modification",
@@ -113,12 +110,13 @@ const AdminLotissementListe = () => {
     const handleLotSubmit = async (values) => {
         setLoading(true);
         const datas = {
-                ...values,
-                prix: values.prix == '' ? null : values.prix,
-                superficie: values.superficie == '' ? null : values.superficie,
-                lotissementId: selectedLotissement.id
-            }
-            console.log(datas)
+            ...values,
+            prix: values.prix == '' ? null : values.prix,
+            usage: values.usage == '' ? null : values.usage,
+            superficie: parseFloat(values.superficie) || null,
+            lotissementId: selectedLotissement.id
+        }
+        console.log(datas)
         try {
             await createLot({
                 ...values,
@@ -131,7 +129,7 @@ const AdminLotissementListe = () => {
             form.resetFields();
         } catch (error) {
             message.error("Erreur lors de l'ajout du lot");
-        }finally {
+        } finally {
             setLoading(false);
         }
     };
@@ -197,7 +195,7 @@ const AdminLotissementListe = () => {
             ),
         },
         {
-            title: "Lots",
+            title: "iLots",
             key: "lots",
             render: (_, record) => (
                 record.lots.length > 0 ? <>
@@ -205,35 +203,35 @@ const AdminLotissementListe = () => {
                         {record.lots.length} Lots
                     </Link>
                 </> : <>
-                        <Button
-                            className="text-primary"
-                            icon={<PlusOutlined />}
-                            onClick={() => handleOpenModal(record)}
-                        >
-                            Ajouter Lot
-                        </Button>
+                    <Button
+                        className="text-primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => handleOpenModal(record)}
+                    >
+                        Ajouter iLot
+                    </Button>
                 </>
             ),
         },
-        {
-            title: "Plans",
-            key: "plans",
-            render: (_, record) => (
-                record.planLotissements.length > 0 ? (
-                    <Link to={`/admin/lotissements/${record.id}/plans`} className="text-primary" >
-                        {record.planLotissements.length} Plans
-                    </Link>
-                ) : (
-                    <Button
-                            className="text-primary"
-                        icon={<UploadOutlined />}
-                        onClick={() => handleOpenPlanModal(record)}
-                    >
-                        Ajouter Plan
-                    </Button>
-                )
-            ),
-        },
+        // {
+        //     title: "Plans",
+        //     key: "plans",
+        //     render: (_, record) => (
+        //         record.planLotissements.length > 0 ? (
+        //             <Link to={`/admin/lotissements/${record.id}/plans`} className="text-primary" >
+        //                 {record.planLotissements.length} Plans
+        //             </Link>
+        //         ) : (
+        //             <Button
+        //                     className="text-primary"
+        //                 icon={<UploadOutlined />}
+        //                 onClick={() => handleOpenPlanModal(record)}
+        //             >
+        //                 Ajouter Plan
+        //             </Button>
+        //         )
+        //     ),
+        // },
         {
             title: "Actions",
             key: "actions",
@@ -249,6 +247,21 @@ const AdminLotissementListe = () => {
                             Modifier
                         </Button>
                     </Link>
+
+                    {user && (user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN") ||
+                        user.roles.includes("ROLE_MAIRE")
+                    ) && (
+
+                            <Popconfirm
+                                title="Êtes-vous sûr de vouloir supprimer ?"
+                                onConfirm={() => handleDelete(record.id)}
+                                okText="Oui"
+                                cancelText="Non"
+                            >
+                                <Button type="link" danger icon={<DeleteOutlined />} title="Supprimer" />
+                            </Popconfirm>
+                        )}
+
                 </Space>
             ),
         },
@@ -370,7 +383,7 @@ const AdminLotissementListe = () => {
                                         <Form.Item>
                                             <Space>
                                                 <Button className="text-primary" htmlType="submit"
-                                                loading={loading} >
+                                                    loading={loading} >
                                                     Enregistrer
                                                 </Button>
                                                 <Button onClick={() => setModalVisible(false)}>

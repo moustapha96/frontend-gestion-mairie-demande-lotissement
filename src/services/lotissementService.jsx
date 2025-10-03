@@ -76,3 +76,13 @@ export async function updateLotissementStatut(id, statut) {
     }
 }
 
+
+export async function deleteLotissement(id) {
+    try {
+        const response = await HttpClient.delete(`${urlApi}lotissement/${id}/delete`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la localité:', error);
+        throw error;
+    }
+}   

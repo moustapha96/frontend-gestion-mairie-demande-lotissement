@@ -14,6 +14,7 @@ export async function getLocalites() {
     }
 };
 
+
 export async function getLocaliteDetails(id) {
     try {
         const response = await HttpClient.get(`${urlApi}localite/${id}/details`);

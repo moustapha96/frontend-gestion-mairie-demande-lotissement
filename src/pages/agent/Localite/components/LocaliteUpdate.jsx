@@ -114,7 +114,7 @@ const AgentLocaliteModifier = () => {
                                     ) : (
                                         <Save className="mr-2" size={20} />
                                     )}
-                                    {loading ? "Enregistrement" : "Modifier la localité"}
+                                    {loading ? "Enregistrement" : "Modifier le quartier"}
                                 </button>
                             </div>
                         </form>

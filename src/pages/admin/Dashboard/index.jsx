@@ -137,7 +137,7 @@ const AdminDashboard = () => {
             />
 
             <StatCard
-              title="Demandeurs"
+              title="Demandeurs Actifs"
               lien="/admin/demandeurs"
               icon={<LuUsers className="w-8 h-8 text-blue-600" />}
               total={stats.utilisateurs.total}

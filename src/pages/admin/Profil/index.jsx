@@ -561,9 +561,7 @@ function FieldText({ id, name, label, icon: Icon, value, onChange, type = "text"
                 {label}
             </label>
             <div className="relative">
-                {/* {Icon && (
-                    <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                )} */}
+               
                 <input
                     id={id}
                     name={name}

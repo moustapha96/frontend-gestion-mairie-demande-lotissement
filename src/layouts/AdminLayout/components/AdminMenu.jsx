@@ -23,7 +23,7 @@ const isActivePath = (pathname, item) => {
 export default function AdminMenu() {
   const { pathname } = useLocation();
   const { user } = useAuthContext();
-  const userRoles = Array.isArray(user?.roles) ? user.roles : [];
+  const userRoles = Array.isArray(user?.roles) ? user.roles : [user.roles];
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openIdx, setOpenIdx] = useState(null); // quel parent est “déployé” au 1er niveau
 
@@ -55,7 +55,10 @@ export default function AdminMenu() {
       {/* Header (logo + burger) */}
       <div className="container mx-auto flex items-center justify-between px-3 py-2.5">
         <Link to="/admin/dashboard" className="font-bold text-default-800">
-          Admin
+          {user && user.roles.includes("ROLE_ADMIN") ? "Admin" : user.roles.includes('ROLE_MAIRE') ? "Monsieur le Maire" :
+            user.roles.includes("ROLE_PRESIDENT_COMMISSION") ? "Monsieur le Président de la Commission" :
+              user.roles.includes("ROLE_AGENT") ? "Monsieur l'Agent" :
+                user.roles.includes("ROLE_PERCEPTEUR")? "Monsieur le Perceptrice" : " Utilisateur "}
         </Link>
 
         <button

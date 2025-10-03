@@ -80,6 +80,14 @@ import DemandeCreatePaginatedForMe from "@/pages/admin/Demande/DemandeCreateForM
 import DemandeurParcelles from "@/pages/admin/Demandeur/demandeurParcelle";
 import AdminHistoriqueValidation from "@/pages/admin/Configuration/HistoriqueValidation";
 import NiveauxValidation from "@/pages/admin/Configuration/NiveauValidation";
+import RequestList from "@/pages/admin/request/list-request";
+import RequestCreate from "@/pages/admin/request/create-request";
+import RequestEdit from "@/pages/admin/request/edit-request";
+import RequestDetails from "@/pages/admin/request/details-request";
+import RequestListElector from "@/pages/admin/request/list-elector";
+import RequestCreateElector from "@/pages/admin/request/create-request-elector";
+import ValidateRequest from "@/pages/admin/request/validate-request";
+import ElectorRequests from "@/pages/admin/request/elector-requests";
 
 const DemandeurDemandeDetails = lazy(
   () => import("@/pages/demandeur/Demande/components/DemandeDetails")
@@ -405,29 +413,55 @@ const adminRoutes = [
     path: "/admin/utilisateurs",
     element: <AdminAccountManagement />,
     requiredRole: "ROLE_SUPER_ADMIN",
-  }, {
-    path: "/admin/demandes",
-    element: <AdminDemandesPaginated />,
   },
+  //  {
+  //   path: "/admin/demandes",
+  //   element: <AdminDemandesPaginated />,
+  // },
+  // {
+  //   path: "/admin/demandes/:id/details",
+  //   element: <AdminDemandeDetails />,
+  // },
+  // {
+  //   path: "/admin/demandes/:id/confirmation",
+  //   element: <AdminDemandeConfirmation />,
+  // },
+  // {
+  //   path: "/admin/demande/nouvelle",
+  //   element: <DemandeCreatePaginatedForMe />,
+  // },
   {
-    path: "/admin/demandes/:id/details",
-    element: <AdminDemandeDetails />,
-  },
-  {
-    path: "/admin/demandes/:id/confirmation",
-    element: <AdminDemandeConfirmation />,
-  },
-  {
-    path: "/admin/demande/nouvelle",
-    element: <DemandeCreatePaginatedForMe />,
-  },
-  {
-    path : "/admin/historiques-validations",
+    path: "/admin/historiques-validations",
     element: <AdminHistoriqueValidation />
   },
   {
     path: "/admin/niveaux-validations",
     element: <NiveauxValidation />,
+  },
+
+
+  { path: "/admin/demandes", element: <RequestList /> },
+  { path: "/admin/demandes/nouveau", element: <RequestCreate /> },
+  { path: "/admin/demandes/:id/edit", element: <RequestEdit /> },
+  {
+    path: "/admin/demandes/:id/details",
+    element: <RequestDetails />,
+  },
+  {
+    path: "/admin/electeurs",
+    element: <RequestListElector />
+  },
+  {
+    path: "/admin/electeurs/:id/nouveau-demande",
+    element: <RequestCreateElector />,
+  },
+  {
+    path: "/admin/demandes/:id/validation", 
+    element: <ValidateRequest />
+  },
+  {
+    path : "/admin/electeurs/:electeurId/demandes",
+    element: <ElectorRequests />
   }
 ];
 

@@ -20,7 +20,10 @@ const useLogin = () => {
     const { saveSession, user, isAuthenticated } = useAuthContext();
 
     const loginFormSchema = yup.object({
-        email: yup.string().email("Veuillez entrer un email valide").required("Veuillez entrer votre email"),
+        email: yup
+            .string()
+            .email("Veuillez entrer un email valide")
+            .required("Veuillez entrer votre email"),
         password: yup.string().required("Veuillez entrer votre mot de passe"),
     });
 
@@ -40,15 +43,14 @@ const useLogin = () => {
 
     // Modifier la logique de redirection par défaut
     const getDefaultRedirect = (userRole) => {
-
-        if (userRole.includes("ROLE_ADMIN") ||
+        if (
+            userRole.includes("ROLE_ADMIN") ||
             userRole.includes("ROLE_SUPER_ADMIN") ||
             userRole.includes("ROLE_MAIRE") ||
             userRole.includes("ROLE_CHEF_SERVICE") ||
             userRole.includes("ROLE_PRESIDENT_COMMISSION") ||
             userRole.includes("ROLE_PERCEPTEUR") ||
             userRole.includes("ROLE_AGENT")
-
         ) {
             return "/admin/dashboard";
         } else if (userRole.includes("ROLE_DEMANDEUR")) {
@@ -57,12 +59,14 @@ const useLogin = () => {
         return "/";
     };
 
-    const redirectUrl = searchParams.get("redirectTo") || getDefaultRedirect(user ? user.roles : []);
+    const redirectUrl =
+        searchParams.get("redirectTo") ||
+        getDefaultRedirect(user ? user.roles : []);
 
     useEffect(() => {
         if (isAuthenticated && user) {
             const defaultPath = getDefaultRedirect(user ? user.roles : null);
-            if (window.location.pathname === '/auth/sign-in') {
+            if (window.location.pathname === "/auth/sign-in") {
                 navigate(defaultPath);
             }
         }
@@ -97,10 +101,17 @@ const useLogin = () => {
             }
 
             if (res.token) {
+                // saveSession({
+                //   token: res.token,
+                //   user: res.user,
+                // });
                 saveSession({
                     token: res.token,
+                    refresh_token: res.refresh_token ? ? null,
                     user: res.user,
                 });
+                if (res.refresh_token)
+                    localStorage.setItem("refresh_token", res.refresh_token);
 
                 toast.success("Connexion réussie. Redirection...");
 
@@ -108,7 +119,6 @@ const useLogin = () => {
                 const redirectPath = getDefaultRedirect(res.user.roles);
                 navigate(redirectPath);
             }
-
         } catch (e) {
             toast.error("Une erreur s'est produite lors de la connexion.");
             console.error(e);

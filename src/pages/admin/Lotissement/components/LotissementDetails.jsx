@@ -73,7 +73,7 @@ export default function AdminLotissementDetails() {
 
     const lotColumns = [
         {
-            title: 'Numéro de Lot',
+            title: 'Numéro de iLot',
             dataIndex: 'numeroLot',
             key: 'numeroLot',
         },

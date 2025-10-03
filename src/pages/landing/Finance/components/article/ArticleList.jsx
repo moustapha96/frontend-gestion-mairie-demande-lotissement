@@ -27,12 +27,12 @@ const ArticleList = () => {
                     <h3 className="text-xl font-medium text-default-950 mt-4">{article.title}</h3>
                     <p className="text-base mt-2">{article.description}</p>
                     <p className="text-sm text-default-500 mt-2">{article.date}</p>
-                    <div className="group mt-5">
+                    {/* <div className="group mt-5">
                         <Link to={`/article/${idx}`} className="inline-flex items-center justify-center gap-2 rounded-full py-2 px-4 bg-primary/20 text-primary text-sm transition-all duration-200 hover:bg-primary hover:text-white">
                             Lire plus
                             <LuMoveRight className="w-6 h-6 inline-block" />
                         </Link>
-                    </div>
+                    </div> */}
                 </div>
             ))}
         </div>

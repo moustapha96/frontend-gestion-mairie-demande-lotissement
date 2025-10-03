@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -10,9 +11,12 @@ import {
 import {
   getDemandeDetails,
   getFileDocument,
+  setDemandeNiveau,
+  updateDecisionCommission,
   updateDemandeRefus,
   updateDemandeStatut,
   updateRapportDemande,
+  updateRecommandation,
 } from "@/services/demandeService";
 import { createHistorique, getLevels } from "@/services/validationService";
 import { useAuthContext } from "@/context";
@@ -25,28 +29,46 @@ import { EditOutlined, EnvironmentOutlined, InfoCircleOutlined, SaveOutlined, Us
 import TextArea from "antd/es/input/TextArea";
 import { getDetaitHabitant } from "@/services/userService";
 
+/* ===================== Constantes normalisées ===================== */
+
+const ACTION = Object.freeze({
+  VALIDER: "valide",
+  REJETER: "rejete",
+  DECISION: "DECISION",
+  RECOMMANDATION: "RECOMMANDATION",
+  RAPPORT_SAISI: "RAPPORT_SAISI",
+});
+
+const STATUT = Object.freeze({
+  EN_ATTENTE: "En attente",
+  EN_COURS: "En cours de traitement",
+  REJETEE: "Rejetée",
+  APPROUVEE: "Approuvée",
+});
+
 // --- Helpers rôles ---
 const CAN_UPDATE_STATUT_ROLES = ["ROLE_MAIRE", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"];
 const CAN_SET_RECOMMANDATION_ROLES = ["ROLE_PRESIDENT_COMMISSION", "ROLE_CHEF_SERVICE", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"];
 const CAN_SET_RAPPORT_ROLES = ["ROLE_AGENT", "ROLE_CHEF_SERVICE", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"];
 const CAN_SET_DECISION_ROLES = ["ROLE_PRESIDENT_COMMISSION", "ROLE_CHEF_SERVICE", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"];
 
-
-const hasAnyRole = (user, roles) => user?.roles?.some(r => roles.includes(r));
+const hasAnyRole = (user, roles) => user?.roles?.some((r) => roles.includes(r));
 
 const STATUT_LABEL = {
-  "En attente": "En attente",
-  "En cours de traitement": "En cours de traitement",
-  "Rejetée": "Rejetée",
-  "Approuvée": "Approuvée",
+  [STATUT.EN_ATTENTE]: "En attente",
+  [STATUT.EN_COURS]: "En cours de traitement",
+  [STATUT.REJETEE]: "Rejetée",
+  [STATUT.APPROUVEE]: "Approuvée",
 };
 const STATUT_BADGE = {
-  "En attente": "bg-yellow-50 text-yellow-800 border border-yellow-300",
-  "En cours de traitement": "bg-blue-50 text-blue-800 border border-blue-300",
-  "Rejetée": "bg-red-50 text-red-800 border border-red-300",
-  "Approuvée": "bg-green-50 text-green-800 border border-green-300",
+  [STATUT.EN_ATTENTE]: "bg-yellow-50 text-yellow-800 border border-yellow-300",
+  [STATUT.EN_COURS]: "bg-blue-50 text-blue-800 border border-blue-300",
+  [STATUT.REJETEE]: "bg-red-50 text-red-800 border border-red-300",
+  [STATUT.APPROUVEE]: "bg-green-50 text-green-800 border border-green-300",
 };
 const STATUT_OPTIONS = Object.keys(STATUT_LABEL).map(v => ({ label: STATUT_LABEL[v], value: v }));
+
+/* ===================== Page ===================== */
 
 export default function AdminDemandeDetails() {
   const { id } = useParams();
@@ -55,7 +77,7 @@ export default function AdminDemandeDetails() {
   const [demande, setDemande] = useState(null);
   const [rectoFile, setRectoFile] = useState(null);
   const [versoFile, setVersoFile] = useState(null);
-  const [levels, setLevels] = useState([]); // <— étapes de validation
+  const [levels, setLevels] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,50 +101,62 @@ export default function AdminDemandeDetails() {
   // Modal rejet
   const [rejectOpen, setRejectOpen] = useState(false);
 
+  // Loaders par action
+  const [loadingValidate, setLoadingValidate] = useState(false);
+  const [loadingReject, setLoadingReject] = useState(false);
+  const [savingStatut, setSavingStatut] = useState(false);
+  const [savingRapport, setSavingRapport] = useState(false);
+  const [savingReco, setSavingReco] = useState(false);
+  const [savingDecision, setSavingDecision] = useState(false);
+  const [savingRefus, setSavingRefus] = useState(false);
+
+  // Initialisation : si pas de niveau courant, fixer au 1er
+  useEffect(() => {
+    if (!loading && demande && levels.length > 0 && !demande.niveauValidationActuel) {
+      setDemandeNiveau(String(id), levels[0].id).catch(() => {/* silent */ });
+      setDemande((prev) => ({ ...prev, niveauValidationActuel: levels[0] }));
+    }
+    // eslint-disable-next-line
+  }, [loading, demande?.id, levels.length]);
+
   useEffect(() => {
     (async () => {
       try {
-        const [data, stepRes] = await Promise.all([
-          getDemandeDetails(id),
-          getLevels()
-        ]);
-        console.log(data)
-
+        const [data, stepRes] = await Promise.all([getDemandeDetails(String(id)), getLevels()]);
         const steps = Array.isArray(stepRes) ? stepRes : (stepRes?.items ?? []);
         setLevels(steps?.sort?.((a, b) => (a?.ordre ?? 0) - (b?.ordre ?? 0)) ?? []);
-
+        console.log(data)
         setDemande(data);
-        setMotifRefus(data.motif_refus || "");
-        setRapport(data.rapport || "");
-        setRecommandation(data.recommandation || "");
-        setDecision(data.decisionCommission || "");
+        setMotifRefus(data?.motif_refus || "");
+        setRapport(data?.rapport || "");
+        setRecommandation(data?.recommandation || "");
+        setDecision(data?.decisionCommission || "");
 
-        if (data.document) {
-          const response = await getFileDocument(id);
-          setRectoFile(response["recto"]);
-          setVersoFile(response["verso"]);
+        if (data?.document) {
+          const response = await getFileDocument(String(id));
+          setRectoFile(response?.recto ?? null);
+          setVersoFile(response?.verso ?? null);
         }
       } catch (err) {
-        setError(err.message || "Erreur");
+        setError(err?.message || "Erreur");
       } finally {
         setLoading(false);
       }
     })();
   }, [id]);
 
-  // Permissions génériques
+  // Permissions
   const canUpdateStatut = useMemo(() => hasAnyRole(user, CAN_UPDATE_STATUT_ROLES), [user]);
   const canEditReco = useMemo(() => hasAnyRole(user, CAN_SET_RECOMMANDATION_ROLES), [user]);
   const canEditRapport = useMemo(() => hasAnyRole(user, CAN_SET_RAPPORT_ROLES), [user]);
   const canEditDecision = useMemo(() => hasAnyRole(user, CAN_SET_DECISION_ROLES), [user]);
   const canEditRefus = useMemo(() => hasAnyRole(user, CAN_UPDATE_STATUT_ROLES), [user]);
 
-  // -------- Logique niveau courant + rôle requis --------
+  // -------- Niveau courant --------
   const currentLevelIndex = useMemo(() => {
     if (!levels?.length) return -1;
     const ordreActuel = demande?.niveauValidationActuel?.ordre;
     if (ordreActuel) return Math.max(0, levels.findIndex(l => l.ordre === ordreActuel));
-    // Si pas de niveau courant: on part du 1er
     return 0;
   }, [levels, demande?.niveauValidationActuel]);
 
@@ -135,65 +169,103 @@ export default function AdminDemandeDetails() {
     return hasAnyRole(user, [requiredRole, "ROLE_ADMIN", "ROLE_SUPER_ADMIN"]);
   }, [requiredRole, user]);
 
-  // -------- Actions de validation/rejet --------
+  /* ===================== Utils centralisés ===================== */
+
+  const logHistorique = async ({
+    action,
+    motif = null,
+    statutAvant,
+    statutApres,
+    level = currentLevel,
+  }) => {
+    const payload = {
+      demande: String(id),
+      validateurId: user?.id,
+      action: String(action || "").toUpperCase(), // VALIDER | REJETER | ...
+      motif,
+      niveauNom: level?.nom ?? null,
+      niveauOrdre: level?.ordre ?? null,
+      roleRequis: level?.roleRequis ?? null,
+      statutAvant,
+      statutApres,
+    };
+    try {
+      await createHistorique(payload);
+    } catch (error) {
+      // ne bloque pas l’UX si l’audit échoue
+      // console.error(error);
+    }
+  };
+
+  const advanceLocalState = ({ nextStatut, addComment = null, action = ACTION.VALIDER }) => {
+    setDemande((prev) => {
+      const nextNv = action === ACTION.VALIDER && !isLastLevel && levels[currentLevelIndex + 1]
+        ? levels[currentLevelIndex + 1]
+        : prev?.niveauValidationActuel;
+
+      const newLine = {
+        niveau: { nom: currentLevel?.nom, id: currentLevel?.id, ordre: currentLevel?.ordre },
+        acteur: { nom: `${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim(), email: user?.email },
+        action,
+        date: new Date().toISOString(),
+        commentaire: addComment,
+        niveauNom: currentLevel?.nom,
+        niveauOrdre: currentLevel?.ordre,
+      };
+
+      return {
+        ...prev,
+        statut: nextStatut,
+        niveauValidationActuel: nextNv,
+        dateModification: new Date().toISOString(),
+        historiqueValidations: [...(prev?.historiqueValidations ?? []), newLine],
+      };
+    });
+  };
+
+  /* ===================== Actions ===================== */
+
   const handleValidate = async () => {
     try {
-      // TODO: si tu as une API dédiée pour valider un niveau, appelle-la ici.
-      // En attendant: si dernier niveau -> Approuvée, sinon on reste “En cours de traitement”
-      const nextStatut = isLastLevel ? "Approuvée" : "En cours de traitement";
-      await updateDemandeStatut(id, nextStatut);
+      setLoadingValidate(true);
 
-      const historiqueBody = {
-        id: `tmp_${Date.now()}`,
-        date: new Date().toISOString(),
-        demandeId: id,
-        userId: user?.id,
-        validateurId: user.id,     // IRI
-        action: "valide",
-        motif: null,
-        niveauNom: currentLevel?.nom ?? null,
-        niveauOrdre: currentLevel?.ordre ?? null,
-        roleRequis: currentLevel?.roleRequis ?? null,
-        statutAvant: prevStatut,
-        statutApres: nextStatut,
+      const prevStatut = demande?.statut ?? STATUT.EN_ATTENTE;
+      const isLast = isLastLevel;
+      const nextStatut = isLast ? STATUT.APPROUVEE : STATUT.EN_COURS;
+
+      // 1) statut
+      await updateDemandeStatut(String(id), nextStatut);
+
+      // 2) calcul du prochain niveau (ou null si dernier)
+      let nextLevelId = null;
+      if (!isLast && levels[currentLevelIndex + 1]) {
+        nextLevelId = levels[currentLevelIndex + 1].id;
       }
 
-      const res = await createHistorique(historiqueBody)
-      console.log(res)
-      // Mise à jour locale : passer au niveau suivant si pas dernier
-      setDemande(prev => {
-        const nextNv = !isLastLevel && levels[currentLevelIndex + 1]
-          ? levels[currentLevelIndex + 1]
-          : prev?.niveauValidationActuel; // si approuvé, plus de niveau à avancer
+      // 3) persister le niveau courant sur le backend
+      await setDemandeNiveau(String(id), nextLevelId);
 
-        const newLine = {
-          // format d’affichage tolérant : on accepte à la fois l’ancien et le nouveau
-          niveau: { nom: currentLevel?.nom, id: currentLevel?.id, ordre: currentLevel?.ordre },
-          acteur: { nom: `${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim(), email: user?.email },
-          action: "VALIDER",
-          date: new Date().toISOString(),
-          commentaire: null,
-          // champs de l’API (si tu veux unifier l’affichage)
-          niveauNom: currentLevel?.nom,
-          niveauOrdre: currentLevel?.ordre,
-        };
-
-        return {
-          ...prev,
-          statut: nextStatut,
-          niveauValidationActuel: nextNv,
-          dateModification: new Date().toISOString(),
-          historiqueValidations: [...(prev?.historiqueValidations ?? []), newLine],
-        };
+      // 4) log historique
+      await logHistorique({
+        action: ACTION.VALIDER,
+        statutAvant: prevStatut,
+        statutApres: nextStatut,
+        level: currentLevel,
       });
 
-      message.success(isLastLevel ? "Demande approuvée" : "Niveau validé, envoi au niveau suivant");
+      // 5) maj locale (instantané)
+      advanceLocalState({ nextStatut, action: ACTION.VALIDER });
+
+      message.success(isLast ? "Demande approuvée" : "Niveau validé, envoi au niveau suivant");
     } catch (e) {
       message.error(e?.message || "Erreur lors de la validation");
+    } finally {
+      setLoadingValidate(false);
     }
   };
 
   const handleOpenReject = () => {
+    if (loadingValidate) return;
     setMotifRefus("");
     setRejectOpen(true);
   };
@@ -201,98 +273,97 @@ export default function AdminDemandeDetails() {
   const handleReject = async () => {
     if (!motifRefus?.trim()) return message.error("Le motif ne peut pas être vide");
     try {
-      await updateDemandeRefus(id, motifRefus.trim());
-      await updateDemandeStatut(id, "Rejetée");
+      setLoadingReject(true);
 
+      const prevStatut = demande?.statut ?? STATUT.EN_ATTENTE;
 
-      await createHistorique({
-        demande: id,
-        validateurId: user.id,
-        action: "rejete",
+      await updateDemandeRefus(String(id), motifRefus.trim());
+      await updateDemandeStatut(String(id), STATUT.REJETEE);
+
+      await logHistorique({
+        action: ACTION.REJETER,
         motif: motifRefus.trim(),
-        niveauNom: currentLevel?.nom ?? null,
-        niveauOrdre: currentLevel?.ordre ?? null,
-        roleRequis: currentLevel?.roleRequis ?? null,
         statutAvant: prevStatut,
-        statutApres: "Rejetée",
+        statutApres: STATUT.REJETEE,
       });
 
-      setDemande(prev => ({
-        ...prev,
-        statut: "Rejetée",
-        motif_refus: motifRefus.trim(),
-        dateModification: new Date().toISOString(),
-        historiqueValidations: [
-          ...(prev?.historiqueValidations ?? []),
-          {
-            niveau: { nom: currentLevel?.nom, id: currentLevel?.id, ordre: currentLevel?.ordre },
-            acteur: { nom: `${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim(), email: user?.email },
-            action: "REJETER",
-            date: new Date().toISOString(),
-            commentaire: motifRefus.trim(),
-            niveauNom: currentLevel?.nom,
-            niveauOrdre: currentLevel?.ordre,
-          },
-        ],
-      }));
+      advanceLocalState({
+        nextStatut: STATUT.REJETEE,
+        addComment: motifRefus.trim(),
+        action: ACTION.REJETER,
+      });
 
       message.success("Demande rejetée");
       setRejectOpen(false);
     } catch (e) {
       message.error(e?.message || "Erreur lors du rejet");
+    } finally {
+      setLoadingReject(false);
     }
   };
 
   // -------- Sauvegardes existantes --------
   const saveStatut = async () => {
-    setEditingStatut(true);
-    if (!newStatut) {
-      message.error("Sélectionnez un statut");
-      setEditingStatut(false);
-      return;
-    }
+    if (!newStatut) return message.error("Sélectionnez un statut");
     try {
-      await updateDemandeStatut(id, newStatut);
-      setDemande(prev => ({ ...prev, statut: newStatut, dateModification: new Date().toISOString() }));
+      setSavingStatut(true);
+      await updateDemandeStatut(String(id), newStatut);
+      setDemande((prev) => ({ ...prev, statut: newStatut, dateModification: new Date().toISOString() }));
+      setEditingStatut(false);
       message.success("Statut mis à jour");
     } catch (e) {
       message.error(e.message || "Erreur MAJ statut");
     } finally {
-      setEditingStatut(false);
+      setSavingStatut(false);
     }
   };
 
   const saveRapport = async () => {
     const body = { rapport, userId: user.id };
     try {
-      await updateRapportDemande(id, body);
-      setDemande(prev => ({ ...prev, rapport }));
+      setSavingRapport(true);
+      await updateRapportDemande(String(id), body);
+      setDemande((prev) => ({ ...prev, rapport }));
       setEditingRapport(false);
       message.success("Rapport enregistré");
     } catch (e) {
-      message.error(e.message || "Erreur MAJ rapport");
+      message.error(e || "Erreur MAJ rapport");
+    } finally {
+      setSavingRapport(false);
     }
   };
 
   const saveRecommandation = async () => {
+    const body = { recommandation, userId: user.id };
     try {
-      // TODO: appeler ton endpoint de recommandation si dispo
-      setDemande(prev => ({ ...prev, recommandation }));
+      setSavingReco(true);
+      await updateRecommandation(id, body);
+      setDemande((prev) => ({ ...prev, recommandation }));
       setEditingReco(false);
       message.success("Recommandation enregistrée");
     } catch (e) {
       message.error(e.message || "Erreur MAJ recommandation");
+    } finally {
+      setSavingReco(false);
     }
   };
 
   const saveDecision = async () => {
+   
+    const body = {
+      decisionCommission : decision
+    }
+     console.log(body)
     try {
-      // TODO: appeler ton endpoint de décision si dispo
-      setDemande(prev => ({ ...prev, decisionCommission: decision }));
+      setSavingDecision(true);
+     await updateDecisionCommission(id, body);
+      setDemande((prev) => ({ ...prev, decisionCommission: decision }));
       setEditingDecision(false);
       message.success("Décision enregistrée");
     } catch (e) {
       message.error(e.message || "Erreur MAJ décision");
+    } finally {
+      setSavingDecision(false);
     }
   };
 
@@ -316,7 +387,6 @@ export default function AdminDemandeDetails() {
                 <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                   <div className="px-4 py-6 sm:px-0">
                     <div className="grid gap-6 lg:grid-cols-2">
-                      {/* Infos demande */}
                       <DemandeInfoCard
                         demande={demande}
                         canUpdateStatut={canUpdateStatut}
@@ -325,25 +395,24 @@ export default function AdminDemandeDetails() {
                         newStatut={newStatut}
                         setNewStatut={setNewStatut}
                         saveStatut={saveStatut}
+                        savingStatut={savingStatut}
                       />
-
-
 
                       <DemandeurInfoCard demandeur={demande.demandeur} />
                       <LocaliteInfoCard localite={demande.localite} />
-                      {/* Bloc Action de validation (rôle requis) */}
+
                       <ValidationActionCard
                         currentLevel={currentLevel}
                         isLastLevel={isLastLevel}
-                        canValidate={canValidateThisLevel && demande.statut !== "Rejetée" && demande.statut !== "Approuvée"}
+                        canValidate={canValidateThisLevel && demande.statut !== STATUT.REJETEE && demande.statut !== STATUT.APPROUVEE}
                         onValidate={handleValidate}
                         onReject={handleOpenReject}
                         requiredRole={requiredRole}
-                        user={user}
                         statut={demande.statut}
+                        loadingValidate={loadingValidate}
+                        loadingReject={loadingReject}
                       />
 
-                      {/* Rapport (agents) */}
                       <RoleSection
                         title="Rapport"
                         icon={<ClipboardList className="w-5 h-5" />}
@@ -355,10 +424,9 @@ export default function AdminDemandeDetails() {
                         onChange={setRapport}
                         editValue={rapport}
                         placeholder="Saisissez le rapport de l'agent…"
-                        color="primary"
+                        saving={savingRapport}
                       />
 
-                      {/* Recommandation (président/chef service) */}
                       <RoleSection
                         title="Recommandation"
                         icon={<Layers className="w-5 h-5" />}
@@ -370,10 +438,9 @@ export default function AdminDemandeDetails() {
                         onChange={setRecommandation}
                         editValue={recommandation}
                         placeholder="Saisissez la recommandation…"
-                        color="blue"
+                        saving={savingReco}
                       />
 
-                      {/* Décision commission */}
                       <RoleSection
                         title="Décision de la commission"
                         icon={<Landmark className="w-5 h-5" />}
@@ -385,11 +452,10 @@ export default function AdminDemandeDetails() {
                         onChange={setDecision}
                         editValue={decision}
                         placeholder="Saisissez la décision de la commission…"
-                        color="green"
+                        saving={savingDecision}
                       />
 
-                      {/* Motif de rejet si Rejetée */}
-                      {demande.statut === "Rejetée" && (
+                      {demande.statut === STATUT.REJETEE && (
                         <RefusCard
                           value={demande.motif_refus}
                           editable={canEditRefus}
@@ -398,15 +464,20 @@ export default function AdminDemandeDetails() {
                           editValue={motifRefus}
                           setEditValue={setMotifRefus}
                           onSave={async () => {
-                            await updateDemandeRefus(id, motifRefus.trim());
-                            setDemande(prev => ({ ...prev, motif_refus: motifRefus.trim() }));
-                            setEditingRefus(false);
-                            message.success("Motif actualisé");
+                            try {
+                              setSavingRefus(true);
+                              await updateDemandeRefus(String(id), motifRefus.trim());
+                              setDemande((prev) => ({ ...prev, motif_refus: motifRefus.trim() }));
+                              setEditingRefus(false);
+                              message.success("Motif actualisé");
+                            } finally {
+                              setSavingRefus(false);
+                            }
                           }}
+                          saving={savingRefus}
                         />
                       )}
 
-                      {/* Circuit de validation + historique */}
                       <ValidationCard demande={demande} levels={levels} currentLevel={currentLevel} />
                     </div>
 
@@ -427,37 +498,32 @@ export default function AdminDemandeDetails() {
         </div>
       </section>
 
-      {/* Modal rejet (motif) */}
       <Modal
         title="Rejeter la demande"
         open={rejectOpen}
         onOk={handleReject}
-        onCancel={() => setRejectOpen(false)}
+        onCancel={() => !loadingReject && setRejectOpen(false)}
         okText="Rejeter"
-        okButtonProps={{ danger: true }}
+        okButtonProps={{ danger: true, loading: loadingReject }}
+        confirmLoading={loadingReject}
       >
         <TextArea
           rows={4}
           value={motifRefus}
           onChange={(e) => setMotifRefus(e.target.value)}
           placeholder="Motif du rejet…"
+          disabled={loadingReject}
         />
       </Modal>
     </>
   );
 }
 
-/* ------------------ Sous-composants ------------------ */
+/* ===================== Sous-composants ===================== */
 
 function ValidationActionCard({
-  currentLevel,
-  isLastLevel,
-  canValidate,
-  onValidate,
-  onReject,
-  requiredRole,
-  user,
-  statut
+  currentLevel, isLastLevel, canValidate, onValidate, onReject, requiredRole, statut,
+  loadingValidate = false, loadingReject = false
 }) {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
@@ -478,15 +544,17 @@ function ValidationActionCard({
             )}
           </div>
 
-          {statut === "Approuvée" && <Tag color="green">Demande approuvée</Tag>}
-          {statut === "Rejetée" && <Tag color="red">Demande rejetée</Tag>}
+          {statut === STATUT.APPROUVEE && <Tag color="green">Demande approuvée</Tag>}
+          {statut === STATUT.REJETEE && <Tag color="red">Demande rejetée</Tag>}
 
           {canValidate ? (
             <Space className="mt-2" wrap>
-              <Button type="primary" onClick={onValidate}>
+              <Button type="primary" onClick={onValidate} loading={loadingValidate} disabled={loadingReject}>
                 {isLastLevel ? "Approuver" : "Valider le niveau"}
               </Button>
-              <Button danger onClick={onReject}>Rejeter</Button>
+              <Button danger onClick={onReject} loading={loadingReject} disabled={loadingValidate}>
+                Rejeter
+              </Button>
             </Space>
           ) : (
             <div className="text-xs text-gray-500 mt-2">
@@ -507,9 +575,9 @@ function DemandeInfoCard({
   newStatut,
   setNewStatut,
   saveStatut,
+  savingStatut = false,
 }) {
   const statutClass = STATUT_BADGE[demande.statut] || "bg-gray-100 text-gray-800 border";
-
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
       <div className="px-4 py-5 sm:p-6">
@@ -535,7 +603,6 @@ function DemandeInfoCard({
             <Tag color={demande.terrainAilleurs ? "green" : "red"}>Terrain ailleurs : {demande.terrainAilleurs ? "Oui" : "Non"}</Tag>
           </div>
 
-          {/* Edition libre du statut (admin/maire/super admin) */}
           {canUpdateStatut && (
             <div className="mt-2">
               {!editingStatut ? (
@@ -544,9 +611,11 @@ function DemandeInfoCard({
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Select value={newStatut} options={STATUT_OPTIONS} onChange={setNewStatut} style={{ minWidth: 220 }} />
-                  <Button type="primary" icon={<SaveOutlined />} onClick={saveStatut}>Enregistrer</Button>
-                  <Button onClick={() => setEditingStatut(false)}>Annuler</Button>
+                  <Select value={newStatut} options={STATUT_OPTIONS} onChange={setNewStatut} style={{ minWidth: 220 }} disabled={savingStatut} />
+                  <Button type="primary" icon={<SaveOutlined />} onClick={saveStatut} loading={savingStatut}>
+                    Enregistrer
+                  </Button>
+                  <Button onClick={() => setEditingStatut(false)} disabled={savingStatut}>Annuler</Button>
                 </div>
               )}
             </div>
@@ -557,7 +626,7 @@ function DemandeInfoCard({
   );
 }
 
-function RefusCard({ value, editable, editing, setEditing, editValue, setEditValue, onSave }) {
+function RefusCard({ value, editable, editing, setEditing, editValue, setEditValue, onSave, saving = false }) {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-red-500">
       <div className="px-4 py-5 sm:p-6">
@@ -577,10 +646,10 @@ function RefusCard({ value, editable, editing, setEditing, editValue, setEditVal
           </div>
         ) : (
           <div className="space-y-3">
-            <TextArea rows={4} value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="Saisissez le motif de rejet…" />
+            <TextArea rows={4} value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="Saisissez le motif de rejet…" disabled={saving} />
             <div className="flex gap-2 justify-end">
-              <Button onClick={() => setEditing(false)}>Annuler</Button>
-              <Button type="primary" icon={<SaveOutlined />} onClick={onSave}>Enregistrer</Button>
+              <Button onClick={() => setEditing(false)} disabled={saving}>Annuler</Button>
+              <Button type="primary" icon={<SaveOutlined />} onClick={onSave} loading={saving}>Enregistrer</Button>
             </div>
           </div>
         )}
@@ -590,16 +659,7 @@ function RefusCard({ value, editable, editing, setEditing, editValue, setEditVal
 }
 
 function RoleSection({
-  title,
-  icon,
-  value,
-  editable,
-  editing,
-  setEditing,
-  onSave,
-  onChange,
-  editValue,
-  placeholder,
+  title, icon, value, editable, editing, setEditing, onSave, onChange, editValue, placeholder, saving = false
 }) {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
@@ -619,10 +679,12 @@ function RoleSection({
           </div>
         ) : (
           <div className="space-y-3">
-            <TextArea rows={4} value={editValue} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+            <TextArea rows={4} value={editValue} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={saving} />
             <div className="flex gap-2 justify-end">
-              <Button onClick={() => setEditing(false)}>Annuler</Button>
-              <Button type="primary" icon={<SaveOutlined />} onClick={onSave}>Enregistrer</Button>
+              <Button onClick={() => setEditing(false)} disabled={saving}>Annuler</Button>
+              <Button type="primary" icon={<SaveOutlined />} onClick={onSave} loading={saving}>
+                Enregistrer
+              </Button>
             </div>
           </div>
         )}
@@ -658,7 +720,7 @@ function DemandeurInfoCard({ demandeur }) {
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(data).map(([key, value]) => (
             <div key={key} className="border-b pb-1">
-              <strong>{key}:</strong> {value || "-"}
+              <strong>{key}:</strong> {String(value) || "-"}
             </div>
           ))}
         </div>
@@ -680,6 +742,9 @@ function DemandeurInfoCard({ demandeur }) {
           <InfoItem icon={<FileText className="w-5 h-5" />} label="Numéro électeur" value={demandeur.numeroElecteur} />
           <InfoItem icon={<Briefcase className="w-5 h-5" />} label="Profession" value={demandeur.profession} />
           <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Habitant" value={demandeur.isHabitant ? "Oui" : "Non"} />
+          <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Nombre Enfants" value={demandeur.nombreEnfant || "0"} />
+          <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Situation Matrimonial" value={demandeur.situationMatrimoniale || "Non renseigné"} />
+          <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Statut logement" value={demandeur.situationDemandeur || "Non renseigné"} />
 
           {demandeur.isHabitant && (
             <Space>
@@ -690,7 +755,6 @@ function DemandeurInfoCard({ demandeur }) {
                 trigger="click"
                 placement="right"
                 overlayStyle={{ maxWidth: "800px" }}
-                open={undefined}
               >
                 <Button type="text" icon={<InfoCircleOutlined />} className="text-primary" loading={loadingHabitant} />
               </Popover>
@@ -758,7 +822,7 @@ function ValidationCard({ demande, levels = [], currentLevel }) {
         <div className="flex flex-wrap gap-2 mb-3">
           {levels.map((lvl) => {
             const isCurrent = lvl.id === currentId;
-            const done = hist?.some(h => h?.niveau?.id === lvl.id || h?.ordre === lvl.ordre);
+            const done = hist?.some((h) => (h?.niveau?.id === lvl.id) || (h?.ordre === lvl.ordre) || (h?.niveauOrdre === lvl.ordre));
             return (
               <Tag key={lvl.id} color={isCurrent ? "blue" : done ? "green" : "default"}>
                 {lvl.ordre}. {lvl.nom}
@@ -787,14 +851,13 @@ function ValidationCard({ demande, levels = [], currentLevel }) {
                     <div className="flex flex-wrap items-center gap-2">
                       <Tag>{ordre ? `${ordre}. ${nomNiveau}` : nomNiveau}</Tag>
                       <Tag color="purple">par {actor}</Tag>
-                      <Tag color={action === "REJETER" || action === "REJETE" ? "red" : "blue"}>{action}</Tag>
+                      <Tag color={action === ACTION.REJETER.toUpperCase() ? "red" : "blue"}>{action}</Tag>
                       {lineDate && <span className="text-xs text-gray-500">{new Date(lineDate).toLocaleString("fr-FR")}</span>}
                     </div>
                     {commentaire && <p className="text-sm mt-1">{commentaire}</p>}
                   </div>
                 );
               })}
-
             </div>
           )}
         </div>

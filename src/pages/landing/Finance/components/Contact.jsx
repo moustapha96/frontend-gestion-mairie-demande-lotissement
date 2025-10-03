@@ -16,9 +16,9 @@ const Contact = () => {
               <LuPhone className="h-10 w-10" />
             </div>
             <h4 className="text-xl font-medium text-default-950 mt-5">
-              Call Me
+             Appeler nous
             </h4>
-            <p className="text-base  text-default-800 mt-1">+0088 66956 66</p>
+            <p className="text-base  text-default-800 mt-1">33 941 12 56 / 33 941 15 35</p>
           </div>
           <div className="text-center">
             <div className="h-20 w-20 rounded-md border border-default-200 text-default-950 bg-white/5 mx-auto flex items-center justify-center">
@@ -27,18 +27,18 @@ const Contact = () => {
             <h4 className="text-xl font-medium text-default-950 mt-5">
               Email me
             </h4>
-            <p className="text-base  text-default-800 mt-1">Dgnr@gmail.com</p>
+            <p className="text-base  text-default-800 mt-1">support@kaolackcommune.sn</p>
           </div>
           <div className="text-center">
             <div className="h-20 w-20 rounded-md border border-default-200 text-default-950 bg-white/5 mx-auto flex items-center justify-center">
               <LuLineChart className="h-10 w-10" />
             </div>
             <h4 className="text-xl font-medium text-default-950 mt-5">
-              Flow Me
+           Suiver nous
             </h4>
             <p className="text-base  text-default-800 mt-1">Facebook.com</p>
           </div>
-          <div className="text-center">
+          {/* <div className="text-center">
             <div className="h-20 w-20 rounded-md border border-default-200 text-default-950 bg-white/5 mx-auto flex items-center justify-center">
               <LuSave className="h-10 w-10" />
             </div>
@@ -46,7 +46,7 @@ const Contact = () => {
               My Work
             </h4>
             <p className="text-base  text-default-800 mt-1">Coderthemes.com</p>
-          </div>
+          </div> */}
         </div>
       </div>
     </section>

@@ -13,6 +13,7 @@ import { cn } from "@/utils";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { message } from "antd";
 
 // Conformément à l'entité DemandeTerrain (typeDemande) + tes titres (typeTitre)
 const TYPE_DEMANDE_OPTIONS = [
@@ -46,12 +47,16 @@ const formSchema = yup.object({
     possedeAutreTerrain: yup.boolean().default(false),
     terrainAKaolack: yup.boolean().default(false),
     terrainAilleurs: yup.boolean().default(false),
-    recto: yup
-        .mixed()
-        .test("recto-required", "Le recto du document est requis", (v) => v && v.length === 1),
+    // recto: yup
+    //     .mixed()
+    //     .test("recto-required", "Le recto du document est requis", (v) => v && v.length === 1),
+     recto: yup
+        .mixed(),
+    // verso: yup
+    //     .mixed()
+    //     .test("verso-required", "Le verso du document est requis", (v) => v && v.length === 1),
     verso: yup
-        .mixed()
-        .test("verso-required", "Le verso du document est requis", (v) => v && v.length === 1),
+        .mixed(),
 
     // Identité électeur (requis par /nouvelle-demande)
     email: yup.string().email("Email invalide").required("Email requis"),
@@ -174,8 +179,10 @@ export default function AdminCreerDemandeFromElecteur() {
             formData.append("possedeAutreTerrain", String(values.possedeAutreTerrain));
             formData.append("terrainAKaolack", String(values.terrainAKaolack));
             formData.append("terrainAilleurs", String(values.terrainAilleurs));
-            formData.append("recto", values.recto[0]);
-            formData.append("verso", values.verso[0]);
+            if( values.recto[0] && values.verso[0] ){
+                formData.append("recto", values.recto[0]);
+                formData.append("verso", values.verso[0]);
+            }
 
             // Identité électeur (requis côté backend /nouvelle-demande)
             formData.append("prenom", values.prenom);
@@ -192,10 +199,10 @@ export default function AdminCreerDemandeFromElecteur() {
             if (user?.email) formData.append("adminEmail", user.email);
 
             const resp = await createDemandeFromElecteur(formData);
-
+            message.success("Demande créée avec succès");
             setMsg({ type: "success", content: resp?.message || "Demande créée avec succès." });
             reset();
-            // navigate(`/admin/demandes/${resp?.demande?.id}/details`);
+            navigate(`/admin/demandes/${resp?.demande?.id}/details`);
         } catch (e) {
             console.error(e);
             const apiMsg = e?.response?.data?.message || e?.message;

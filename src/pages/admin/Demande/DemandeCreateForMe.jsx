@@ -72,21 +72,24 @@ export default function DemandeCreatePaginatedForMe() {
 
   const onFinish = async (values) => {
     if (!canSubmit) return message.error("Vous devez être connecté.");
-    if (!rectoFile || !versoFile) return message.warning("Ajoutez recto et verso.");
-
+    // if (!rectoFile || !versoFile) return message.warning("Ajoutez recto et verso.");
+    console.log("values", values);
     const formData = new FormData();
     formData.append("userId", user.id);
     formData.append("typeDemande", values.typeDemande);
-    formData.append("typeDocument", values.typeDocument);
+    formData.append("typeDocument", values.typeDocument ?? null);
     formData.append("typeTitre", values.typeTitre || "");
     formData.append("localiteId", values.localiteId);
-    formData.append("superficie", values.superficie);
-    formData.append("usagePrevu", values.usagePrevu);
-    formData.append("possedeAutreTerrain", values.possedeAutreTerrain);
+    formData.append("superficie", values.superficie ?? 0);
+    formData.append("usagePrevu", values.usagePrevu ?? null);
+    formData.append("possedeAutreTerrain", values.possedeAutreTerrain ?? false);
     formData.append("terrainAKaolack", values.terrainAKaolack ?? false);
     formData.append("terrainAilleurs", values.terrainAilleurs ?? false);
-    formData.append("recto", rectoFile.originFileObj || rectoFile);
-    formData.append("verso", versoFile.originFileObj || versoFile);
+   
+    if( rectoFile && versoFile ){
+      formData.append("recto", rectoFile.originFileObj || rectoFile);
+      formData.append("verso", versoFile.originFileObj || versoFile);
+    }
 
     setSubmitting(true);
     try {
@@ -137,7 +140,7 @@ export default function DemandeCreatePaginatedForMe() {
               </Select>
             </Form.Item>
 
-            <Form.Item name="typeTitre" label="Type de titre (optionnel)">
+            <Form.Item name="typeTitre" label="Type de titre" required >
               <Select placeholder="Sélectionner (facultatif)" allowClear>
                 {TYPE_TITRE_OPTIONS.map((opt) => (
                   <Option key={opt.value} value={opt.value}>{opt.label}</Option>
@@ -153,8 +156,8 @@ export default function DemandeCreatePaginatedForMe() {
               </Select>
             </Form.Item>
 
-            <Form.Item name="superficie" label="Superficie (m²)" rules={[{ required: true }]}>
-              <InputNumber min={1} className="w-full" placeholder="Ex: 150" />
+            <Form.Item name="superficie" label="Superficie (m²)" >
+              <InputNumber min={1} defaultValue={0} className="w-full" placeholder="Ex: 150" />
             </Form.Item>
 
             <Form.Item name="usagePrevu" label="Usage prévu" rules={[{ required: true }]}>
@@ -175,7 +178,7 @@ export default function DemandeCreatePaginatedForMe() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2">
-            <Form.Item label="Pièce d’identité — Recto (PDF/IMG)" required>
+            <Form.Item label="Pièce d’identité — Recto (PDF/IMG)" >
               <Dragger multiple={false} maxCount={1} beforeUpload={beforeUploadBlock} onChange={onRectoChange}
                 accept=".pdf,.jpg,.jpeg,.png" fileList={rectoFile ? [rectoFile] : []} onRemove={() => setRectoFile(null)}>
                 <p className="ant-upload-drag-icon"><InboxOutlined /></p>
@@ -183,7 +186,7 @@ export default function DemandeCreatePaginatedForMe() {
               </Dragger>
             </Form.Item>
 
-            <Form.Item label="Pièce d’identité — Verso (PDF/IMG)" required>
+            <Form.Item label="Pièce d’identité — Verso (PDF/IMG)" >
               <Dragger multiple={false} maxCount={1} beforeUpload={beforeUploadBlock} onChange={onVersoChange}
                 accept=".pdf,.jpg,.jpeg,.png" fileList={versoFile ? [versoFile] : []} onRemove={() => setVersoFile(null)}>
                 <p className="ant-upload-drag-icon"><InboxOutlined /></p>

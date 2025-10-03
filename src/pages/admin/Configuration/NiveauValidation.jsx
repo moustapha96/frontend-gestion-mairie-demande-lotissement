@@ -29,7 +29,7 @@ export default function NiveauxValidation() {
   const { user } = useAuthContext()
 
   const canSee = Array.isArray(user?.roles) && (
-    user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN")
+    user.roles.includes("ROLE_ADMIN") || user.roles.includes("ROLE_SUPER_ADMIN") || user.roles.includes("ROLE_MAIRE")
   )
 
   const [levels, setLevels] = useState([])

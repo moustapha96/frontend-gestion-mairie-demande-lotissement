@@ -10,7 +10,7 @@ import { menuItems } from "@/assets/data"
 const Finance = () => {
   return (
     <>
-      <PageMetaData title="Gestion de la Mairie" />
+      <PageMetaData title="Mairie de Kaolack Commune" />
 
       {/* <TopNavBar menuItems={["accueil", "services", "ressources", "actualités", "nouvelle-demande", "contact"]} position="fixed" /> */}
 

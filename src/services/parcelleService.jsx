@@ -140,8 +140,18 @@ export async function getParcelles({ page = 1, size = 10, sort = "id,DESC", sear
     return data;
 }
 
+export async function getParcelleSimple() {
+    const { data } = await HttpClient.get(`${urlApi}parcelle/liste`);
+    return data;
+}
+
 // CRUD existants
 export async function createParcelle(payload) {
     const { data } = await HttpClient.post(`${urlApi}parcelle/create`, payload);
+    return data;
+}
+
+export async function deleteParcelle(id) {
+    const { data } = await HttpClient.delete(`${urlApi}parcelle/${id}/delete`);
     return data;
 }
