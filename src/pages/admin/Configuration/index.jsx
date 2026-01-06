@@ -28,10 +28,9 @@ import {
 import { AdminBreadcrumb } from "@/components"
 import { toast } from "sonner"
 import { getConfigurations, updateConfiguration } from "@/services/configurationService"
-import { getAllAccounts, updateActivatedStatus, createAdminUser, updateUserRole } from "@/services/userService"
+import {  createAdminUser } from "@/services/userService"
 import { useAuthContext } from "@/context"
-import { getDetaitHabitant } from "../../../services/userService"
-import { getLevels, createLevel, updateLevel, deleteLevel } from "@/services/validationService"
+
 
 const { Content } = Layout
 const { TabPane } = Tabs
@@ -89,24 +88,12 @@ const AdminConfiguration = () => {
 
   // Redirige si l'utilisateur n'a pas accès aux onglets validation/historique
   useEffect(() => {
-    if (!canSeeValidation && (activeTab === "levels" || activeTab === "history")) {
+    if (!canSeeValidation) {
       setActiveTab("config")
     }
   }, [canSeeValidation, activeTab])
 
-  const fetchLevels = async () => {
-    setLoadingLevels(true)
-    try {
-      const data = await getLevels()
-      const rows = Array.isArray(data) ? data : (data.items || [])
-      setLevels(rows)
-    } catch (e) {
-      toast.error("Erreur lors du chargement des niveaux")
-    } finally {
-      setLoadingLevels(false)
-    }
-  }
-
+ 
 
 
   useEffect(() => {
@@ -134,11 +121,7 @@ const AdminConfiguration = () => {
     fetchConfigurations()
   }, [form])
 
-  useEffect(() => {
-    if (activeTab === "levels" && canSeeValidation) {
-      fetchLevels()
-    }
-  }, [activeTab, canSeeValidation])
+
 
 
 

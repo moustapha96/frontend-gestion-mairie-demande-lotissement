@@ -51,7 +51,7 @@ export default function DemandeCreatePaginatedForMe() {
         .filter((x) => !!x.id && !!x.nom);
       setLocalites(normalized);
     } catch (e) {
-      message.error("Impossible de charger les localités.");
+      message.error("Impossible de charger les Quartiers.");
       console.error(e);
     } finally {
       setLoadingLocalites(false);
@@ -112,7 +112,7 @@ export default function DemandeCreatePaginatedForMe() {
       <div className="mb-5 flex items-center justify-between">
         <Title level={4} className="!mb-0">Nouvelle demande</Title>
         <Button icon={<ReloadOutlined />} onClick={fetchLocalites} loading={loadingLocalites}>
-          Recharger localités
+          Recharger Quartiers
         </Button>
       </div>
 
@@ -148,8 +148,8 @@ export default function DemandeCreatePaginatedForMe() {
               </Select>
             </Form.Item>
 
-            <Form.Item name="localiteId" label="Localité" rules={[{ required: true }]}>
-              <Select placeholder="Sélectionner une localité" loading={loadingLocalites} showSearch optionFilterProp="children">
+            <Form.Item name="localiteId" label="Quartier" rules={[{ required: true }]}>
+              <Select placeholder="Sélectionner une Quartier" loading={loadingLocalites} showSearch optionFilterProp="children">
                 {localites.map((l) => (
                   <Option value={l.id} key={l.id}>{l.nom}</Option>
                 ))}

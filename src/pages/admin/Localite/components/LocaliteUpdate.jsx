@@ -49,7 +49,7 @@ const AdminLocaliteModifier = () => {
                 latitude: parseFloat(latitude)
             }
             await updateLocalite(id, body);
-            toast.success("Localité mise à jour avec succès!")
+            toast.success("Quartier mise à jour avec succès!")
             navigate("/admin/quartiers")
         } catch (error) {
             console.log(error);

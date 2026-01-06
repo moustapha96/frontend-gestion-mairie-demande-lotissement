@@ -115,7 +115,7 @@ const AdminLocaliteListe = () => {
                     ) && (
 
                             <Popconfirm
-                                title="Êtes-vous sûr de vouloir supprimer ce localité ?"
+                                title="Êtes-vous sûr de vouloir supprimer ce Quartier ?"
                                 onConfirm={() => handleDelete(record.id)}
                                 okText="Oui"
                                 cancelText="Non"

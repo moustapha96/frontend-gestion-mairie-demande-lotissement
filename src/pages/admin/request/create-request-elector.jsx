@@ -403,7 +403,7 @@ export default function RequestCreateFromElector() {
                                 </Select>
                             </Form.Item>
 
-                            <Form.Item label="Localité" name="localiteId" rules={[{ required: true }]}>
+                            <Form.Item label="Quartier" name="localiteId" rules={[{ required: true }]}>
                                 <Select
                                     showSearch
                                     placeholder="Sélectionner"

@@ -102,7 +102,7 @@ export default function ElectorRequests() {
         { title: "Titre", dataIndex: "typeTitre", width: 180 },
         { title: "Superficie (m²)", dataIndex: "superficie", width: 130 },
         {
-            title: "Localité",
+            title: "Quartier",
             dataIndex: "localite",
             width: 180,
             render: (_, r) => r?.localite || "—",

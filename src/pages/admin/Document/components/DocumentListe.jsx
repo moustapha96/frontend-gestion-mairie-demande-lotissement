@@ -68,7 +68,7 @@ const DocumentListe = () => {
       onFilter: (value, record) => record.type === value,
     },
     {
-      title: "Localité",
+      title: "Quartier",
       key: "localite",
       render: (_, record) => record.demande.localite.nom,
       sorter: (a, b) =>
@@ -174,7 +174,7 @@ const DocumentListe = () => {
                 ? selectedDocument.contenu.numeroPermis
                 : selectedDocument.contenu.numeroBail}
             </Descriptions.Item>
-            <Descriptions.Item label="Localité">
+            <Descriptions.Item label="Quartier">
               {selectedDocument.demande.localite.nom}
             </Descriptions.Item>
             <Descriptions.Item label="Superficie">

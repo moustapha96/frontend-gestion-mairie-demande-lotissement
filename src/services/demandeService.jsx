@@ -92,7 +92,7 @@ export async function getFileDocument(demandeId) {
 
 export async function createDemande(data) {
     try {
-        const response = await HttpClient.post(`${urlApi}demande/create`, data, {
+        const response = await HttpClient.post(`${urlApi}nouveau-demandes/create-demande-demandeur`, data, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             }

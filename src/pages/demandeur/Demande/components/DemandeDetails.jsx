@@ -1,965 +1,767 @@
-// "use client"
 
-// import { useEffect, useState } from "react"
-// import { useParams } from "react-router-dom"
+// "use client";
+
+// import { useEffect, useState, useMemo } from "react";
+// import { useParams, Link } from "react-router-dom";
+// import { DemandeurBreadcrumb } from "@/components";
+// import { getAttributionParcelleByDemande } from "@/services/attributionParcelleService";
 // import {
-//     Calendar,
-//     Award,
-//     CheckCircle,
-//     Building,
-//     Mail,
-//     Phone,
-//     MapPin,
-//     User,
-//     Briefcase,
-//     Globe,
-//     FileText,
-//     Clock,
-//     MapPinCheck,
-//     AlertTriangle
-// } from "lucide-react"
-// import { getDemandeDetails, getFileDocument } from "@/services/demandeService"
-// import { useAuthContext } from "@/context"
-// import { DemandeurBreadcrumb } from "@/components"
-// import { cn } from "@/utils"
-// import MapCar from "@/pages/admin/Map/MapCar"
-// import { formatCoordinates, formatPhoneNumber, formatPrice } from "@/utils/formatters"
+//   getDetailsRequest,
+//   getFileRequest,
+// } from "@/services/requestService";
+// import {
+//   Card,
+//   Descriptions,
+//   Divider,
+//   Tag,
+//   Button,
+//   Space,
+//   Alert,
+//   Skeleton,
+// } from "antd";
+// import dayjs from "dayjs";
+
+// /* ================= helpers UI ================= */
+
+// const statutColor = (s) => {
+//   switch (String(s || "").toUpperCase()) {
+//     case "EN_ATTENTE":
+//     case "EN_COURS":
+//       return "processing";
+//     case "VALIDEE":
+//     case "APPROBATION_PREFET":
+//       return "blue";
+//     case "ATTRIBUTION_PROVISOIRE":
+//       return "gold";
+//     case "APPROBATION_CONSEIL":
+//       return "geekblue";
+//     case "ATTRIBUTION_DEFINITIVE":
+//       return "green";
+//     case "REJETEE":
+//       return "red";
+//     case "ANNULEE":
+//       return "volcano";
+//     default:
+//       return "default";
+//   }
+// };
+// const fmt = (v) => (v === null || v === undefined || v === "" ? "—" : v);
+// const money = (v) =>
+//   v || v === 0 ? new Intl.NumberFormat("fr-FR").format(v) : "—";
+// const fmtDate = (v, withTime = false) =>
+//   v ? dayjs(v).format(withTime ? "DD/MM/YYYY HH:mm" : "DD/MM/YYYY") : "—";
+
+
 
 // export default function DemandeurDemandeDetails() {
-//     const { user } = useAuthContext();
-//     const { id } = useParams()
-//     const [demande, setDemande] = useState(null)
-//     const [loading, setLoading] = useState(true)
-//     const [error, setError] = useState(null)
-//     const [fichier, setFichier] = useState(null)
+//   const { id } = useParams();
 
-//     const [rectoFile, setRectoFile] = useState(null)
-//     const [versoFile, setVersoFile] = useState(null)
+//   const [loading, setLoading] = useState(true);
+//   const [demande, setDemande] = useState(null);
+//   const [files, setFiles] = useState({ recto: null, verso: null });
+//   const [attrib, setAttrib] = useState(null);
 
-//     useEffect(() => {
-//         const fetchDemande = async () => {
-//             try {
-//                 const data = await getDemandeDetails(id)
-//                 console.log(data)
-//                 setDemande(data)
-//                 console.log(data)
-//                 if (data.document) {
-//                     const response = await getFileDocument(id)
-//                     setRectoFile(response['recto'])
-//                     setVersoFile(response['verso'])
-//                 }
-//             } catch (err) {
-//                 setError(err.message)
-//             } finally {
-//                 setLoading(false)
-//             }
-//         }
+//   const load = async () => {
+//     setLoading(true);
+//     try {
+//       const [d, f, a] = await Promise.all([
+//         getDetailsRequest(String(id)).catch(() => null),
+//         getFileRequest(String(id)).catch(() => ({})),
+//         getAttributionParcelleByDemande(String(id)).catch(() => null),
+//       ]);
+//       console.log(d,a)
+//       setDemande(d?.item ?? d ?? null);
 
-//         fetchDemande()
-//     }, [id])
+//       const recto =
+//         f?.data?.recto ?? // cas { success, data:{...} }
+//         f?.recto ??
+//         null;
+//       const verso =
+//         f?.data?.verso ??
+//         f?.verso ??
+//         null;
+//       setFiles({ recto, verso });
 
-//     if (loading) return <LoadingSkeleton />
-//     if (error) return <ErrorDisplay error={error} />
+//       setAttrib(a ?? null);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-//     return (
-//         <>
-//             <DemandeurBreadcrumb title="Details de la demande" />
-//             <section>
-//                 <div className="container">
-//                     <div className="my-6 space-y-6">
-//                         <div className="grid grid-cols-1">
-//                             <div className="bg-gray-100 min-h-screen pb-10">
-//                                 <header className="bg-white shadow">
-//                                     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-//                                         <h1 className="text-3xl font-bold text-gray-900">{"Detail de la demande"}</h1>
-//                                     </div>
-//                                 </header>
-//                                 <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-//                                     <div className="px-4 py-6 sm:px-0">
+//   useEffect(() => {
+//     load();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [id]);
 
+//   // petits raccourcis sûrs
+//   const lot = attrib?.parcelle?.lotissement;
+//   const loc = lot?.localite;
 
-//                                         <div className="grid gap-6 md:grid-cols-2">
-//                                             <DemandeInfoCard demande={demande} />
+//   // PVs: plusieurs clés possibles suivant ton back
+//   const pv = useMemo(
+//     () => ({
+//       validationProvisoire:
+//         attrib?.pvValidationProvisoire ??
+//         // parfois stocké concaténé
+//         (attrib?.pvCommision?.includes("VALIDATION") ? attrib?.pvCommision : null),
+//       attributionProvisoire:
+//         attrib?.pvAttributionProvisoire ??
+//         (attrib?.pvCommision?.includes("ATTRIBUTION_PROVISOIRE")
+//           ? attrib?.pvCommision
+//           : null),
+//       approbationPrefet:
+//         attrib?.pvApprobationPrefet ??
+//         (attrib?.pvCommision?.includes("APPROBATION_PREFET")
+//           ? attrib?.pvCommision
+//           : null),
+//       approbationConseil:
+//         attrib?.pvApprobationConseil ??
+//         (attrib?.pvCommision?.includes("APPROBATION_CONSEIL")
+//           ? attrib?.pvCommision
+//           : null),
+//       // PV brute (au cas où)
+//       pvCommision: attrib?.pvCommision ?? null,
+//     }),
+//     [attrib]
+//   );
 
-//                                             {/* <DemandeurInfoCard demandeur={demande.demandeur} /> */}
-//                                             <LocaliteInfoCard localite={demande.localite} />
-//                                             {demande.documentGenerer && demande.documentGenerer.isGenerated && (
-//                                                 <DocumentGenereInfoCard documentGenerer={demande.documentGenerer} />
-//                                             )}
-//                                         </div>
-//                                         <div className="grid gap-6 md:grid-cols-1  mt-8">
-//                                             {demande.statut === "REJETE" && (
-//                                                 <DemandeRefusInfoCard demande={demande} />
-//                                             )}
-//                                         </div>
+//   return (
+//     <>
+//       <DemandeurBreadcrumb title={`Détails demande #${id}`} />
+//       <section>
+//         <div className="container">
+//           <div className="my-6 space-y-6">
+//             <Card
+//               title={`Demande #${id}`}
+//               extra={
+//                 <Space>
+//                   <Tag color={statutColor(demande?.statut)}>
+//                     {demande?.statut || "—"}
+//                   </Tag>
+//                   <Link to="/demandeur/demandes">
+//                     <Button>Retour</Button>
+//                   </Link>
+//                 </Space>
+//               }
+//             >
+//               {loading ? (
+//                 <Skeleton active paragraph={{ rows: 8 }} />
+//               ) : (
+//                 <>
+//                   {/* ======= Bloc Demande ======= */}
+//                   <Descriptions bordered column={2} size="small">
+//                     <Descriptions.Item label="Type de demande">
+//                       {fmt(demande?.typeDemande)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Titre demandé">
+//                       {fmt(demande?.typeTitre)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Superficie (m²)">
+//                       {fmt(demande?.superficie)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Usage prévu">
+//                       {fmt(demande?.usagePrevu)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Localité / Quartier">
+//                       {fmt(
+//                         demande?.quartier?.nom ??
+//                         demande?.localite?.nom ??
+//                         demande?.localite
+//                       )}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Créée le">
+//                       {fmtDate(demande?.dateCreation, true)}
+//                     </Descriptions.Item>
+//                   </Descriptions>
 
-//                                         {demande.localite && demande.localite.longitude && demande.localite.latitude && (
+//                   <Divider />
 
-//                                             <div className="grid gap-6 md:grid-cols-1 mt-8">
-//                                                 <DemandeInfoCarteCard localite={demande.localite} />
-//                                             </div>
-//                                         )}
+//                   {/* ======= Documents ======= */}
+//                   <Descriptions
+//                     title="Documents fournis"
+//                     bordered
+//                     column={2}
+//                     size="small"
+//                   >
+//                     <Descriptions.Item label="Recto">
+//                       {files.recto ? (
+//                         <a href={import.meta.env.VITE_API_URL_SIMPLE + files.recto} target="_blank" rel="noreferrer">
+//                           Ouvrir
+//                         </a>
+//                       ) : (
+//                         "—"
+//                       )}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Verso">
+//                       {files.verso ? (
+//                         <a href={import.meta.env.VITE_API_URL_SIMPLE + files.verso} target="_blank" rel="noreferrer">
+//                           Ouvrir
+//                         </a>
+//                       ) : (
+//                         "—"
+//                       )}
+//                     </Descriptions.Item>
+//                   </Descriptions>
 
-//                                     </div>
+//                   <Divider />
 
-//                                     {
-//                                         (rectoFile || versoFile) && (
-//                                             <div className="mt-8">
-//                                                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
-//                                                 <div className="grid gap-6 md:grid-cols-1">
-//                                                     {rectoFile && <FilePreview file={rectoFile} title="Recto du document" />}
-//                                                     {versoFile && <FilePreview file={versoFile} title="Verso du document" />}
-//                                                 </div>
-//                                             </div>
-//                                         )
-//                                     }
+//                   {/* ======= Attribution ======= */}
+//                   {attrib && (
 
-//                                 </main>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </section>
-//         </>
-//     )
-// }
+//                     <Descriptions
+//                       title="Attribution & validations"
+//                       bordered
+//                       column={1}
+//                       size="small"
+//                     >
+//                       <Descriptions.Item label="Statut attribution">
+//                         {attrib?.statut ? (
+//                           <Tag color={statutColor(attrib.statut)}>
+//                             {attrib.statut}
+//                           </Tag>
+//                         ) : (
+//                           "—"
+//                         )}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Montant">
+//                         {money(attrib?.montant)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Périodicité (ex-: échéance)">
+//                         {fmt(attrib?.frequence)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Date d’effet">
+//                         {fmtDate(attrib?.dateEffet)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Date de fin">
+//                         {fmtDate(attrib?.dateFin)}
+//                       </Descriptions.Item>
 
+//                       {/* PV par étape */}
+//                       <Descriptions.Item label="PV — Validation provisoire">
+//                         {fmt(pv.validationProvisoire)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="PV — Attribution provisoire">
+//                         {fmt(pv.attributionProvisoire)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="PV — Approbation Préfet">
+//                         {fmt(pv.approbationPrefet)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="PV — Approbation Conseil">
+//                         {fmt(pv.approbationConseil)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Décision Conseil">
+//                         {fmt(attrib?.decisionConseil)}
+//                       </Descriptions.Item>
 
-// function DemandeInfoCard({ demande }) {
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations de la demande</h3>
-//                 <div className="space-y-4">
-//                     <InfoItem
-//                         icon={<Calendar className="w-5 h-5" />}
-//                         label="Date Demande"
-//                         value={new Date(demande.dateCreation).toLocaleDateString()}
-//                     />
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label="Type de demande"
-//                         value={demande.typeDemande}
-//                     />
-//                     <InfoItem
-//                         icon={<Award className="w-5 h-5" />}
-//                         label="Superficie"
-//                         value={`${demande.superficie} m²`}
-//                     />
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label="Usage prévu"
-//                         value={demande.usagePrevu}
-//                     />
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label="Document fourni"
-//                         value={demande.typeDocument}
-//                     />
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label="Autre terrain"
-//                         value={demande.possedeAutreTerrain ? "Oui" : "Non"}
-//                     />
-//                     <InfoItem
-//                         icon={<CheckCircle className="w-5 h-5" />}
-//                         label="Statut de la demande"
-//                         value={
-//                             <span
-//                                 className={cn(
-//                                     "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
-//                                     {
-//                                         'bg-yellow-100 text-yellow-800': demande.statut === 'EN_COURS',
-//                                         'bg-green-100 text-green-800': demande.statut === 'VALIDE',
-//                                         'bg-red-100 text-red-800': demande.statut === 'REJETE'
-//                                     }
-//                                 )}
-//                             >
-//                                 {demande.statut}
-//                             </span>
-//                         }
-//                     />
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
+//                       {/* Dates d’étapes (avec heure quand dispo) */}
+//                       <Descriptions.Item label="Validation provisoire le">
+//                         {fmtDate(attrib?.datesEtapes?.validationProvisoire, true)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Attribution provisoire le">
+//                         {fmtDate(attrib?.datesEtapes?.attributionProvisoire, true)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Approbation du Préfet le">
+//                         {fmtDate(attrib?.datesEtapes?.approbationPrefet, true)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Approbation du Conseil le">
+//                         {fmtDate(attrib?.datesEtapes?.approbationConseil, true)}
+//                       </Descriptions.Item>
+//                       <Descriptions.Item label="Attribution définitive le">
+//                         {fmtDate(attrib?.datesEtapes?.attributionDefinitive, true)}
+//                       </Descriptions.Item>
 
-// function DemandeInfoCarteCard({ localite }) {
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Visualisation sur la carte</h3>
-//                 <div className="space-y-4">
+//                       {/* Info re-ouverture (si exposée par le back) */}
+//                       {attrib?.canReopen === true && (
+//                         <Descriptions.Item label="Peut être réouvert ?">
+//                           Oui
+//                         </Descriptions.Item>
+//                       )}
+//                     </Descriptions>
+//                   )}
 
-//                     <InfoItem
-//                         icon={<MapPinCheck className="w-5 h-5" />}
-//                         label={"Coordonnées"}
-//                         value={formatCoordinates(localite.latitude, localite.longitude)}
-//                     />
-//                     {localite.longitude && localite.latitude && <MapCar selectedItem={localite} type="localite" />}
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
+//                   <Divider />
 
-// function DemandeRefusInfoCard({ demande }) {
-
-
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary border-l-4 border-red-500">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <div className="flex justify-between items-center mb-4">
-//                     <h3 className="text-lg font-medium leading-6 text-red-700 flex items-center">
-//                         <AlertTriangle className="w-5 h-5 mr-2" />
-//                         Motif du rejet de la demande
-//                     </h3>
-
-//                 </div>
-
-//                 <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">
-//                     {demande.motif_refus || "Aucun motif spécifié"}
-//                 </div>
-//             </div>
-//         </div>
-//     )
-// }
-
-// // Mise à jour de DemandeurInfoCard
-// function DemandeurInfoCard({ demandeur }) {
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations du demandeur</h3>
-//                 <div className="space-y-4">
-//                     <InfoItem
-//                         icon={<User className="w-5 h-5" />}
-//                         label="Nom complet"
-//                         value={`${demandeur.prenom} ${demandeur.nom}`}
-//                     />
-//                     <InfoItem
-//                         icon={<Mail className="w-5 h-5" />}
-//                         label="Email"
-//                         value={demandeur.email}
-//                     />
-//                     <InfoItem
-//                         icon={<Phone className="w-5 h-5" />}
-//                         label="Téléphone"
-//                         value={formatPhoneNumber(demandeur.telephone)}
-//                     />
-//                     <InfoItem
-//                         icon={<MapPin className="w-5 h-5" />}
-//                         label="Adresse"
-//                         value={demandeur.adresse}
-//                     />
-//                     <InfoItem
-//                         icon={<Calendar className="w-5 h-5" />}
-//                         label="Date de Naissance"
-//                         value={new Date(demandeur.dateNaissance).toLocaleDateString()}
-//                     />
-//                     <InfoItem
-//                         icon={<MapPin className="w-5 h-5" />}
-//                         label="Lieu de Naissance"
-//                         value={demandeur.lieuNaissance}
-//                     />
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label="Numéro électeur"
-//                         value={demandeur.numeroElecteur}
-//                     />
-//                     <InfoItem
-//                         icon={<Briefcase className="w-5 h-5" />}
-//                         label="Profession"
-//                         value={demandeur.profession}
-//                     />
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
-
-// function LocaliteInfoCard({ localite, demande }) {
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Informations sur a localité"}</h3>
-//                 <div className="space-y-4">
-//                     <InfoItem icon={<Building className="w-5 h-5" />} label={"Nom"} value={localite.nom} />
-//                     <InfoItem icon={<Globe className="w-5 h-5" />} label={"Prix"} value={formatPrice(localite.prix)} />
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label={"Description"}
-//                         value={localite.description}
-//                     />
-//                     <InfoItem
-//                         icon={<MapPinCheck className="w-5 h-5" />}
-//                         label={"Coordonnées"}
-//                         value={formatCoordinates(localite.latitude, localite.longitude)}
-//                     />
-
-//                 </div>
-//             </div>
-//         </div>
-//     )
-// }
-
-// function DocumentInfoCard({ document }) {
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">{"Document"}</h3>
-//                 <div className="space-y-4">
-//                     <InfoItem icon={<FileText className="w-5 h-5" />} label={"Type document"} value={document.type} />
-//                     <InfoItem icon={<FileText className="w-5 h-5" />} label={"Date de renseignement"} value={document.date} />
-//                 </div>
-//             </div>
-//         </div>
-//     )
-// }
-
-// // Ajout du nouveau composant pour le document généré
-// function DocumentGenereInfoCard({ documentGenerer }) {
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Document généré</h3>
-//                 <div className="space-y-4">
-//                     <InfoItem
-//                         icon={<FileText className="w-5 h-5" />}
-//                         label="Type"
-//                         value={documentGenerer.type}
-//                     />
-//                     <InfoItem
-//                         icon={<Calendar className="w-5 h-5" />}
-//                         label="Date de création"
-//                         value={new Date(documentGenerer.dateCreation).toLocaleDateString()}
-//                     />
-//                     {documentGenerer.contenu && (
-//                         <>
-//                             <InfoItem
-//                                 icon={<FileText className="w-5 h-5" />}
-//                                 label="Numéro de permis"
-//                                 value={documentGenerer.contenu.numeroPermis}
-//                             />
-//                             <InfoItem
-//                                 icon={<Calendar className="w-5 h-5" />}
-//                                 label="Date de délivrance"
-//                                 value={documentGenerer.contenu.dateDelivrance}
-//                             />
-//                             <InfoItem
-//                                 icon={<Clock className="w-5 h-5" />}
-//                                 label="Durée de validité"
-//                                 value={documentGenerer.contenu.dureeValidite}
-//                             />
-//                         </>
+//                  {attrib && attrib.parcelle && (
+                   
+//                   <Descriptions
+//                     title="Parcelle attribuée"
+//                     bordered
+//                     column={2}
+//                     size="small"
+//                   >
+//                     <Descriptions.Item label="Numéro">
+//                       {fmt(attrib?.parcelle?.numero)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Surface">
+//                       {fmt(attrib?.parcelle?.surface)} m²
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Statut">
+//                       {fmt(attrib?.parcelle?.statut)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Coordonnées">
+//                       {fmt(attrib?.parcelle?.latitude)} /{" "}
+//                       {fmt(attrib?.parcelle?.longitude)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Lotissement">
+//                       {fmt(lot?.nom)}
+//                     </Descriptions.Item>
+//                     <Descriptions.Item label="Localité">
+//                       {fmt(loc?.nom)}
+//                     </Descriptions.Item>
+//                     {loc?.prix !== undefined && (
+//                       <Descriptions.Item label="Prix localité (FCFA)">
+//                         {money(loc.prix)}
+//                       </Descriptions.Item>
 //                     )}
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
-
-// function InfoItem({ icon, label, value }) {
-//     return (
-//         <div className="flex items-center space-x-3">
-//             <div className="flex-shrink-0 text-gray-400">{icon}</div>
-//             <div>
-//                 <p className="text-sm font-medium text-gray-500">{label}</p>
-//                 <p className="mt-1 text-sm text-gray-900">{value || "N/A"}</p>
-//             </div>
-//         </div>
-//     )
-// }
-
-// function LoadingSkeleton() {
-//     return (
-//         <div className="bg-gray-100 min-h-screen pb-10">
-//             <header className="bg-white shadow">
-//                 <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-//                     <div className="h-9 w-64 bg-gray-200 rounded animate-pulse"></div>
-//                 </div>
-//             </header>
-//             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-//                 <div className="px-4 py-6 sm:px-0">
-//                     <div className="grid gap-6 md:grid-cols-2">
-//                         {[...Array(4)].map((_, i) => (
-//                             <div key={i} className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//                                 <div className="px-4 py-5 sm:p-6">
-//                                     <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
-//                                     {[...Array(5)].map((_, j) => (
-//                                         <div key={j} className="flex items-center space-x-3 mt-4">
-//                                             <div className="h-5 w-5 bg-gray-200 rounded-full animate-pulse"></div>
-//                                             <div className="space-y-2">
-//                                                 <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-//                                                 <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-//                                             </div>
-//                                         </div>
-//                                     ))}
-//                                 </div>
-//                             </div>
-//                         ))}
-//                     </div>
-//                 </div>
-//             </main>
-//         </div>
-//     )
-// }
-
-// function ErrorDisplay({ error }) {
-//     return (
-//         <div className="flex justify-center items-center h-screen bg-gray-100">
-//             <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary w-full max-w-md">
-//                 <div className="px-4 py-5 sm:p-6">
-//                     <h3 className="text-lg font-medium leading-6 text-red-600 mb-4">Erreur</h3>
-//                     <p className="text-center">{error}</p>
-//                 </div>
-//             </div>
-//         </div>
-//     )
-// }
-
-// function FilePreview({ file, title }) {
-//     const fileType = file.startsWith('/9j/') ? 'image/jpeg'
-//         : file.startsWith('iVBORw0KGgo') ? 'image/png'
-//             : 'application/pdf'
-
-//     return (
-//         <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-//             <div className="px-4 py-5 sm:p-6">
-//                 <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-//                 <div className="bg-gray-200 rounded-lg p-4">
-//                     {fileType.startsWith('image/') ? (
-//                         <img
-//                             src={`data:${fileType};base64,${file}`}
-//                             alt={title}
-//                             className="w-full h-auto max-h-[400px] object-contain"
-//                         />
-//                     ) : (
-//                         <iframe
-//                             src={`data:application/pdf;base64,${file}`}
-//                             title={title}
-//                             className="w-full h-[400px]"
-//                         />
+//                     {attrib?.parcelle?.proprietaire && (
+//                       <>
+//                         <Descriptions.Item label="Propriétaire">
+//                           {fmt(
+//                             `${attrib.parcelle.proprietaire?.prenom ?? ""} ${attrib.parcelle.proprietaire?.nom ?? ""
+//                               }`.trim()
+//                           )}
+//                         </Descriptions.Item>
+//                         <Descriptions.Item label="Contact">
+//                           {fmt(attrib.parcelle.proprietaire?.telephone)}
+//                         </Descriptions.Item>
+//                         <Descriptions.Item label="Email">
+//                           {fmt(attrib.parcelle.proprietaire?.email)}
+//                         </Descriptions.Item>
+//                         <Descriptions.Item label="Adresse">
+//                           {fmt(attrib.parcelle.proprietaire?.adresse)}
+//                         </Descriptions.Item>
+//                       </>
 //                     )}
-//                 </div>
-//             </div>
+//                   </Descriptions>
+//                  )}
+
+//                   {/* ======= Alerte info ======= */}
+//                   <Alert
+//                     className="mt-4"
+//                     type="info"
+//                     showIcon
+//                     message="Suivi"
+//                     description={
+//                       <>
+//                         Vous recevrez un e-mail à chaque étape importante
+//                         (validation, approbations, attribution définitive).
+//                       </>
+//                     }
+//                   />
+//                 </>
+//               )}
+//             </Card>
+//           </div>
 //         </div>
-//     )
+//       </section>
+//     </>
+//   );
 // }
-
-// // Utilisation
-
-
-
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import {
-  Calendar, Award, CheckCircle, Building, Mail, Phone, MapPin, User,
-  Briefcase, Globe, FileText, Clock, MapPinCheck, AlertTriangle,
-  Space
-} from "lucide-react";
-import { Tag, Divider, Popover, Button } from "antd";
-import { getDemandeDetails, getFileDocument } from "@/services/demandeService";
+import { useEffect, useState, useMemo } from "react";
+import { useParams, Link } from "react-router-dom";
 import { DemandeurBreadcrumb } from "@/components";
-import { cn } from "@/utils";
-import MapCar from "@/pages/admin/Map/MapCar";
-import { formatCoordinates, formatPhoneNumber, formatPrice } from "@/utils/formatters";
-import { getDetaitHabitant } from "@/services/userService";
-import { InfoCircleOutlined, UserAddOutlined } from "@ant-design/icons";
+import { getAttributionParcelleByDemande } from "@/services/attributionParcelleService";
+import { getDetailsRequest, getFileRequest } from "@/services/requestService";
+import {
+  Card,
+  Descriptions,
+  Divider,
+  Tag,
+  Button,
+  Space,
+  Alert,
+  Skeleton,
+} from "antd";
+import dayjs from "dayjs";
 
-/* Statuts tels que renvoyés par l’API (ex: "En attente") */
-const STATUT = Object.freeze({
-  EN_ATTENTE: "En attente",
-  EN_COURS: "En cours de traitement",
-  REJETEE: "Rejetée",
-  APPROUVEE: "Approuvée",
-});
-
-const STATUT_BADGE= {
-  [STATUT.EN_ATTENTE]: "bg-yellow-50 text-yellow-800 border border-yellow-300",
-  [STATUT.EN_COURS]: "bg-blue-50 text-blue-800 border border-blue-300",
-  [STATUT.REJETEE]: "bg-red-50 text-red-800 border border-red-300",
-  [STATUT.APPROUVEE]: "bg-green-50 text-green-800 border border-green-300",
+/* ================= helpers UI ================= */
+const statutColor = (s) => {
+  switch (String(s || "").toUpperCase()) {
+    case "EN_ATTENTE":
+    case "EN_COURS":
+      return "processing";
+    case "VALIDEE":
+    case "APPROBATION_PREFET":
+      return "blue";
+    case "ATTRIBUTION_PROVISOIRE":
+      return "gold";
+    case "APPROBATION_CONSEIL":
+      return "geekblue";
+    case "ATTRIBUTION_DEFINITIVE":
+      return "green";
+    case "REJETEE":
+      return "red";
+    case "ANNULEE":
+      return "volcano";
+    default:
+      return "default";
+  }
 };
+const fmt = (v) => (v === null || v === undefined || v === "" ? "—" : v);
+const money = (v) =>
+  v || v === 0 ? new Intl.NumberFormat("fr-FR").format(v) : "—";
+const fmtDate = (v, withTime = false) =>
+  v ? dayjs(v).format(withTime ? "DD/MM/YYYY HH:mm" : "DD/MM/YYYY") : "—";
+
+// détecte si la valeur ressemble à une URL/fichier
+const isUrlLike = (v) =>
+  typeof v === "string" && (v.startsWith("/") || v.startsWith("http"));
+// construit une URL absolue depuis VITE_API_URL_SIMPLE
+const toAbsUrl = (v) =>
+  !v ? v : v.startsWith("http") ? v : (import.meta.env.VITE_API_URL_SIMPLE || "") + v;
+
+const DocLink = ({ value, children = "Ouvrir" }) =>
+  isUrlLike(value) ? (
+    <a href={toAbsUrl(value)} target="_blank" rel="noreferrer">
+      {children}
+    </a>
+  ) : (
+    fmt(value)
+  );
 
 export default function DemandeurDemandeDetails() {
   const { id } = useParams();
-  const [demande, setDemande] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const [rectoFile, setRectoFile] = useState(null);
-  const [versoFile, setVersoFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [demande, setDemande] = useState(null);
+  const [files, setFiles] = useState({ recto: null, verso: null });
+  const [attrib, setAttrib] = useState(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [d, f, a] = await Promise.all([
+        getDetailsRequest(String(id)).catch(() => null),
+        getFileRequest(String(id)).catch(() => ({})),
+        getAttributionParcelleByDemande(String(id)).catch(() => null),
+      ]);
+
+      setDemande(d?.item ?? d ?? null);
+
+      const recto = f?.data?.recto ?? f?.recto ?? null;
+      const verso = f?.data?.verso ?? f?.verso ?? null;
+      setFiles({ recto, verso });
+
+      setAttrib(a ?? null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const raw = await getDemandeDetails(String(id));
-        // Supporte axios wrapper (data.data) OU data directe.
-        const data = raw?.data?.data ?? raw?.data ?? raw;
-        setDemande(data);
-
-        if (data?.document) {
-          const files = await getFileDocument(String(id));
-          setRectoFile(files?.recto ?? null);
-          setVersoFile(files?.verso ?? null);
-        }
-      } catch (err) {
-        setError(err?.message ?? "Erreur");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  if (loading) return <LoadingSkeleton />;
-  if (error) return <ErrorDisplay error={error} />;
-  if (!demande) return null;
+  // petits raccourcis sûrs
+  const lot = attrib?.parcelle?.lotissement;
+  const loc = lot?.localite;
 
-  const hasValidCoords =
-    !!(demande?.localite?.latitude && demande?.localite?.longitude) &&
-    !isNaN(Number(demande.localite.latitude)) &&
-    !isNaN(Number(demande.localite.longitude));
+  // PVs: lien si URL, sinon texte
+  const pv = useMemo(
+    () => ({
+      validationProvisoire:
+        attrib?.pvValidationProvisoire ??
+        (attrib?.pvCommision?.includes("VALIDATION") ? attrib?.pvCommision : null),
+      attributionProvisoire:
+        attrib?.pvAttributionProvisoire ??
+        (attrib?.pvCommision?.includes("ATTRIBUTION_PROVISOIRE")
+          ? attrib?.pvCommision
+          : null),
+      approbationPrefet:
+        attrib?.pvApprobationPrefet ??
+        (attrib?.pvCommision?.includes("APPROBATION_PREFET")
+          ? attrib?.pvCommision
+          : null),
+      approbationConseil:
+        attrib?.pvApprobationConseil ??
+        (attrib?.pvCommision?.includes("APPROBATION_CONSEIL")
+          ? attrib?.pvCommision
+          : null),
+      pvCommision: attrib?.pvCommision ?? null,
+    }),
+    [attrib]
+  );
 
   return (
     <>
-      <DemandeurBreadcrumb title="Détails de la demande" />
+      <DemandeurBreadcrumb title={`Détails demande #${id}`} />
       <section>
         <div className="container">
           <div className="my-6 space-y-6">
-            <div className="grid grid-cols-1">
-              <div className="bg-gray-100 min-h-screen pb-10">
-                <header className="bg-white shadow">
-                  <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Détail de la demande</h1>
-                  </div>
-                </header>
-
-                <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                  <div className="px-4 py-6 sm:px-0">
-                    {/* Cartes principales */}
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <DemandeInfoCard demande={demande} />
-                      {demande?.demandeur && <DemandeurInfoCard demandeur={demande.demandeur} />}
-                      <LocaliteInfoCard localite={demande.localite} />
-                      {demande?.documentGenerer?.isGenerated && (
-                        <DocumentGenereInfoCard documentGenerer={demande.documentGenerer} />
+            <Card
+              title={`Demande #${id}`}
+              extra={
+                <Space>
+                  <Tag color={statutColor(demande?.statut)}>
+                    {demande?.statut || "—"}
+                  </Tag>
+                  <Link to="/demandeur/demandes">
+                    <Button>Retour</Button>
+                  </Link>
+                </Space>
+              }
+            >
+              {loading ? (
+                <Skeleton active paragraph={{ rows: 8 }} />
+              ) : (
+                <>
+                  {/* ======= Bloc Demande ======= */}
+                  <Descriptions bordered column={2} size="small">
+                    <Descriptions.Item label="Type de demande">
+                      {fmt(demande?.typeDemande)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Titre demandé">
+                      {fmt(demande?.typeTitre)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Superficie (m²)">
+                      {fmt(demande?.superficie)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Usage prévu">
+                      {fmt(demande?.usagePrevu)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Localité / Quartier">
+                      {fmt(
+                        demande?.quartier?.nom ??
+                          demande?.localite?.nom ??
+                          demande?.localite
                       )}
-                    </div>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Créée le">
+                      {fmtDate(demande?.dateCreation, true)}
+                    </Descriptions.Item>
+                  </Descriptions>
 
-                    {/* Observations / Rapport / Recommandation / Décision */}
-                    <div className="grid gap-6 md:grid-cols-2 mt-8">
-                      <ObservationsCard
-                        rapport={demande.rapport}
-                        recommandation={demande.recommandation}
-                        decision={demande.decisionCommission}
-                      />
-                      <ValidationCard
-                        niveauActuel={demande.niveauValidationActuel}
-                       
-                      />
-                    </div>
+                  <Divider />
 
-                    {/* Motif de rejet */}
-                    {demande?.statut === STATUT.REJETEE && (
-                      <div className="grid gap-6 md:grid-cols-1 mt-8">
-                        <DemandeRefusInfoCard demande={demande} />
-                      </div>
-                    )}
+                  {/* ======= Documents fournis (upload demandeur) ======= */}
+                  <Descriptions
+                    title="Documents fournis"
+                    bordered
+                    column={2}
+                    size="small"
+                  >
+                    <Descriptions.Item label="Recto">
+                      {files.recto ? <DocLink value={files.recto} /> : "—"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Verso">
+                      {files.verso ? <DocLink value={files.verso} /> : "—"}
+                    </Descriptions.Item>
+                  </Descriptions>
 
-                    {/* Carte si coordonnées */}
-                    {hasValidCoords && (
-                      <div className="grid gap-6 md:grid-cols-1 mt-8">
-                        <DemandeInfoCarteCard localite={demande.localite} />
-                      </div>
-                    )}
+                  <Divider />
 
-                    {/* Documents fournis */}
-                    {(rectoFile || versoFile) && (
-                      <div className="mt-8">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Documents fournis</h2>
-                        <div className="grid gap-6 md:grid-cols-1">
-                          {rectoFile && <FilePreview file={rectoFile} title="Recto du document" />}
-                          {versoFile && <FilePreview file={versoFile} title="Verso du document" />}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </main>
-              </div>
-            </div>
+                  {/* ======= Documents générés côté mairie ======= */}
+                  {attrib && (
+                    <>
+                      <Descriptions
+                        title="Documents générés"
+                        bordered
+                        column={2}
+                        size="small"
+                      >
+                        <Descriptions.Item label="Notification d’attribution">
+                          {attrib?.pdfNotificationUrl ? (
+                            <DocLink value={attrib.pdfNotificationUrl} />
+                          ) : (
+                            "—"
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Bulletin de liquidation">
+                          {attrib?.bulletinLiquidationUrl ? (
+                            <DocLink value={attrib.bulletinLiquidationUrl} />
+                          ) : (
+                            "—"
+                          )}
+                        </Descriptions.Item>
+                      </Descriptions>
+
+                      <Divider />
+                    </>
+                  )}
+
+                  {/* ======= Attribution ======= */}
+                  {attrib && (
+                    <Descriptions
+                      title="Attribution & validations"
+                      bordered
+                      column={1}
+                      size="small"
+                    >
+                      <Descriptions.Item label="Statut attribution">
+                        {attrib?.statut ? (
+                          <Tag color={statutColor(attrib.statut)}>
+                            {attrib.statut}
+                          </Tag>
+                        ) : (
+                          "—"
+                        )}
+                      </Descriptions.Item>
+
+                      <Descriptions.Item label="État de paiement">
+                        {attrib?.etatPaiement ? (
+                          <Tag color="green">Payé</Tag>
+                        ) : (
+                          <Tag color="volcano">Non payé</Tag>
+                        )}
+                      </Descriptions.Item>
+
+                      <Descriptions.Item label="Montant (FCFA)">
+                        {money(attrib?.montant)}
+                      </Descriptions.Item>
+
+                      <Descriptions.Item label="Fréquence / périodicité">
+                        {fmt(attrib?.frequence)}
+                      </Descriptions.Item>
+
+                      <Descriptions.Item label="Date d’effet">
+                        {fmtDate(attrib?.dateEffet)}
+                      </Descriptions.Item>
+
+                      <Descriptions.Item label="Date de fin">
+                        {fmtDate(attrib?.dateFin)}
+                      </Descriptions.Item>
+
+                      {/* PV par étape : lien si fichier, sinon texte */}
+                      {/* <Descriptions.Item label="PV — Validation provisoire">
+                        {isUrlLike(pv.validationProvisoire) ? (
+                          <DocLink value={pv.validationProvisoire} />
+                        ) : (
+                          fmt(pv.validationProvisoire)
+                        )}
+                      </Descriptions.Item> */}
+
+                      {/* <Descriptions.Item label="PV — Attribution provisoire">
+                        {isUrlLike(pv.attributionProvisoire) ? (
+                          <DocLink value={pv.attributionProvisoire} />
+                        ) : (
+                          fmt(pv.attributionProvisoire)
+                        )}
+                      </Descriptions.Item> */}
+
+                      {/* <Descriptions.Item label="PV — Approbation Préfet">
+                        {isUrlLike(pv.approbationPrefet) ? (
+                          <DocLink value={pv.approbationPrefet} />
+                        ) : (
+                          fmt(pv.approbationPrefet)
+                        )}
+                      </Descriptions.Item> */}
+
+                      {/* <Descriptions.Item label="PV — Approbation Conseil">
+                        {isUrlLike(pv.approbationConseil) ? (
+                          <DocLink value={pv.approbationConseil} />
+                        ) : (
+                          fmt(pv.approbationConseil)
+                        )}
+                      </Descriptions.Item> */}
+
+                      {/* <Descriptions.Item label="Décision Conseil">
+                        {fmt(attrib?.decisionConseil)}
+                      </Descriptions.Item> */}
+
+                      {/* Dates d’étapes */}
+                      {/* <Descriptions.Item label="Validation provisoire le">
+                        {fmtDate(attrib?.datesEtapes?.validationProvisoire, true)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Attribution provisoire le">
+                        {fmtDate(attrib?.datesEtapes?.attributionProvisoire, true)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Approbation du Préfet le">
+                        {fmtDate(attrib?.datesEtapes?.approbationPrefet, true)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Approbation du Conseil le">
+                        {fmtDate(attrib?.datesEtapes?.approbationConseil, true)}
+                      </Descriptions.Item> */}
+                      <Descriptions.Item label="Attribution définitive le">
+                        {fmtDate(attrib?.datesEtapes?.attributionDefinitive, true)}
+                      </Descriptions.Item>
+
+                      {/* {attrib?.canReopen === true && (
+                        <Descriptions.Item label="Peut être réouvert ?">
+                          Oui
+                        </Descriptions.Item>
+                      )} */}
+                    </Descriptions>
+                  )}
+
+                  <Divider />
+
+                  {/* ======= Parcelle ======= */}
+                  {attrib?.parcelle && (
+                    <Descriptions
+                      title="Parcelle attribuée"
+                      bordered
+                      column={2}
+                      size="small"
+                    >
+                      <Descriptions.Item label="Numéro">
+                        {fmt(attrib?.parcelle?.numero)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Surface">
+                        {fmt(attrib?.parcelle?.surface)} m²
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Statut">
+                        {fmt(attrib?.parcelle?.statut)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Coordonnées">
+                        {fmt(attrib?.parcelle?.latitude)} / {fmt(attrib?.parcelle?.longitude)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Lotissement">
+                        {fmt(lot?.nom)}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Localité">
+                        {fmt(loc?.nom)}
+                      </Descriptions.Item>
+                      {loc?.prix !== undefined && (
+                        <Descriptions.Item label="Prix localité (FCFA)">
+                          {money(loc.prix)}
+                        </Descriptions.Item>
+                      )}
+                      {attrib?.parcelle?.proprietaire && (
+                        <>
+                          <Descriptions.Item label="Propriétaire">
+                            {fmt(
+                              `${attrib.parcelle.proprietaire?.prenom ?? ""} ${
+                                attrib.parcelle.proprietaire?.nom ?? ""
+                              }`.trim()
+                            )}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Contact">
+                            {fmt(attrib.parcelle.proprietaire?.telephone)}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Email">
+                            {fmt(attrib.parcelle.proprietaire?.email)}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Adresse">
+                            {fmt(attrib.parcelle.proprietaire?.adresse)}
+                          </Descriptions.Item>
+                        </>
+                      )}
+                    </Descriptions>
+                  )}
+
+                  {/* ======= Alerte info ======= */}
+                  <Alert
+                    className="mt-4"
+                    type="info"
+                    showIcon
+                    message="Suivi"
+                    description={
+                      <>
+                        Vous recevrez un e-mail à chaque étape importante
+                        (validation, approbations, attribution définitive).
+                      </>
+                    }
+                  />
+                </>
+              )}
+            </Card>
           </div>
         </div>
       </section>
     </>
-  );
-}
-
-/* ===================== Cartes (lecture seule) ===================== */
-
-function DemandeInfoCard({ demande }) {
-  const statutClass = STATUT_BADGE[demande.statut] || "bg-gray-100 text-gray-800 border";
-
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <div className="flex items-start justify-between">
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Informations de la demande</h3>
-          <span className={cn("px-2 py-1 text-xs font-semibold rounded-full", statutClass)}>
-            {demande.statut}
-          </span>
-        </div>
-
-        <div className="mt-4 grid gap-4">
-          <InfoItem icon={<Calendar className="w-5 h-5" />} label="Date de création" value={new Date(demande.dateCreation).toLocaleDateString("fr-FR")} />
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Type de demande" value={demande.typeDemande} />
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Type de titre" value={demande.typeTitre || "—"} />
-          <InfoItem icon={<Award className="w-5 h-5" />} label="Superficie" value={`${demande.superficie} m²`} />
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Usage prévu" value={demande.usagePrevu} />
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Type de document" value={demande.typeDocument} />
-          <InfoItem icon={<CheckCircle className="w-5 h-5" />} label="Possède autre terrain" value={demande.possedeAutreTerrain ? "Oui" : "Non"} />
-
-          <div className="flex items-center gap-3">
-            <span className={cn("px-2 py-1 text-xs rounded", demande.terrainAKaolack ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200")}>
-              Terrain à Kaolack : {demande.terrainAKaolack ? "Oui" : "Non"}
-            </span>
-            <span className={cn("px-2 py-1 text-xs rounded", demande.terrainAilleurs ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200")}>
-              Terrain ailleurs : {demande.terrainAilleurs ? "Oui" : "Non"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DemandeurInfoCardd({ demandeur }) {
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations du demandeur</h3>
-        <div className="space-y-4">
-          <InfoItem icon={<User className="w-5 h-5" />} label="Nom complet" value={`${demandeur.prenom} ${demandeur.nom}`} />
-          <InfoItem icon={<Mail className="w-5 h-5" />} label="Email" value={demandeur.email} />
-          <InfoItem icon={<Phone className="w-5 h-5" />} label="Téléphone" value={formatPhoneNumber(demandeur.telephone || "")} />
-          <InfoItem icon={<MapPin className="w-5 h-5" />} label="Adresse" value={demandeur.adresse} />
-          <InfoItem icon={<Calendar className="w-5 h-5" />} label="Date de naissance" value={new Date(demandeur.dateNaissance).toLocaleDateString("fr-FR")} />
-          <InfoItem icon={<MapPin className="w-5 h-5" />} label="Lieu de naissance" value={demandeur.lieuNaissance} />
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Numéro électeur" value={demandeur.numeroElecteur} />
-          <InfoItem icon={<Briefcase className="w-5 h-5" />} label="Profession" value={demandeur.profession} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DemandeurInfoCard({ demandeur }) {
-  const [loadingHabitant, setLoadingHabitant] = useState(false);
-  const [habitantData, setHabitantData] = useState(null);
-
-  useEffect(() => { fetchHabitantInfo(); /* eslint-disable-next-line */ }, [demandeur?.id]);
-
-  const fetchHabitantInfo = async () => {
-    if (!demandeur?.id || !demandeur?.isHabitant) return;
-    setLoadingHabitant(true);
-    try {
-      const habitantInfo = await getDetaitHabitant(demandeur.id);
-      setHabitantData(habitantInfo);
-    } catch (e) {
-      // noop
-    } finally {
-      setLoadingHabitant(false);
-    }
-  };
-
-  const renderHabitantContent = () => {
-    const data = habitantData;
-    if (!data) return <div>Chargement des informations...</div>;
-    return (
-      <div className="max-w-3xl">
-        <div className="grid grid-cols-3 gap-2">
-          {Object.entries(data).map(([key, value]) => (
-            <div key={key} className="border-b pb-1">
-              <strong>{key}:</strong> {String(value) || "-"}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden  border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Informations du demandeur</h3>
-        <div className="space-y-4">
-          <InfoItem icon={<User className="w-5 h-5" />} label="Nom complet" value={`${demandeur.prenom} ${demandeur.nom}`} />
-          <InfoItem icon={<Mail className="w-5 h-5" />} label="Email" value={demandeur.email} />
-          <InfoItem icon={<Phone className="w-5 h-5" />} label="Téléphone" value={formatPhoneNumber(demandeur.telephone)} />
-          <InfoItem icon={<MapPin className="w-5 h-5" />} label="Adresse" value={demandeur.adresse} />
-          <InfoItem icon={<Calendar className="w-5 h-5" />} label="Date de Naissance" value={new Date(demandeur.dateNaissance).toLocaleDateString("fr-FR")} />
-          <InfoItem icon={<MapPin className="w-5 h-5" />} label="Lieu de Naissance" value={demandeur.lieuNaissance} />
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Numéro électeur" value={demandeur.numeroElecteur} />
-          <InfoItem icon={<Briefcase className="w-5 h-5" />} label="Profession" value={demandeur.profession} />
-          <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Habitant" value={demandeur.isHabitant ? "Oui" : "Non"} />
-          <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Nombre Enfants" value={demandeur.nombreEnfant || "0"} />
-          <InfoItem icon={<UserAddOutlined className="w-5 h-5" />} label="Situation Matrimonial" value={demandeur.situationMatrimoniale || "Non renseigné"} />
-
-          {demandeur.isHabitant && (
-            <Space>
-              <span>Informations détaillées:</span>
-              <Popover
-                content={renderHabitantContent()}
-                title="Informations détaillées"
-                trigger="click"
-                placement="right"
-                overlayStyle={{ maxWidth: "800px" }}
-              >
-                <Button type="text" icon={<InfoCircleOutlined />} className="text-primary" loading={loadingHabitant} />
-              </Popover>
-            </Space>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-function LocaliteInfoCard({ localite }) {
-  if (!localite) {
-    return (
-      <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Localité</h3>
-          <p className="text-sm text-gray-500">Aucune localité associée.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Localité</h3>
-        <div className="space-y-4">
-          <InfoItem icon={<Building className="w-5 h-5" />} label="Nom" value={localite.nom} />
-          {"prix" in localite && <InfoItem icon={<Globe className="w-5 h-5" />} label="Prix" value={formatPrice(localite.prix)} />}
-          {localite.description && <InfoItem icon={<FileText className="w-5 h-5" />} label="Description" value={localite.description} />}
-          {localite.latitude && localite.longitude && !isNaN(Number(localite.latitude)) && !isNaN(Number(localite.longitude)) && (
-            <InfoItem icon={<MapPinCheck className="w-5 h-5" />} label="Coordonnées" value={formatCoordinates(localite.latitude, localite.longitude)} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ObservationsCard({
-  rapport, recommandation, decision,
-}) {
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Observations</h3>
-        <div className="mt-4 space-y-4">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Rapport</p>
-            <div className="bg-gray-50 p-3 rounded border border-gray-200 min-h-[44px]">
-              {rapport || <span className="text-gray-400">—</span>}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-gray-500">Recommandation</p>
-            <div className="bg-gray-50 p-3 rounded border border-gray-200 min-h-[44px]">
-              {recommandation || <span className="text-gray-400">—</span>}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-gray-500">Décision de la commission</p>
-            <div className="bg-gray-50 p-3 rounded border border-gray-200 min-h-[44px]">
-              {decision || <span className="text-gray-400">—</span>}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ValidationCard({
-  niveauActuel,
-
-}) {
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Circuit de validation</h3>
-
-        <div className="mt-3">
-          <p className="text-sm text-gray-700">
-            Niveau actuel :{" "}
-            {niveauActuel?.nom ? (
-              <Tag color="blue">{niveauActuel.nom}</Tag>
-            ) : (
-              <span className="text-gray-400">—</span>
-            )}
-          </p>
-        </div>
-
-        <Divider className="my-4" />
-
-       
-      </div>
-    </div>
-  );
-}
-
-function DemandeRefusInfoCard({ demande }) {
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-red-500">
-      <div className="px-4 py-5 sm:p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium leading-6 text-red-700 flex items-center">
-            <AlertTriangle className="w-5 h-5 mr-2" />
-            Motif du rejet de la demande
-          </h3>
-        </div>
-        <div className="text-red-700 bg-red-50 p-3 rounded border border-red-200">
-          {demande.motif_refus || "Aucun motif spécifié"}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DemandeInfoCarteCard({ localite }) {
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Visualisation sur la carte</h3>
-        <div className="space-y-4">
-          <InfoItem icon={<MapPinCheck className="w-5 h-5" />} label="Coordonnées" value={formatCoordinates(localite.latitude, localite.longitude)} />
-          {!!localite.longitude && !!localite.latitude && <MapCar selectedItem={localite} type="localite" />}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===================== Utilitaires UI ===================== */
-
-function InfoItem({ icon, label, value }) {
-  return (
-    <div className="flex items-center space-x-3">
-      <div className="flex-shrink-0 text-gray-400">{icon}</div>
-      <div>
-        <p className="text-sm font-medium text-gray-500">{label}</p>
-        <p className="mt-1 text-sm text-gray-900">{value ?? "N/A"}</p>
-      </div>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="bg-gray-100 min-h-screen pb-10">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="h-9 w-64 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid gap-6 md:grid-cols-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
-                  {[...Array(5)].map((_, j) => (
-                    <div key={j} className="flex items-center space-x-3 mt-4">
-                      <div className="h-5 w-5 bg-gray-200 rounded-full animate-pulse"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-                        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function ErrorDisplay({ error }) {
-  return (
-    <div className="flex justify-center items-center min-h-[60vh] bg-gray-100">
-      <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary w-full max-w-md">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium leading-6 text-red-600 mb-4">Erreur</h3>
-          <p className="text-center">{error}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FilePreview({ file, title }) {
-  const fileType = file?.startsWith("/9j/") ? "image/jpeg"
-    : file?.startsWith("iVBORw0KGgo") ? "image/png"
-      : "application/pdf";
-
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-        <div className="bg-gray-200 rounded-lg p-4">
-          {fileType.startsWith("image/") ? (
-            <img
-              src={`data:${fileType};base64,${file}`}
-              alt={title}
-              className="w-full h-auto max-h-[400px] object-contain"
-            />
-          ) : (
-            <iframe
-              src={`data:application/pdf;base64,${file}`}
-              title={title}
-              className="w-full h-[400px]"
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===================== Document généré ===================== */
-
-function DocumentGenereInfoCard({ documentGenerer }) {
-  return (
-    <div className="bg-white shadow rounded-lg overflow-hidden border-l-4 border-primary">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Document généré</h3>
-        <div className="space-y-4">
-          <InfoItem icon={<FileText className="w-5 h-5" />} label="Type" value={documentGenerer.type} />
-          <InfoItem icon={<Calendar className="w-5 h-5" />} label="Date de création" value={new Date(documentGenerer.dateCreation).toLocaleDateString("fr-FR")} />
-          {documentGenerer.contenu && (
-            <>
-              <InfoItem icon={<FileText className="w-5 h-5" />} label="Numéro de permis" value={documentGenerer.contenu.numeroPermis} />
-              <InfoItem icon={<Calendar className="w-5 h-5" />} label="Date de délivrance" value={documentGenerer.contenu.dateDelivrance} />
-              <InfoItem icon={<Clock className="w-5 h-5" />} label="Durée de validité" value={documentGenerer.contenu.dureeValidite} />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

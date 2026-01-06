@@ -28,11 +28,11 @@ const AdminLocaliteAjouter = () => {
                 latitude: parseFloat(latitude)
             }
             await createLocalite(body);
-            toast.success("Localité ajoutée avec succès!");
+            toast.success("Quartier ajoutée avec succès!");
             navigate("/admin/quartiers")
         } catch (error) {
             console.error(error);
-            toast.error("Erreur lors de l'ajout de la localité");
+            toast.error("Erreur lors de l'ajout de la Quartier");
         } finally {
             setLoading(false)
         }

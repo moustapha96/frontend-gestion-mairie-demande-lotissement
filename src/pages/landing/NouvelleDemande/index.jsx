@@ -21,11 +21,13 @@ const TYPE_DEMANDE_OPTIONS = [
   { label: "Régularisation", value: "Régularisation" },
   { label: "Authentification", value: "Authentification" },
 ];
+
 const TYPE_DOCUMENT_OPTIONS = [
   { label: "CNI", value: "CNI" },
   { label: "Passeport", value: "PASSEPORT" },
   { label: "Carte Consulaire", value: "CARTE_CONSULAIRE" },
 ];
+
 const TYPE_TITRE_OPTIONS = [
   { label: "Permis d'occuper", value: "Permis d'occuper" },
   { label: "Bail communal", value: "Bail communal" },
@@ -33,21 +35,20 @@ const TYPE_TITRE_OPTIONS = [
   { label: "Transfert définitif", value: "Transfert définitif" },
 ];
 
-
 const SITUATION_OPTIONS = [
   { value: "Célibataire", label: "Célibataire" },
   { value: "Marié(e)", label: "Marié(e)" },
+  { value: "Veuf(ve)", label: "Veuf(ve)" },
   { value: "Divorcé(e)", label: "Divorcé(e)" },
-  { value: "Veuf/Veuve", label: "Veuf/Veuve" },
 ];
 
 const STATUT_LOGEMENT_OPTIONS = [
   { value: "Propriétaire", label: "Propriétaire" },
   { value: "Locataire", label: "Locataire" },
-  { value: "hébergé(e)", label: "Hébergé(e)" },
+  { value: "Hébergé(e)", label: "Hébergé(e)" },
 ];
 
-
+/* ========================= Validation ========================= */
 const applicantSchema = yup.object({
   /* Step 0 */
   prenom: yup.string().required("Veuillez entrer votre prénom"),
@@ -55,7 +56,7 @@ const applicantSchema = yup.object({
   email: yup.string().email("Veuillez entrer un email valide").required("L'email est requis"),
   telephone: yup
     .string()
-    .matches(/^(70|76|77|78|79|75)[0-9]{7}$/, "Doit commencer par 70/75/76/77/78/79 + 7 chiffres")
+    .matches(/^(70|75|76|77|78|79)[0-9]{7}$/, "Doit commencer par 70/75/76/77/78/79 + 7 chiffres")
     .required("Le numéro de téléphone est requis"),
   adresse: yup.string().required("L'adresse est requise"),
   profession: yup.string().required("La profession est requise"),
@@ -66,13 +67,14 @@ const applicantSchema = yup.object({
     .max(dayjs().subtract(18, "year").toDate(), "Vous devez avoir au moins 18 ans")
     .test("age", "Vous devez avoir au moins 18 ans", (value) => !!value && dayjs().diff(dayjs(value), "year") >= 18),
 
-  // nouveaux champs utilisateur
   situationMatrimoniale: yup.string()
     .oneOf(SITUATION_OPTIONS.map(o => o.value))
     .required("Veuillez sélectionner la situation matrimoniale"),
+
   statutLogement: yup.string()
     .oneOf(STATUT_LOGEMENT_OPTIONS.map(o => o.value))
     .required("Veuillez sélectionner le statut du logement"),
+
   nombreEnfant: yup.number()
     .typeError("Nombre d'enfants invalide")
     .min(0, "Doit être ≥ 0")
@@ -91,7 +93,7 @@ const applicantSchema = yup.object({
     .string()
     .transform((v) => (v || '').replace(/\s/g, ''))
     .required("Le Numéro d'Identification National est requis")
-    .matches(/^[a-zA-Z0-9]{1,15}$/, "Le numéro doit contenir exactement 15 carateres au max"),
+    .matches(/^[a-zA-Z0-9]{13,15}$/, "Le numéro doit contenir 13 à 15 caractères"),
   recto: yup.mixed().test("fileRequired", "Le recto du document est requis", (v) => v && v.length === 1),
   verso: yup.mixed().test("fileRequired", "Le verso du document est requis", (v) => v && v.length === 1),
 
@@ -99,8 +101,9 @@ const applicantSchema = yup.object({
   possedeAutreTerrain: yup.boolean().default(false),
   terrainAKaolack: yup.boolean().default(false),
   terrainAilleurs: yup.boolean().default(false),
-})
+});
 
+/* ========================= UI Helpers ========================= */
 const Stepper = ({ steps, currentStep }) => (
   <div className="mb-8">
     <div className="flex justify-between">
@@ -122,8 +125,95 @@ const Stepper = ({ steps, currentStep }) => (
       ))}
     </div>
   </div>
-)
+);
 
+const safe = (v) => (v === null || v === undefined || v === "" ? "—" : v);
+const fmtDateTime = (v) => (v ? dayjs(String(v).replace(" ", "T")).format("DD/MM/YYYY HH:mm") : "—");
+
+/* ========================= Normalisation réponse ========================= */
+const normalizeDemandeInfo = (res) => {
+  if (!res) return null;
+
+  const d = res.demande || {};
+  const localiteObj = res.quartier || d.quartier || null;
+
+  // URLs absolues prioritaires
+  const rectoAbs =
+    res.rectoUrl ||
+    (d.recto?.startsWith("http") ? d.recto : d.recto ? `${window.location.origin}${d.recto}` : null);
+
+  const versoAbs =
+    res.versoUrl ||
+    (d.verso?.startsWith("http") ? d.verso : d.verso ? `${window.location.origin}${d.verso}` : null);
+
+  // “demandeur” : prendre res.user si présent
+  const u = res.user || {};
+  const demandeur = Object.keys(u).length
+    ? {
+        prenom: u.prenom ?? null,
+        nom: u.nom ?? null,
+        email: u.email ?? null,
+        telephone: u.telephone ?? null,
+        adresse: u.adresse ?? null,
+        profession: u.profession ?? null,
+        numeroElecteur: u.numeroElecteur ?? null,
+        dateNaissance: u.dateNaissance ?? null,
+        lieuNaissance: u.lieuNaissance ?? null,
+        situationMatrimoniale: u.situationMatrimoniale ?? null,
+        statutLogement: u.situationDemandeur ?? null, // mapping backend
+        nombreEnfant: u.nombreEnfant ?? null,
+        enabled: u.enabled,
+        roles: u.roles || [],
+      }
+    : {
+        prenom: d.prenom ?? null,
+        nom: d.nom ?? null,
+        email: d.email ?? null,
+        telephone: d.telephone ?? null,
+        adresse: d.adresse ?? null,
+        profession: d.profession ?? null,
+        numeroElecteur: d.numeroElecteur ?? null,
+        dateNaissance: d.dateNaissance ?? null,
+        lieuNaissance: d.lieuNaissance ?? null,
+        situationMatrimoniale: d.situationMatrimoniale ?? null,
+        statutLogement: d.statutLogement ?? null,
+        nombreEnfant: d.nombreEnfant ?? null,
+      };
+
+  return {
+    userExist: !!res.userExist,
+    demande: {
+      id: d.id,
+      numero: d.numero ?? null, // ex: DP202510161429
+      typeDemande: d.typeDemande,
+      typeTitre: d.typeTitre,
+      typeDocument: d.typeDocument,
+      superficie: d.superficie,
+      usagePrevu: d.usagePrevu,
+      possedeAutreTerrain: !!d.possedeAutreTerrain,
+      terrainAKaolack: !!d.terrainAKaolack,
+      terrainAilleurs: !!d.terrainAilleurs,
+      statut: d.statut,
+      dateCreation: d.dateCreation,
+      recto: rectoAbs,
+      verso: versoAbs,
+      localite: d.localite || localiteObj?.nom || null,
+    },
+    localite: localiteObj
+      ? {
+          id: localiteObj.id,
+          nom: localiteObj.nom,
+          prix: localiteObj.prix ?? 0,
+          description: localiteObj.description ?? null,
+          latitude: localiteObj.latitude ?? null,
+          longitude: localiteObj.longitude ?? null,
+        }
+      : null,
+    demandeur,
+  };
+};
+
+/* ========================= Page ========================= */
 export default function NouvelleDemandePage() {
   const [submitStatus, setSubmitStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
@@ -154,7 +244,7 @@ export default function NouvelleDemandePage() {
 
   const getCurrentStepFields = () => {
     switch (currentStep) {
-      case 0: return ['prenom', 'nom', 'email', 'telephone', 'adresse', 'profession', 'lieuNaissance', 'dateNaissance']
+      case 0: return ['prenom', 'nom', 'email', 'telephone', 'adresse', 'profession', 'lieuNaissance', 'dateNaissance', 'situationMatrimoniale', 'statutLogement', 'nombreEnfant']
       case 1: return ['typeDemande', 'localiteId', 'usagePrevu', 'superficie', 'typeTitre']
       case 2: return ['typeDocument', 'numeroElecteur', 'recto', 'verso']
       default: return []
@@ -179,20 +269,19 @@ export default function NouvelleDemandePage() {
     try {
       const formData = new FormData()
       // Demandeur
-      formData.append('adresse', data.adresse)
-      formData.append('numeroElecteur', (data.numeroElecteur || '').replace(/\s/g, ''))
       formData.append('prenom', data.prenom)
       formData.append('nom', data.nom)
       formData.append('email', data.email)
       formData.append('telephone', data.telephone)
       formData.append('profession', data.profession)
       formData.append('lieuNaissance', data.lieuNaissance)
+      formData.append('adresse', data.adresse)
       formData.append('dateNaissance', dayjs(data.dateNaissance).format('YYYY-MM-DD'))
+      formData.append('numeroElecteur', (data.numeroElecteur || '').replace(/\s/g, ''))
 
-      formData.append('situationMatrimoniale', data.situationMatrimoniale ?? null)
-      formData.append('situationDemandeur', data.statutLogement ?? null)
+      formData.append('situationMatrimoniale', data.situationMatrimoniale ?? '')
+      formData.append('situationDemandeur', data.statutLogement ?? '') // mapping
       formData.append('nombreEnfant', String(data.nombreEnfant ?? 0))
-
 
       // Demande
       formData.append('possedeAutreTerrain', String(!!data.possedeAutreTerrain))
@@ -210,7 +299,9 @@ export default function NouvelleDemandePage() {
       formData.append('verso', data.verso[0])
 
       const response = await nouvelleDemande(formData) // service doit POST multipart/form-data
-      setDemandeInfo(response)
+      const normalized = normalizeDemandeInfo(response)
+      console.log(normalized)
+      setDemandeInfo(normalized)
       setSubmitStatus('success')
       toast.success('Demande envoyée avec succès')
       reset()
@@ -289,7 +380,6 @@ export default function NouvelleDemandePage() {
               {errors.dateNaissance && <p className="mt-2 text-sm text-red-600">{errors.dateNaissance.message}</p>}
             </div>
 
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="situationMatrimoniale" className="block text-sm font-medium text-gray-700">
@@ -348,7 +438,6 @@ export default function NouvelleDemandePage() {
                 )}
               </div>
             </div>
-
           </div>
         )
 
@@ -454,12 +543,18 @@ export default function NouvelleDemandePage() {
             <p className="mt-1 text-xs text-gray-500">Formats acceptés: PDF, JPG, JPEG, PNG</p>
 
             <div>
-              <label htmlFor="numeroElecteur" className="block text-sm font-medium text-gray-700">Numéro d'Identification National (NIN) </label>
-              <input id="numeroElecteur" type="text" maxLength={13} pattern="^\d{13}$" inputMode="numeric" {...register('numeroElecteur')}
+              <label htmlFor="numeroElecteur" className="block text-sm font-medium text-gray-700">Numéro d'Identification National (NIN)</label>
+              <input
+                id="numeroElecteur"
+                type="text"
+                maxLength={15}
+                pattern="^[A-Za-z0-9]{13,15}$"
+                {...register('numeroElecteur')}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="15 caracteres" />
+                placeholder="13 à 15 caractères"
+              />
               {errors.numeroElecteur && <p className="mt-2 text-sm text-red-600">{errors.numeroElecteur.message}</p>}
-              <p className="mt-1 text-xs text-gray-500">Le numéro doit contenir exactement 15 caracteres</p>
+              <p className="mt-1 text-xs text-gray-500">Le numéro doit contenir entre 13 et 15 caractères (chiffres/lettres).</p>
             </div>
           </div>
         )
@@ -471,7 +566,6 @@ export default function NouvelleDemandePage() {
   return (
     <>
       <PageMetaData title="Nouvelle demande de terrain" />
-
       <TopNavBar menuItems={menuItems} hasDownloadButton position="fixed" />
 
       <section className="md:py-20 flex items-center justify-center relative overflow-hidden bg-cover bg-gradient-to-l from-primary/20 to-primary/20 via-primary/0">
@@ -491,56 +585,103 @@ export default function NouvelleDemandePage() {
               </div>
             )}
 
+            {/* Bloc récapitulatif après création */}
             {demandeInfo && (
               <div className="mb-8 p-6 bg-white rounded-lg shadow-lg border border-gray-200">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">Détails de votre demande</h3>
+
+                {/* Bandeau compte si un user existe */}
+                {demandeInfo.demandeur?.email && (
+                  <div className="mb-6 p-4 rounded-md border bg-blue-50 text-blue-800">
+                    <p className="font-medium">
+                      Votre compte a été {(demandeInfo.userExist ? "retrouvé" : "créé")} avec l’identifiant :
+                      <span className="ml-1 underline">{demandeInfo.demandeur.email}</span>
+                    </p>
+                    {"enabled" in (demandeInfo.demandeur || {}) && (
+                      <p className="text-sm">Statut du compte : {demandeInfo.demandeur.enabled ? "Actif" : "Inactif"}</p>
+                    )}
+                    <p className="text-sm">
+                      Connectez-vous à votre espace pour suivre l’avancement de votre demande.
+                    </p>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Informations de la demande</h4>
                       <div className="mt-2 space-y-2">
-                        <p><span className="font-medium">N° de demande:</span> {demandeInfo.demande.id}</p>
-                        <p><span className="font-medium">Type:</span> {demandeInfo.demande.typeDemande}</p>
-                        <p><span className="font-medium">Statut:</span> {demandeInfo.demande.statut}</p>
-                        <p><span className="font-medium">Date de création:</span> {new Date(demandeInfo.demande.dateCreation).toLocaleString()}</p>
-                        <p><span className="font-medium">Superficie:</span> {demandeInfo.demande.superficie} m²</p>
-                        <p><span className="font-medium">Usage prévu:</span> {demandeInfo.demande.usagePrevu}</p>
+                        <p><span className="font-medium">N° interne:</span> {safe(demandeInfo.demande.id)}</p>
+                        <p><span className="font-medium">Référence (numero):</span> {safe(demandeInfo.demande.numero)}</p>
+                        <p><span className="font-medium">Type:</span> {safe(demandeInfo.demande.typeDemande)}</p>
+                        <p><span className="font-medium">Type de titre:</span> {safe(demandeInfo.demande.typeTitre)}</p>
+                        <p><span className="font-medium">Statut:</span> {safe(demandeInfo.demande.statut)}</p>
+                        <p><span className="font-medium">Date de création:</span> {fmtDateTime(demandeInfo.demande.dateCreation)}</p>
+                        <p><span className="font-medium">Superficie:</span> {safe(demandeInfo.demande.superficie)} m²</p>
+                        <p><span className="font-medium">Usage prévu:</span> {safe(demandeInfo.demande.usagePrevu)}</p>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <span className={`px-2 py-0.5 text-xs rounded ${demandeInfo.demande.possedeAutreTerrain ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
+                            Autre terrain : {demandeInfo.demande.possedeAutreTerrain ? "Oui" : "Non"}
+                          </span>
+                          <span className={`px-2 py-0.5 text-xs rounded ${demandeInfo.demande.terrainAKaolack ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
+                            À Kaolack : {demandeInfo.demande.terrainAKaolack ? "Oui" : "Non"}
+                          </span>
+                          <span className={`px-2 py-0.5 text-xs rounded ${demandeInfo.demande.terrainAilleurs ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
+                            Ailleurs : {demandeInfo.demande.terrainAilleurs ? "Oui" : "Non"}
+                          </span>
+                        </div>
                       </div>
                     </div>
+
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Informations du demandeur</h4>
                       <div className="mt-2 space-y-2">
-                        <p><span className="font-medium">Nom complet:</span> {demandeInfo.demande.demandeur.prenom} {demandeInfo.demande.demandeur.nom}</p>
-                        <p><span className="font-medium">Email:</span> {demandeInfo.demande.demandeur.email}</p>
-                        <p><span className="font-medium">Téléphone:</span> {formatPhoneNumber(demandeInfo.demande.demandeur.telephone)}</p>
-                        <p><span className="font-medium">Adresse:</span> {demandeInfo.demande.demandeur.adresse}</p>
-                        <p><span className="font-medium">Profession:</span> {demandeInfo.demande.demandeur.profession}</p>
-
-                        <p><span className="font-medium">Situation matrimoniale:</span> {demandeInfo.demande.demandeur?.situationMatrimoniale}</p>
-                        <p><span className="font-medium">Statut logement:</span> {demandeInfo.demande.demandeur?.statutLogement}</p>
-                        <p><span className="font-medium">Nombre d'enfants:</span> {demandeInfo.demande.demandeur?.nombreEnfant}</p>
+                        <p>
+                          <span className="font-medium">Nom complet:</span>{" "}
+                          {safe(`${demandeInfo.demandeur?.prenom ?? ""} ${demandeInfo.demandeur?.nom ?? ""}`.trim())}
+                        </p>
+                        <p><span className="font-medium">Email:</span> {safe(demandeInfo.demandeur?.email)}</p>
+                        <p><span className="font-medium">Téléphone:</span> {safe(formatPhoneNumber?.(demandeInfo.demandeur?.telephone) ?? demandeInfo.demandeur?.telephone)}</p>
+                        <p><span className="font-medium">Adresse:</span> {safe(demandeInfo.demandeur?.adresse)}</p>
+                        <p><span className="font-medium">Profession:</span> {safe(demandeInfo.demandeur?.profession)}</p>
+                        <p><span className="font-medium">Situation matrimoniale:</span> {safe(demandeInfo.demandeur?.situationMatrimoniale)}</p>
+                        <p><span className="font-medium">Statut logement:</span> {safe(demandeInfo.demandeur?.statutLogement)}</p>
+                        <p><span className="font-medium">Nombre d'enfants:</span> {safe(demandeInfo.demandeur?.nombreEnfant)}</p>
+                        {Array.isArray(demandeInfo.demandeur?.roles) && demandeInfo.demandeur.roles.length > 0 && (
+                          <p><span className="font-medium">Rôles:</span> {demandeInfo.demandeur.roles.join(", ")}</p>
+                        )}
                       </div>
                     </div>
                   </div>
+
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Informations de la localité</h4>
+                      <h4 className="text-sm font-medium text-gray-500">Localité</h4>
                       <div className="mt-2 space-y-2">
-                        <p><span className="font-medium">Nom:</span> {demandeInfo.localite.nom}</p>
-                        <p><span className="font-medium">Prix:</span> {formatPrice(demandeInfo.localite.prix)}</p>
-                        {/* <p><span className="font-medium">Description:</span> {demandeInfo.localite.description}</p> */}
+                        <p><span className="font-medium">Nom:</span> {safe(demandeInfo.localite?.nom || demandeInfo.demande.localite)}</p>
+                        {"prix" in (demandeInfo.localite || {}) && (
+                          <p><span className="font-medium">Prix:</span> {formatPrice ? formatPrice(demandeInfo.localite?.prix) : safe(demandeInfo.localite?.prix)}</p>
+                        )}
+                        {demandeInfo.localite?.latitude != null && demandeInfo.localite?.longitude != null && (
+                          <p>
+                            <span className="font-medium">Coordonnées:</span>{" "}
+                            {demandeInfo.localite.latitude} / {demandeInfo.localite.longitude}
+                          </p>
+                        )}
                       </div>
                     </div>
+
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Documents</h4>
                       <div className="mt-2 space-y-2">
-                        <p><span className="font-medium">Type de document:</span> {demandeInfo.demande.typeDocument}</p>
-                        <p><span className="font-medium">N° Électeur:</span> {demandeInfo.demande.demandeur.numeroElecteur}</p>
-                        <p><span className="font-medium">Documents fournis:</span> Recto et Verso du {demandeInfo.demande.typeDocument}</p>
+                        <p><span className="font-medium">Type de document:</span> {safe(demandeInfo.demande.typeDocument)}</p>
+                        <p><span className="font-medium">N° d’identification:</span> {safe(demandeInfo.demandeur?.numeroElecteur)}</p>
+                       
                       </div>
                     </div>
                   </div>
                 </div>
+
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={() => { setDemandeInfo(null); setCurrentStep(0); }}
@@ -552,8 +693,10 @@ export default function NouvelleDemandePage() {
               </div>
             )}
 
+            {/* Stepper */}
             <Stepper steps={steps} currentStep={currentStep} />
 
+            {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="mt-12 space-y-6">
               {renderStepContent()}
               <div className="flex justify-between mt-8 pt-6 border-t">
@@ -572,10 +715,10 @@ export default function NouvelleDemandePage() {
                   <button type="submit" disabled={loading}
                     className={`ml-auto px-4 py-2 text-sm font-medium text-white bg-primary rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-dark'}`}>
                     {loading ? (
-                      <div className="flex items-center">
+                      <span className="flex items-center">
                         <LoaderCircleIcon className="animate-spin -ml-1 mr-2 h-5 w-5" />
                         Envoi en cours...
-                      </div>
+                      </span>
                     ) : ('Soumettre la demande')}
                   </button>
                 )}

@@ -352,7 +352,7 @@ export default function AdminDemandesPaginated() {
       <Space wrap>
         <Input
           allowClear
-          placeholder="Rechercher (type, usage, demandeur, localité...)"
+          placeholder="Rechercher (type, usage, demandeur, Quartier...)"
           prefix={<SearchOutlined />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -439,7 +439,7 @@ export default function AdminDemandesPaginated() {
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Input
           allowClear
-          placeholder="Rechercher (type, usage, demandeur, localité...)"
+          placeholder="Rechercher (type, usage, demandeur, Quartier...)"
           prefix={<SearchOutlined />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}

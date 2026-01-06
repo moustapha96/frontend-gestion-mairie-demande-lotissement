@@ -145,7 +145,7 @@ const AdminDashboard = () => {
             />
 
             <StatCard
-              title="Localités"
+              title="Quartiers"
               lien="/admin/quartiers"
               icon={<LuLayoutGrid className="w-8 h-8 text-purple-600" />}
               total={stats.localites.total}

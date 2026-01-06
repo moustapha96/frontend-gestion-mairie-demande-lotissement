@@ -26,7 +26,7 @@ const AgentLocaliteAjouter = () => {
                 description
             }
             await createLocalite(body);
-            toast.success("Localité ajoutée avec succès!");
+            toast.success("Quartier ajoutée avec succès!");
             navigate("/admin/quartiers")
         } catch (error) {
             console.error(error);

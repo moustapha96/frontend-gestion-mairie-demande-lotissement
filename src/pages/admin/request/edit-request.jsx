@@ -110,7 +110,7 @@ export default function RequestEdit() {
             form.setFieldsValue({ localiteId: found.id });
             setMatchInfo({
                 type: "success",
-                text: `Localité détectée automatiquement : « ${found.nom} ».`,
+                text: `Quartier détectée automatiquement : « ${found.nom} ».`,
             });
         } else {
             setMatchInfo({
@@ -143,7 +143,7 @@ export default function RequestEdit() {
             const res = await updateDemande(String(id), payload);
             if (!res?.success) throw new Error();
             message.success("Demande mise à jour");
-            navigate("/admin/demandes");
+            navigate(`/admin/demandes/${id}/details`);
         } catch (e) {
             console.log(e)
             message.error(e?.response?.data?.detail || e?.message || "Erreur");

@@ -376,10 +376,10 @@ const AgentLocaliteListe = () => {
         try {
             if (editingLocalite) {
                 await updateLocalite(editingLocalite.id, values);
-                message.success("Localité mise à jour avec succès");
+                message.success("Quartier mise à jour avec succès");
             } else {
                 await createLocalite(values);
-                message.success("Localité ajoutée avec succès");
+                message.success("Quartier ajoutée avec succès");
             }
             handleCancel();
             fetchLocalite();

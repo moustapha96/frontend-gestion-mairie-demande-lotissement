@@ -50,7 +50,7 @@ export default function RequestCreate() {
         const list = await getLocalites();
         setLocalites(list || []);
       } catch {
-        message.error("Impossible de charger les localités");
+        message.error("Impossible de charger les Quartiers");
       }
     })();
   }, []);
@@ -178,7 +178,7 @@ export default function RequestCreate() {
                         {TYPE_DOCUMENT_OPTIONS.map(o => <Option key={o.value} value={o.value}>{o.label}</Option>)}
                       </Select>
                     </Form.Item>
-                    <Form.Item label="Localité" name="localiteId" rules={[{ required: true }]}>
+                    <Form.Item label="Quartier" name="localiteId" rules={[{ required: true }]}>
                       <Select showSearch placeholder="Sélectionner" optionFilterProp="children">
                         {localites.map((l) => <Option key={l.id} value={l.id}>{l.nom}</Option>)}
                       </Select>

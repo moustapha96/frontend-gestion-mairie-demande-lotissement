@@ -4,6 +4,14 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AppProvider } from "./AppContext";
 import './helpers/axiosInstance';
+import { observeAuthRefresh } from "./boot/observeRefresh";
+import { toast } from "sonner";
+
+
+observeAuthRefresh(({ access, refresh, at }) => {
+  console.info("[auth] token refresh", { at, access, refresh });
+  // toast.success("Token refresh");
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

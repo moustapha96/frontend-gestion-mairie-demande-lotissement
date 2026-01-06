@@ -38,6 +38,7 @@
     </div>
     <script type="module" src="/src/main"></script>
 
+    {#
     <script>
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -49,6 +50,17 @@
                     }, 500);
                 }
             }, 1000);
+        });
+    </script>
+    #}
+    <script>
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                const splashScreen = document.querySelector("#splash-screen");
+                if (splashScreen) {
+                    splashScreen.classList.add("remove");
+                }
+            }, 1000); // 1s d’affichage minimum
         });
     </script>
 </body>

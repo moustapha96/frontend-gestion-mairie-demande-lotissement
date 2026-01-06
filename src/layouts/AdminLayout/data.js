@@ -18,7 +18,7 @@ import dribble from "@/assets/images/brand/dribbble.png";
 import behance from "@/assets/images/brand/behance.png";
 
 const adminMenu = [{
-        name: "Dashboard",
+        name: "Tableau de bord",
         link: "/admin/dashboard",
         icon: LuRadar,
         roles: [
@@ -73,6 +73,16 @@ const adminMenu = [{
                 link: "/admin/demandes/nouveau",
                 roles: ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_AGENT", "ROLE_MAIRE"],
             },
+            {
+                name: "Attributions",
+                link: "/admin/attributions",
+                roles: ["ROLE_SUPER_ADMIN",
+                    "ROLE_ADMIN",
+                    "ROLE_PRESIDENT_COMMISSION",
+                    "ROLE_AGENT",
+                    "ROLE_MAIRE",
+                ],
+            }
         ],
     },
 
@@ -81,7 +91,7 @@ const adminMenu = [{
         icon: LuUsers,
         roles: ["ROLE_ADMIN", "ROLE_SUPER_ADMIN", "ROLE_MAIRE"],
         children: [
-            { name: "Liste des demandeurs", link: "/admin/demandeurs" },
+            { name: "Inscrits", link: "/admin/demandeurs" },
             {
                 name: "Liste des Habitants",
                 link: "/admin/electeurs",
@@ -129,6 +139,12 @@ const adminMenu = [{
         icon: LuFileText,
         roles: ["ROLE_SUPER_ADMIN"],
     },
+    {
+        name: "Contacts",
+        icon: LuFileText,
+        link: "/admin/contacts",
+        roles: ["ROLE_SUPER_ADMIN"],
+    },
     // {
     //     name: "Documents",
     //     link: "/admin/documents",
@@ -149,16 +165,6 @@ const adminMenu = [{
         roles: ["ROLE_ADMIN", "ROLE_SUPER_ADMIN", "ROLE_MAIRE"],
         children: [
             { name: "Paramètres", link: "/admin/configurations" },
-            {
-                name: "Historique",
-                link: "/admin/historiques-validations",
-                roles: ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_MAIRE"],
-            },
-            {
-                name: "Niveaux",
-                link: "/admin/niveaux-validations",
-                roles: ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_MAIRE"],
-            },
             {
                 name: "Audit Logs",
                 link: "/admin/audits",

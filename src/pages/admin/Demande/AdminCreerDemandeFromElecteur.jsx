@@ -408,7 +408,7 @@ export default function AdminCreerDemandeFromElecteur() {
                                                     </div>
 
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700">Localité</label>
+                                                        <label className="block text-sm font-medium text-gray-700">Quartier</label>
                                                         <select
                                                             {...register("localiteId")}
                                                             onChange={(e) => {

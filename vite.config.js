@@ -48,7 +48,7 @@ export default defineConfig({
     plugins: [react(), VitePWA(pwaConfig), tailwind()],
     define: { "process.env": {} },
     build: {
-        outDir: "../deploy-gestion-mairie/",
+        outDir: "../deploy-mairie/",
         rollupOptions: {
             output: {
                 manualChunks: {

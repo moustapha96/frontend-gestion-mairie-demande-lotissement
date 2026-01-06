@@ -18,7 +18,7 @@ import DashboardAgent from "@/pages/agent/Dashboard";
 import Finance from "@/pages/landing/Finance";
 import DemandeNouveau from "@/pages/demandeur/Demande/components/DemandeNouveau";
 import DemandeurProfile from "@/pages/demandeur/Profile";
-import AdminDemandeDetails from "@/pages/admin/Demande/components/DemandeDetails";
+
 import AdminDemandeurDetails from "@/pages/admin/Demandeur/components/DemandeurDetail";
 
 import AdminLotissementListe from "@/pages/admin/Lotissement";
@@ -75,19 +75,21 @@ import AdminTitreForm from "@/pages/admin/titres/AdminTitreForm";
 import Unauthorized from "@/pages/auth/unauthorized";
 import AdminAuditLogs from "@/pages/admin/audit";
 import AdminAccountManagement from "@/pages/admin/users";
-import AdminDemandesPaginated from "@/pages/admin/Demande/AdminDemandesPaginated";
-import DemandeCreatePaginatedForMe from "@/pages/admin/Demande/DemandeCreateForMe";
+
 import DemandeurParcelles from "@/pages/admin/Demandeur/demandeurParcelle";
-import AdminHistoriqueValidation from "@/pages/admin/Configuration/HistoriqueValidation";
-import NiveauxValidation from "@/pages/admin/Configuration/NiveauValidation";
+
 import RequestList from "@/pages/admin/request/list-request";
 import RequestCreate from "@/pages/admin/request/create-request";
 import RequestEdit from "@/pages/admin/request/edit-request";
 import RequestDetails from "@/pages/admin/request/details-request";
 import RequestListElector from "@/pages/admin/request/list-elector";
 import RequestCreateElector from "@/pages/admin/request/create-request-elector";
-import ValidateRequest from "@/pages/admin/request/validate-request";
+
 import ElectorRequests from "@/pages/admin/request/elector-requests";
+import AttributionParcelleRequest from "@/pages/admin/request/attribution-parcelle";
+import AttributionList from "@/pages/admin/attribuation/attribution-list";
+import AttributionDetails from "@/pages/admin/attribuation/attribution-detail";
+import AdminContactsList from "@/pages/admin/ContactMessage/AdminContactsList";
 
 const DemandeurDemandeDetails = lazy(
   () => import("@/pages/demandeur/Demande/components/DemandeDetails")
@@ -418,10 +420,7 @@ const adminRoutes = [
   //   path: "/admin/demandes",
   //   element: <AdminDemandesPaginated />,
   // },
-  // {
-  //   path: "/admin/demandes/:id/details",
-  //   element: <AdminDemandeDetails />,
-  // },
+
   // {
   //   path: "/admin/demandes/:id/confirmation",
   //   element: <AdminDemandeConfirmation />,
@@ -430,23 +429,11 @@ const adminRoutes = [
   //   path: "/admin/demande/nouvelle",
   //   element: <DemandeCreatePaginatedForMe />,
   // },
-  {
-    path: "/admin/historiques-validations",
-    element: <AdminHistoriqueValidation />
-  },
-  {
-    path: "/admin/niveaux-validations",
-    element: <NiveauxValidation />,
-  },
-
 
   { path: "/admin/demandes", element: <RequestList /> },
   { path: "/admin/demandes/nouveau", element: <RequestCreate /> },
   { path: "/admin/demandes/:id/edit", element: <RequestEdit /> },
-  {
-    path: "/admin/demandes/:id/details",
-    element: <RequestDetails />,
-  },
+ 
   {
     path: "/admin/electeurs",
     element: <RequestListElector />
@@ -455,14 +442,33 @@ const adminRoutes = [
     path: "/admin/electeurs/:id/nouveau-demande",
     element: <RequestCreateElector />,
   },
+   {
+    path: "/admin/demandes/:id/details",
+    element: <RequestDetails />,
+  },
+
   {
-    path: "/admin/demandes/:id/validation", 
-    element: <ValidateRequest />
+    path : "/admin/demandes/:id/attribution",
+    element: <AttributionParcelleRequest />
   },
   {
     path : "/admin/electeurs/:electeurId/demandes",
     element: <ElectorRequests />
   }
+  ,{
+    path : "/admin/attributions",
+    element: <AttributionList />
+  }
+  ,{
+    path : "/admin/attributions/:id/détails",
+    element: <AttributionDetails />
+  },
+  {
+  path: "/admin/contacts",
+  element: <AdminContactsList />,
+},
+
+
 ];
 
 const authRoutes = [
