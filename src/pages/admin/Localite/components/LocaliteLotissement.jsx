@@ -207,7 +207,7 @@ const AdminLocaliteLotissement = () => {
                                         <Title level={4} className="!mb-0">Lotissements du Quartié</Title>
                                         {localite && (
                                             <Link to={`/admin/quartiers/${id}/details`} className="text-primary text-sm">
-                                                Localité: {localite.nom}
+                                                Quartier: {localite.nom}
                                             </Link>
                                         )}
                                     </Space>

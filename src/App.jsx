@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { ScrollToTop } from "./components";
 import { AuthProvider, LayoutProvider } from "./context";
-import { configureFakeBackend } from "./helpers";
+
 import AllRoutes from "./routes/Routes";
 
 import "preline/preline";
@@ -12,7 +12,6 @@ import "@/assets/css/style.css";
 import 'leaflet/dist/leaflet.css';
 
 
-configureFakeBackend();
 
 function App() {
   const { pathname } = useLocation();

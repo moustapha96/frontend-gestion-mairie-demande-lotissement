@@ -24,7 +24,7 @@ const AdminBreadcrumb = ({ title, SubTitle , items = [] }) => {
                     to="/admin/dashboard"
                     className="text-base font-medium text-default-900 transition-all duration-200 hover:text-primary"
                   >
-                    Dashboard
+                    Tableau de bord
                   </Link>
                 </div>
                 <div className="flex items-center gap-2">

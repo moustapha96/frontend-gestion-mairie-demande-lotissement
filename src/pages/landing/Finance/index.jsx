@@ -6,6 +6,12 @@ import ValuableAssets from "./components/ValuableAssets"
 import ArticlesPage from "./components/ArticlePage"
 import Contact from "./components/Contact"
 import { menuItems } from "@/assets/data"
+import Portfolio from "./components/Portfolio"
+import HeroSwiper from "./components/HeroSwiper"
+import BusinessSolutions from "./components/BusinessSolutions"
+import ContactUs from "./components/ContactUs"
+import { Home } from "lucide-react"
+import HomeHome from "./components/Home"
 
 const Finance = () => {
   return (
@@ -21,24 +27,34 @@ const Finance = () => {
         position="fixed"
       />
 
-      <Hero />
+      <HomeHome />
+
+      {/* <Hero /> */}
+
+      {/* <HeroSwiper /> */}
 
       <MarqueeGroup />
 
-      <Feature1 />
+      <BusinessSolutions id="solutions" />
 
-      <ValuableAssets />
 
-      <ArticlesPage />
+      <Feature1  id="resources"/>
 
+
+      {/* <ArticlesPage /> */}
+
+      <Portfolio />
 
       {/* <OnBoarding /> */}
+
       {/* <Experts /> */}
 
 
       {/* <SearchPlan /> */}
 
-      <Contact />
+      {/* <Contact /> */}
+
+      <ContactUs />
     </>
 
   )

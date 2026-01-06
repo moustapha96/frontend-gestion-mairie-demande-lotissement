@@ -42,30 +42,7 @@ const AdminLocaliteLotissementAjouter = () => {
         fetchLocalite();
     }, [id])
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault()
-    //     setLoading(true)
-    //     try {
-    //         const body = {
-    //             nom,
-    //             localisation,
-    //             description,
-    //             statut,
-    //             dateCreation: new Date(dateCreation).toLocaleDateString(),
-    //             localiteId: id
-    //         }
-    //         console.log(body)
-    //         const res = await createLotissement(body);
-    //         console.log(res)
-    //         toast.success("Lotissement ajouté avec succès!");
-    //         navigate(`/admin/quartiers/${id}/details`)
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Erreur lors de l'ajout du lotissement");
-    //     } finally {
-    //         setLoading(false)
-    //     }
-    // }
+   
 
     const handleSubmit = async (values) => {
         console.log(values)
@@ -73,12 +50,12 @@ const AdminLocaliteLotissementAjouter = () => {
         try {
             const body = {
                 nom: values.nom,
-                localisation: values.localisation,
-                description: values.description,
+                localisation: values.localisation ?? null,
+                description: values.description ?? null,
                 statut: values.statut,
                 dateCreation: new Date().toLocaleDateString(),
-                longitude: values.longitude,
-                latitude: values.latitude,
+                longitude: values.longitude ?? null,
+                latitude: values.latitude ?? null,
                 localiteId: id
             }
             console.log(body)
@@ -106,7 +83,7 @@ const AdminLocaliteLotissementAjouter = () => {
                 });
             } catch (error) {
                 console.error(error);
-                toast.error("Erreur lors du chargement de la localité");
+                toast.error("Erreur lors du chargement de la Quartier");
             }
         };
 
@@ -128,7 +105,7 @@ const AdminLocaliteLotissementAjouter = () => {
                     <div className="flex justify-center items-center text-2xl font-bold  " >
                         {localite ? <>
                             <span>
-                                Localite :
+                                Quartier :
                             </span>
                             <span className=" text-primary text-center ml-3 ">
                                 <Link to={`/admin/quartiers/${localite.id}/details`} >
@@ -149,7 +126,7 @@ const AdminLocaliteLotissementAjouter = () => {
                             <Form.Item
                                 name="localisation"
                                 label="Localisation"
-                                rules={[{ required: true, message: "La localisation est requise" }]}
+                               
                             >
                                 <Input />
                             </Form.Item>
@@ -159,7 +136,7 @@ const AdminLocaliteLotissementAjouter = () => {
                             <Form.Item
                                 name="longitude"
                                 label="Longitude"
-                                rules={[{ required: true, message: "La longitude est requise" }]}
+                                
                             >
                                 <Input type="number" />
                             </Form.Item>
@@ -167,8 +144,6 @@ const AdminLocaliteLotissementAjouter = () => {
                             <Form.Item
                                 name="latitude"
                                 label="Latitude"
-                                
-                                rules={[{ required: true, message: "La latitude est requise" }]}
                             >
                                 <Input type="number" />
                             </Form.Item>
@@ -176,7 +151,6 @@ const AdminLocaliteLotissementAjouter = () => {
                             <Form.Item
                                 name="description"
                                 label="Description"
-                                rules={[{ required: true, message: "La description est requise" }]}
                             >
                                 <TextArea rows={3} />
                             </Form.Item>
@@ -194,9 +168,9 @@ const AdminLocaliteLotissementAjouter = () => {
                                 </Select>
                             </Form.Item>
 
-                            <Form.Item name="dateCreation" label="Date de création">
+                            {/* <Form.Item name="dateCreation" label="Date de création">
                                 <Input type="datetime-local" disabled defaultValue={new Date().toISOString().slice(0, 16)} />
-                            </Form.Item>
+                            </Form.Item> */}
 
                             <Form.Item className="flex justify-center">
                                 <Space>

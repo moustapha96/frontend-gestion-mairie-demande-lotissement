@@ -75,7 +75,7 @@ const AdminLotissementAjouter = () => {
                             </> : <>
                                 <div>
                                     <label htmlFor="localite" className="block text-sm font-medium text-gray-700  dark:text-white ">
-                                        Localité  <span className="text-red-500" >*</span> 
+                                        Quartier  <span className="text-red-500" >*</span> 
                                     </label>
                                     <select id="localite" value={localiteId} onChange={(e) => setLocaliteId(e.target.value)} required
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
@@ -168,20 +168,7 @@ const AdminLotissementAjouter = () => {
                                     <option value="achevé">Achevé</option>
                                 </select>
                             </div>
-                            <div>
-                                <label htmlFor="dateCreation" className="block text-sm font-medium text-gray-700 dark:text-white">
-                                    Date de création
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    id="dateCreation"
-                                    disabled
-                                    value={dateCreation}
-                                    onChange={(e) => setDateCreation(e.target.value)}
-                                    required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
-                                />
-                            </div>
+                           
                             <div className="flex justify-center">
                                 <button
                                     type="submit"

@@ -3,6 +3,16 @@ import { HttpClient } from "../helpers";
 const urlApi = import.meta.env.VITE_API_URL;
 
 // Récupérer tous les Parcelles
+
+export async function getParcelleDisponibles($idDemande) {
+    try {
+        const response = await HttpClient.get(`${urlApi}parcelle/disponibles/${$idDemande}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la récupération des Parcelles:", error);
+        throw error;
+    }
+}
 export async function getParcellesListe() {
     try {
         const response = await HttpClient.get(`${urlApi}parcelle/liste`);
@@ -122,7 +132,7 @@ export async function getParcellesByUserPaginated(
     if (lotissementId) params.set("lotissementId", lotissementId);
 
     const { data } = await HttpClient.get(
-        `${urlApi}users/${userId}/parcelles?${params.toString()}`
+        `${urlApi}parcelle/proprietaire/${userId}?${params.toString()}`
     );
     return data;
 }

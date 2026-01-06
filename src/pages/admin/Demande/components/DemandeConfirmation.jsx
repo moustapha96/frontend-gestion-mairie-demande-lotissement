@@ -1775,7 +1775,7 @@ const AdminDemandeConfirmation = () => {
                                             title={
                                                 <span>
                                                     <EnvironmentOutlined className="mr-2" />
-                                                    Localité
+                                                    Quartier
                                                 </span>
                                             }
                                             size="small"

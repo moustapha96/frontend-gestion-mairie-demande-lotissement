@@ -266,7 +266,7 @@ const DocumentListe = () => {
                                 />
                                 <InfoItem
                                     icon={<MapPin />}
-                                    label="Localité"
+                                    label="Quartier"
                                     value={selectedDocument.demande.localite.nom}
                                 />
                             </div>

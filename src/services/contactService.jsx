@@ -1,10 +1,15 @@
 
 import { HttpClient } from '../helpers';
-
-
-
-
 const urlApi = import.meta.env.VITE_API_URL
+
+
+export const fetchContacts = async () => {
+  const { data } = await HttpClient.get(`${urlApi}contact`);
+  return data;
+};
+
+
+
 // Function to create a new demande
 export async function createContact(data) {
     const response = await fetch(urlApi + "contacts/create", {

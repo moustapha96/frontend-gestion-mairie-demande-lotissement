@@ -2,16 +2,9 @@ import { HttpClient } from '../helpers';
 
 const urlApi = import.meta.env.VITE_API_URL
 
-// Niveaux
-// export async function getLevels(params = {}) {
-//     const { data } = await HttpClient.get(`${urlApi}niveaux`, { params });
-//     return data; // { success, items, total, page, pageSize }
-// }
 
-export async function getLevel(id) {
-    const { data } = await HttpClient.patch(`${urlApi}requests/${id}/niveau`);
-    return data;
-}
+
+
 
 export async function createLevel(payload) {
     const { data } = await HttpClient.post(`${urlApi}niveaux`, payload);
@@ -42,11 +35,7 @@ export async function deleteHistorique(id) {
 
 
 
-export async function getLevels() {
-  const { data } = await HttpClient.get(`${urlApi}niveaux`);
-  // data peut être un array direct ou { items: [...] }
-  return Array.isArray(data) ? data : (data?.items ?? []);
-}
+
 
 // Historique: création d’une ligne (journalisation côté front, best-effort)
 export async function createHistorique(payload) {
