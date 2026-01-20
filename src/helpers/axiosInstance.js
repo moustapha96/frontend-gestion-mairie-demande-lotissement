@@ -7,12 +7,10 @@ import { getCookie, setCookie, deleteCookie } from "cookies-next";
 const RAW_BASE =
     import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 const BASE_URL = RAW_BASE.replace(/\/+$/, "");
-const REFRESH_URL = `${BASE_URL}/token/refresh`;
 
 /* ========= Storage Keys (alignés avec AuthContext) ========= */
 export const KEY_AUTH_FLAG = "__GESTIO-MAIRIE_REACT_AUTH__";
 export const KEY_ACCESS = "__GESTIO-MAIRIE_REACT_AUTH__TOKEN";
-export const KEY_REFRESH = "__GESTIO-MAIRIE_REACT_AUTH__REFRESH";
 export const KEY_USER = "__GESTIO-MAIRIE_REACT_AUTH__USER";
 
 /* ========= Helpers lecture stockage ========= */
@@ -38,26 +36,18 @@ function readAccessToken() {
     return safeReadLS(KEY_ACCESS) || safeReadCookie(KEY_ACCESS);
 }
 
-function readRefreshToken() {
-    return safeReadLS(KEY_REFRESH) || safeReadCookie(KEY_REFRESH);
-}
-
-/* ========= Ecriture session (tokens uniquement) ========= */
-export function writeSession({ access, refresh }) {
+/* ========= Ecriture session (access token uniquement) ========= */
+export function writeSession({ access }) {
     if (access) {
         localStorage.setItem(KEY_ACCESS, JSON.stringify(access));
         setCookie(KEY_ACCESS, JSON.stringify(access));
-    }
-    if (refresh) {
-        localStorage.setItem(KEY_REFRESH, JSON.stringify(refresh));
-        setCookie(KEY_REFRESH, JSON.stringify(refresh));
     }
     localStorage.setItem(KEY_AUTH_FLAG, "true");
     setCookie(KEY_AUTH_FLAG, "true");
 
     window.dispatchEvent(
         new CustomEvent("auth:session", {
-            detail: { access, refresh },
+            detail: { access },
         })
     );
 }
@@ -67,14 +57,14 @@ export function clearSessionAndRedirect() {
         localStorage.clear();
     } catch {}
 
-    [KEY_AUTH_FLAG, KEY_ACCESS, KEY_REFRESH, KEY_USER, "isAuthenticated"].forEach(
+    [KEY_AUTH_FLAG, KEY_ACCESS, KEY_USER, "isAuthenticated"].forEach(
         (k) => {
             try {
                 localStorage.removeItem(k);
             } catch {}
         }
     );
-    [KEY_AUTH_FLAG, KEY_ACCESS, KEY_REFRESH, KEY_USER].forEach((k) =>
+    [KEY_AUTH_FLAG, KEY_ACCESS, KEY_USER].forEach((k) =>
         deleteCookie(k)
     );
 
@@ -86,8 +76,7 @@ function isAuthUrl(url) {
     const u = url.toString();
     return (
         u.includes("/login") ||
-        u.includes("/auth") ||
-        u.includes("/token/refresh")
+        u.includes("/auth")
     );
 }
 
@@ -126,44 +115,9 @@ axiosInstance.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-/* ========= Refresh orchestration ========= */
-let isRefreshing = false;
-let subscribers = [];
-
-function subscribeTokenRefresh(cb) {
-    subscribers.push(cb);
-}
-
-function onRefreshed(newToken) {
-    subscribers.forEach((cb) => cb(newToken));
-    subscribers = [];
-}
-
-async function doRefresh() {
-    const refresh_token = readRefreshToken();
-    if (!refresh_token) throw new Error("No refresh token");
-
-    const res = await axios.post(
-        REFRESH_URL, { refresh_token }, {
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-        }
-    );
-
-    const newAccess = res.data.token;
-    const newRefresh = res.data.refresh_token || refresh_token;
-
-    if (!newAccess) throw new Error("Refresh response missing access token");
-
-    writeSession({ access: newAccess, refresh: newRefresh });
-    return newAccess;
-}
-
-/* ========= Response interceptor ========= */
+/* ========= Response interceptor (sans refresh token) ========= */
 axiosInstance.interceptors.response.use(
-    (response) => response, // on laisse la réponse brute, wrapper gère le .data
+    (response) => response,
     async(error) => {
         const resp = error.response;
         const original = error.config;
@@ -172,41 +126,11 @@ axiosInstance.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        if (resp.status !== 401 || isAuthUrl(original.url)) {
-            return Promise.reject(error);
-        }
-
-        if (original._retry) {
-            return Promise.reject(error);
-        }
-        original._retry = true;
-
-        if (isRefreshing) {
-            return new Promise((resolve, reject) => {
-                subscribeTokenRefresh((newToken) => {
-                    if (!newToken) return reject(error);
-                    original.headers = original.headers || {};
-                    original.headers.Authorization = `Bearer ${newToken}`;
-                    resolve(axiosInstance(original));
-                });
-            });
-        }
-
-        isRefreshing = true;
-        try {
-            const newToken = await doRefresh();
-            isRefreshing = false;
-            onRefreshed(newToken);
-
-            original.headers = original.headers || {};
-            original.headers.Authorization = `Bearer ${newToken}`;
-            return axiosInstance(original);
-        } catch (e) {
-            isRefreshing = false;
-            onRefreshed(null);
+        if (resp.status === 401 && !isAuthUrl(original.url)) {
             clearSessionAndRedirect();
-            return Promise.reject(e);
         }
+
+        return Promise.reject(error);
     }
 );
 

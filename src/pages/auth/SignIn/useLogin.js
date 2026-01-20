@@ -244,7 +244,6 @@ const useLogin = () => {
 
             saveSession({
                 token: res.token,
-                refresh_token: res.refresh_token || null,
                 user: res.user,
             });
 

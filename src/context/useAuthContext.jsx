@@ -218,7 +218,7 @@ import {
   useEffect,
 } from "react";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
-import { KEY_ACCESS, KEY_AUTH_FLAG, KEY_REFRESH, KEY_USER } from "@/helpers/axiosInstance";
+import { KEY_ACCESS, KEY_AUTH_FLAG, KEY_USER } from "@/helpers/axiosInstance";
 
 
 const KEY_AVATAR = "__GESTIO-MAIRIE_REACT_AVATAR";
@@ -255,9 +255,6 @@ export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(
     () => safeParseLS(KEY_ACCESS) ?? safeParseCookie(KEY_ACCESS)
   );
-  const [refreshToken, setRefreshToken] = useState(
-    () => safeParseLS(KEY_REFRESH) ?? safeParseCookie(KEY_REFRESH)
-  );
   const [user, setUser] = useState(
     () => safeParseLS(KEY_USER) ?? safeParseCookie(KEY_USER)
   );
@@ -274,13 +271,6 @@ export function AuthProvider({ children }) {
   }, [accessToken]);
 
   useEffect(() => {
-    if (refreshToken) {
-      localStorage.setItem(KEY_REFRESH, JSON.stringify(refreshToken));
-      setCookie(KEY_REFRESH, JSON.stringify(refreshToken));
-    }
-  }, [refreshToken]);
-
-  useEffect(() => {
     if (user) {
       localStorage.setItem(KEY_USER, JSON.stringify(user));
       localStorage.setItem("isAuthenticated", "true");
@@ -290,31 +280,26 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   /* ========= API publique ========= */
-  const saveSession = useCallback(({ token, refresh_token, user: u }) => {
+  const saveSession = useCallback(({ token, user: u }) => {
     if (!token || !u) return;
 
     // LS + cookies
     localStorage.setItem(KEY_AUTH_FLAG, "true");
     localStorage.setItem(KEY_ACCESS, JSON.stringify(token));
-    if (refresh_token) {
-      localStorage.setItem(KEY_REFRESH, JSON.stringify(refresh_token));
-    }
     localStorage.setItem(KEY_USER, JSON.stringify(u));
     localStorage.setItem("isAuthenticated", "true");
 
     setCookie(KEY_AUTH_FLAG, "true");
     setCookie(KEY_ACCESS, JSON.stringify(token));
-    if (refresh_token) setCookie(KEY_REFRESH, JSON.stringify(refresh_token));
     setCookie(KEY_USER, JSON.stringify(u));
 
     // state
     setAccessToken(token);
-    if (refresh_token) setRefreshToken(refresh_token);
     setUser(u);
 
     window.dispatchEvent(
       new CustomEvent("auth:session", {
-        detail: { access: token, refresh: refresh_token },
+        detail: { access: token },
       })
     );
   }, []);
@@ -347,7 +332,6 @@ export function AuthProvider({ children }) {
     [
       KEY_AUTH_FLAG,
       KEY_ACCESS,
-      KEY_REFRESH,
       KEY_USER,
       KEY_AVATAR,
       "isAuthenticated",
@@ -356,12 +340,11 @@ export function AuthProvider({ children }) {
         localStorage.removeItem(k);
       } catch {}
     });
-    [KEY_AUTH_FLAG, KEY_ACCESS, KEY_REFRESH, KEY_USER].forEach((k) =>
+    [KEY_AUTH_FLAG, KEY_ACCESS, KEY_USER].forEach((k) =>
       deleteCookie(k)
     );
 
     setAccessToken(undefined);
-    setRefreshToken(undefined);
     setUser(undefined);
     setProfileImage(undefined);
   }, []);
@@ -378,59 +361,11 @@ export function AuthProvider({ children }) {
     [accessToken, user]
   );
 
-  /* ========= Refresh au boot si pas d’access mais un refresh ========= */
-  useEffect(() => {
-    async function attemptRefreshOnBoot() {
-      const access =
-        safeParseCookie(KEY_ACCESS) ?? safeParseLS(KEY_ACCESS);
-      const refresh =
-        safeParseCookie(KEY_REFRESH) ?? safeParseLS(KEY_REFRESH);
-
-      if (!access && refresh) {
-        try {
-          const base = import.meta.env.VITE_API_URL;
-          const res = await fetch(`${base}token/refresh`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({ refresh_token: refresh }),
-          });
-          console.log(res)
-          if (!res.ok) throw new Error("Refresh failed");
-          const data = await res.json();
-          const newAccess = data.token;
-          const newRefresh = data.refresh_token || refresh;
-
-          setAccessToken(newAccess);
-          setRefreshToken(newRefresh);
-          localStorage.setItem(KEY_ACCESS, JSON.stringify(newAccess));
-          localStorage.setItem(KEY_REFRESH, JSON.stringify(newRefresh));
-          setCookie(KEY_ACCESS, JSON.stringify(newAccess));
-          setCookie(KEY_REFRESH, JSON.stringify(newRefresh));
-          localStorage.setItem(KEY_AUTH_FLAG, "true");
-          setCookie(KEY_AUTH_FLAG, "true");
-
-          window.dispatchEvent(
-            new CustomEvent("auth:session", {
-              detail: { access: newAccess, refresh: newRefresh },
-            })
-          );
-        } catch (e){
-         console.log(e)
-        }
-      }
-    }
-    attemptRefreshOnBoot();
-  }, []);
-
   /* ========= Sync avec HttpClient (auth:session) ========= */
   useEffect(() => {
     function onSession(e) {
-      const { access, refresh } = e?.detail || {};
+      const { access } = e?.detail || {};
       if (access) setAccessToken(access);
-      if (refresh) setRefreshToken(refresh);
     }
     window.addEventListener("auth:session", onSession);
     return () => window.removeEventListener("auth:session", onSession);
@@ -439,7 +374,6 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       token: accessToken,
-      refreshToken,
       user,
       logout,
       getToken,
@@ -452,7 +386,6 @@ export function AuthProvider({ children }) {
     }),
     [
       accessToken,
-      refreshToken,
       user,
       logout,
       getToken,
