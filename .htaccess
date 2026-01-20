@@ -1,6 +1,13 @@
 RewriteEngine On
 RewriteBase /
 
+# Désactiver le cache navigateur pour toute l'application
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</IfModule>
+
 # Si le fichier ou le dossier demandé existe, ne pas rediriger
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
