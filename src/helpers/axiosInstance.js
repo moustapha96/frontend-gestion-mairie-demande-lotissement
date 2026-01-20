@@ -5,7 +5,7 @@ import { getCookie, setCookie, deleteCookie } from "cookies-next";
 
 /* ========= Base URL ========= */
 const RAW_BASE =
-    import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+    import.meta.env.VITE_API_URL || "http://127.0.0.1:9000/api";
 const BASE_URL = RAW_BASE.replace(/\/+$/, "");
 const REFRESH_URL = `${BASE_URL}/token/refresh`;
 
